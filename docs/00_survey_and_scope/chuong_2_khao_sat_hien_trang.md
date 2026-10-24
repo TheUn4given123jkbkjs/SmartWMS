@@ -29,16 +29,9 @@ Từ nội dung bài viết tình huống của VTI Solutions, nhóm BA áp dụ
 
 ## 2.2. TỔNG QUAN TỔ CHỨC VÀ BỐI CẢNH NGHIỆP VỤ
 
-Doanh nghiệp trong case study là một tập đoàn công nghiệp hàng đầu Nhật Bản hoạt động trong lĩnh vực sản xuất cơ khí chính xác và thiết bị điện, hiện đang vận hành ba công ty thành viên tại Việt Nam:
-1. Công ty chuyên sản xuất và lắp ráp xe gắn máy.
-2. Công ty chuyên sản xuất phụ tùng cơ khí cho xe gắn máy.
-3. Công ty chuyên sản xuất và lắp ráp linh kiện, thiết bị điện cho xe gắn máy và nhạc cụ cao cấp.
+Như đã giới thiệu tại **Chương 1**, đề tài dựa trên Case Study của VTI Solutions công bố tháng 07/2025 về một tập đoàn công nghiệp Nhật Bản có nhiều nhà máy tại Việt Nam. Trong đó, hai nhà máy thuộc phân mảng sản xuất phụ tùng và linh kiện điện tử vận hành kho hoàn toàn thủ công, chưa có phần mềm quản lý. Đây chính là phạm vi khảo sát của đề tài.
 
-Mỗi nhà máy đều sở hữu kho nguyên vật liệu và kho thành phẩm riêng biệt. Hiện trạng quản lý kho giữa ba nhà máy không đồng nhất:
-* Một nhà máy đã triển khai hệ thống phần mềm WMS nhưng gặp nhiều hạn chế khi sử dụng thực tế.
-* **Hai nhà máy còn lại vận hành hoàn toàn thủ công.** 
-
-Do đó, đề tài tập trung nghiên cứu vào **hiện trạng của kho vận hành thủ công** – nơi các vấn đề nhức nhối nhất, quy trình còn nhiều sơ hở và lợi ích mang lại từ hệ thống mới là rõ rệt nhất. Các bộ phận liên quan trực tiếp đến hoạt động kho gồm: Bộ phận Kho, Phòng Mua hàng, Bộ phận Kế hoạch Sản xuất, Bộ phận Kế toán và Ban Quản lý Nhà máy.
+Mỗi nhà máy sở hữu kho nguyên vật liệu đầu vào và kho thành phẩm đầu ra riêng biệt. Đề tài tập trung vào **hiện trạng kho thủ công** — nơi các vấn đề nghiêm trọng nhất và lợi ích của hệ thống mới là rõ rệt nhất. Các bộ phận liên quan trực tiếp đến hoạt động kho gồm: Bộ phận Kho, Phòng Mua hàng, Bộ phận Kế hoạch Sản xuất, Bộ phận Kế toán và Ban Quản lý Nhà máy.
 
 ---
 
@@ -54,7 +47,7 @@ Trong chuỗi vận hành kho thủ công của doanh nghiệp, các bên liên 
 | **Nhân viên kho (Thủ kho)** | Nhận hàng, cất hàng, lấy hàng xuất, ghi chép thẻ kho giấy và nhập lại vào bảng tính Excel. | Thao tác đơn giản, tìm kiếm hàng nhanh chóng; có chỉ dẫn vị trí rõ ràng; không phải ghi chép sổ sách trùng lặp. |
 | **Nhân viên Phòng Mua hàng** | Lập đơn mua hàng (PO), theo dõi nhà cung cấp giao hàng, quyết định thời điểm đặt hàng bổ sung. | Nắm được số tồn thực tế và hàng sắp về theo PO; được cảnh báo kịp thời khi hàng chạm ngưỡng tồn tối thiểu. |
 | **Bộ phận Sản xuất / Kế hoạch** | Gửi yêu cầu xuất nguyên vật liệu, phụ tùng phục vụ các ca sản xuất. | Được cấp phát hàng đúng hẹn, đúng quy cách; biết trước số lượng còn hay hết để chủ động lịch trình dây chuyền. |
-| **Nhà cung cấp (Suppliers)** | Giao hàng đến kho theo Đơn mua hàng (PO) đã cam kết. | Giao nhận tại cửa kho rõ ràng; biên bản bàn giao và đối soát số lượng thực tế minh bạch, thuận lợi. |
+| **Nhà cung cấp** *(bên ngoài hệ thống)* | Giao hàng đến kho theo Đơn mua hàng (PO) đã cam kết. SmartWMS không cung cấp giao diện trực tiếp cho nhà cung cấp; tương tác được ghi nhận gián tiếp qua chứng từ nhập kho. | Quá trình giao nhận tại cửa kho diễn ra minh bạch; biên bản đối soát số lượng thực nhận chính xác, tránh tranh chấp. |
 | **Bộ phận Kế toán kho** | Đối chiếu số liệu nhập - xuất - tồn kho với chứng từ hóa đơn và sổ cái tài chính. | Chứng từ đầy đủ, số liệu trên phần mềm khớp với chứng từ vật lý; có vết kiểm toán (Audit Trail) để đối chiếu. |
 | **Quản lý nhà máy / Ban Lãnh đạo** | Giám sát tổng thể hoạt động các nhà máy và ra quyết định chiến lược. | Báo cáo tồn kho tổng quan, chính xác theo thời gian thực để ra quyết định phân bổ nguồn lực kịp thời. |
 | **Hệ thống ERP / MES** *(ngoài phạm vi)* | Cung cấp kế hoạch sản xuất tổng thể và đơn hàng mua. | Chuẩn hóa cấu trúc dữ liệu để sẵn sàng kết nối, đồng bộ dữ liệu hai chiều trong tương lai. |
@@ -125,13 +118,7 @@ Trong phương thức vận hành truyền thống tại hai nhà máy, các b�
 | **Điện thoại / Zalo** | Hỏi số lượng tồn tức thời, giải quyết các phát sinh khẩn cấp. | Không lưu vết lịch sử; không thể dùng làm bằng chứng đối soát khi xảy ra sai lệch số lượng. |
 | **Phần mềm WMS cũ** *(1 nhà máy)* | Quản lý kho điện tử bước đầu. | Còn nhiều hạn chế khi sử dụng thực tế; quy trình riêng biệt, không đồng bộ dữ liệu với 2 nhà máy còn lại. |
 
-### 2.5.2. Hiện trạng dữ liệu và các khoảng trống thông tin (Data Gaps)
-* **Các trường dữ liệu đang quản lý:** Mã sản phẩm (SKU), Tên sản phẩm, Đơn vị tính cơ sở (ĐVT), Số lượng tồn sổ sách, Ngày ghi nhận, Tên nhà cung cấp, Số đơn mua hàng (PO), Số chứng từ phiếu nhập/xuất, Người giao/Người nhận, Ghi chú chung.
-* **Các khoảng trống dữ liệu chí mạng (Data Gaps):**
-  1. *Thiếu mã vị trí lưu kho chuẩn hóa:* Hàng hóa chỉ được ghi chú chung chung hoặc để trống vị trí; không có cấu trúc phân vùng Khu vực - Dãy - Kệ - Ô (Zone-Aisle-Rack-Bin).
-  2. *Thiếu quản lý Lô (Lot/Batch No) và Hạn sử dụng (EXP Date):* Dữ liệu tồn kho hiện tại chỉ ghi tổng số lượng theo SKU mà không bóc tách số lượng theo từng lô sản xuất, dẫn đến mất kiểm soát hạn dùng.
-  3. *Thiếu định mức dự trữ an toàn:* Không có trường dữ liệu quy định Mức tồn tối thiểu (Min Stock) và Mức tồn tối đa (Max Stock) cho từng mặt hàng.
-  4. *Thiếu phân định trạng thái tồn kho:* Chưa có cơ chế tách bạch giữa Tồn thực tế ($On\text{-}hand$), Tồn giữ chỗ ($Reserved$) cho các đơn đang soạn, và Tồn khả dụng ($Available$) để tránh nguy cơ xuất âm.
+Dữ liệu đang quản lý bao gồm các trường cơ bản: Mã sản phẩm (SKU), Tên, Đơn vị tính, Số lượng tồn sổ sách, Ngày ghi nhận, Tên nhà cung cấp, Số PO, Số phiếu nhập/xuất, Người giao/nhận và Ghi chú. Tuy nhiên, các trường nghiệp vụ thiết yếu hoàn toàn vắng mặt: **mã vị trí kho chuẩn hóa** (Zone-Aisle-Rack-Bin), **số lô và hạn dùng** (Lot/EXP) từng kiện hàng, **định mức dự trữ an toàn** (Min/Max Stock), và **phân tách trạng thái tồn** giữa $On\text{-}hand$, $Reserved$ và $Available$. Đây chính là căn nguyên kỹ thuật dữ liệu của các vấn đề `P-02`, `P-04`, `P-05` và `P-07` được trình bày ở mục 2.6.
 
 ---
 
@@ -144,7 +131,7 @@ Từ các nút thắt trong 5 quy trình AS-IS và hạn chế công cụ nêu t
 | Mã vấn đề | Tên vấn đề hiện trạng | Biểu hiện thực tế tại kho | Hậu quả đối với doanh nghiệp | Nguyên nhân gốc rễ |
 | :---: | :--- | :--- | :--- | :--- |
 | **P-01** | **Dữ liệu tồn kho phân tán, không đồng bộ** | Số liệu Thẻ kho giấy và File Excel lệch nhau; dữ liệu Excel trễ 12–24h so với thực tế. | Độ chính xác tồn chỉ 85–90%; không nắm được tồn thật, phải đếm lại nhiều lần. | Chưa có hệ thống ghi nhận giao dịch tại thời điểm xảy ra (Real-time Transaction). |
-| **P-02** | **Nguy cơ xuất âm và bán trùng (Overselling)** | Không kiểm soát tồn khả dụng; nhiều bên cùng yêu cầu một mặt hàng đang có tồn thấp. | Xuất âm kho trên sổ sách; thiếu hàng thực tế khi ra kệ bốc dỡ; đình trệ sản xuất. | Không phân tách giữa $Available$ và $On\text{-}hand$; thiếu cơ chế giữ chỗ ($Reserved$). |
+| **P-02** | **Không kiểm soát được tồn khả dụng, nguy cơ cấp phát thiếu hàng** | Nhiều bộ phận sản xuất cùng yêu cầu xuất một mặt hàng đang có tồn thấp; số liệu Excel chậm trễ khiến không ai biết còn đủ hàng hay không cho đến khi ra kệ. | Thiếu hàng khi bốc dỡ; buộc phải xuất từng phần, làm gián đoạn kế hoạch sản xuất. | Không có cơ chế phân tách giữa $Available$ và $On\text{-}hand$; thiếu cơ chế tạm giữ chỗ ($Reserved$) ngay khi lập phiếu xuất. |
 | **P-03** | **Đứt gãy thông tin giữa Mua hàng và Kho** | Mua hàng không biết tồn thực; Kho không biết trước thông tin PO sắp giao về. | Đặt hàng khẩn cấp chi phí cao; kho bị động về nhân lực và mặt bằng giá kệ. | Giao tiếp qua email và điện thoại rời rạc; thiếu cơ sở dữ liệu PO liên thông. |
 | **P-04** | **Bố trí hàng ngẫu nhiên, thiếu mã vị trí kho** | Hàng hóa xếp theo chỗ trống; không có phân vùng hay mã vị trí (Zone-Aisle-Rack). | Nhân viên mất 30–60 phút để tìm hàng; phụ thuộc hoàn toàn người làm lâu năm. | Không có quy tắc định danh vị trí lưu kho và chỉ dẫn cất/lấy hàng trên phần mềm. |
 | **P-05** | **Không quản lý Lô và Hạn dùng, vi phạm FIFO/FEFO** | Thẻ kho không theo dõi Lot/EXP; nhân viên lấy hàng theo thói quen tiện tay ở ngoài. | Hàng cũ tồn đọng đáy kệ; phụ tùng gỉ sét, hóa chất hết hạn phải tiêu hủy lãng phí. | Thiếu mô hình dữ liệu Lot/EXP và thuật toán tự động gợi ý xuất theo FEFO/FIFO. |

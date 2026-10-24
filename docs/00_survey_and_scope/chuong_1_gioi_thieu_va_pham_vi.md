@@ -6,11 +6,7 @@
 
 Kho hàng là mắt xích nối liền và quyết định nhịp độ giữa mua hàng, sản xuất và phân phối giao hàng trong doanh nghiệp. Nếu số liệu kho bị sai lệch hoặc cập nhật chậm trễ, mọi bộ phận phía sau đều bị ảnh hưởng trực tiếp: dây chuyền sản xuất thiếu nguyên vật liệu đột ngột, phòng mua hàng rơi vào thế bị động dẫn đến đặt trùng hoặc đặt thiếu, bộ phận kế toán không thể đối chiếu chính xác giá trị tồn kho thực tế.
 
-Nghiên cứu trường hợp (Case study) thực tế từ **VTI Solutions** công bố vào tháng 07/2025 mô tả chính xác tình huống này tại một tập đoàn công nghiệp hàng đầu Nhật Bản có ba nhà máy tại Việt Nam:
-* Một nhà máy đã triển khai hệ thống WMS nhưng còn nhiều hạn chế trong thực thi.
-* Hai nhà máy còn lại hoàn toàn chưa có hệ thống phần mềm quản lý nào, toàn bộ nhân viên kho vẫn dùng bảng tính Excel để ghi chép, thẻ kho giấy để theo dõi tồn và email để xử lý các giao dịch nhập xuất hàng hóa.
-* Hàng hóa và nguyên vật liệu được xếp ngẫu nhiên theo thói quen, không có phân vùng hay mã vị trí cụ thể, khiến nhân viên mất rất nhiều thời gian tìm kiếm.
-* Phòng mua hàng không nắm được tồn kho thực tế theo thời gian thực, dẫn đến tình trạng bị động trong việc cung ứng.
+Nghiên cứu trường hợp (Case study) thực tế từ **VTI Solutions** công bố vào tháng 07/2025 mô tả chính xác tình huống này tại một tập đoàn công nghiệp Nhật Bản vận hành nhiều nhà máy tại Việt Nam, trong đó phần lớn kho hàng vẫn vận hành hoàn toàn thủ công với Excel, thẻ kho giấy và email — dẫn đến nhiều điểm nghẽn nghiêm trọng về độ chính xác dữ liệu, tốc độ phản ứng và kiểm soát nội bộ. Hiện trạng chi tiết được khảo sát và mô tả đầy đủ tại **Chương 2**.
 
 Nhóm tác giả lựa chọn đề tài **"Phân tích và Thiết kế Hệ thống Quản lý Kho hàng (SmartWMS)"** xuất phát từ ba lý do chính:
 1. **Tính thực tiễn cao:** Bài toán quản lý kho bãi xuất hiện ở hầu hết các doanh nghiệp sản xuất, phân phối và bán lẻ. Đề tài có các bên liên quan (stakeholders) và quy trình nghiệp vụ rõ ràng, nguồn dữ liệu đối sánh thực tế từ doanh nghiệp.
