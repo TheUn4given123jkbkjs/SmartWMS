@@ -61,7 +61,7 @@ Dự án thực tế của VTI Solutions có quy mô rất lớn (triển khai �
 | :--- | :--- |
 | **Quản lý Danh mục** | Quản lý danh mục hàng hóa (mã SKU, tên, đơn vị tính cơ sở, phân loại, hạn sử dụng); danh mục Nhà cung cấp; danh mục Vị trí lưu kho theo cấu trúc phân vùng Khu vực - Ô kệ. |
 | **Quản lý Nhập kho** | Tạo phiếu nhập kho từ Đơn mua hàng (PO) hoặc nhập bổ sung; ghi nhận số lượng thực nhận; ghi nhận thông tin Số lô (Lot No) và Hạn sử dụng (EXP); chỉ định vị trí cất hàng; phê duyệt phiếu nhập. |
-| **Quản lý Xuất kho** | Tiếp nhận yêu cầu xuất kho; tự động kiểm tra tồn kho khả dụng; cơ chế tạm giữ chỗ ($Reserved$); tự động gợi ý xuất lô theo thuật toán FEFO/FIFO; chỉ dẫn vị trí lấy hàng; phê duyệt phiếu xuất. |
+| **Quản lý Xuất kho** | Tiếp nhận yêu cầu xuất kho; tự động kiểm tra tồn kho khả dụng; cơ chế tạm giữ chỗ ($Reserved$); tự động gợi ý xuất lô theo thuật toán FEFO/FIFO; chỉ dẫn vị trí lấy hàng; quản lý xuất hủy/thanh lý hàng quá hạn, hư hỏng theo chứng từ riêng biệt; phê duyệt phiếu xuất. |
 | **Quản lý Tồn kho** | Tra cứu tồn kho trực quan theo thời gian thực (theo mã hàng, theo lô, theo vị trí); Thẻ kho điện tử ghi nhận chi tiết lịch sử biến động nhập - xuất của từng mặt hàng. |
 | **Quản lý Kiểm kê** | Tạo đợt kiểm kê (định kỳ hoặc đột xuất); nhập số lượng kiểm đếm thực tế; hệ thống tự động đối soát và kết xuất báo cáo sai lệch thừa/thiếu; hỗ trợ điều chỉnh số tồn sau khi Quản lý duyệt. |
 | **Cảnh báo & Đề xuất** | Cảnh báo trực quan trên giao diện (In-app Notification): cảnh báo tồn kho dưới mức tối thiểu (Min Stock); cảnh báo hàng cận hạn sử dụng 30 ngày; danh sách đề xuất số lượng cần đặt hàng bổ sung. |
