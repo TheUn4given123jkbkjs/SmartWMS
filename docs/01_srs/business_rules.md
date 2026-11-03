@@ -57,7 +57,7 @@ Toàn bộ quy tắc trong tài liệu được phân loại theo đúng 2 nhóm
 ---
 
 ### 1.4. Ranh giới phạm vi áp dụng (Business Scope & Boundaries)
-Bộ quy tắc được thiết kế vừa vặn với quy mô đồ án của nhóm 4 sinh viên:
+Bộ quy tắc được thiết kế vừa vặn với quy mô đồ án:
 * Áp dụng cho **1 kho hàng vật lý duy nhất**, không quản trị mạng lưới đa kho.
 * Vị trí lưu kho quản lý theo phân vùng Khu vực và mã vị trí (Zone - Location Code); một vị trí cho phép chứa nhiều lô của cùng một mặt hàng (SKU). Quy trình luân chuyển vị trí kho nội bộ phức tạp hoặc tối ưu vị trí 3D nâng cao thuộc **ngoại phạm vi Giai đoạn 1** (vị trí được chỉ định lúc nhập kho theo `BR-INB-03` hoặc cập nhật quản lý danh mục).
 * Mỗi mặt hàng chỉ sử dụng **1 Đơn vị tính cơ sở duy nhất** trong toàn bộ chứng từ.

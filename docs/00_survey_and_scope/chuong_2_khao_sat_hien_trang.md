@@ -37,7 +37,7 @@ Kế thừa bối cảnh doanh nghiệp và mô hình kho trung tâm phục vụ
 ### 2.2.1. Kiến trúc mặt bằng kho bãi theo chuẩn kẻ vạch công nghiệp 3M Floor Marking
 Nhằm đảm bảo an toàn lao động và trực quan hóa hoạt động bốc dỡ hàng, mặt bằng kho vật lý của doanh nghiệp được quy hoạch và đánh dấu phân vùng theo tiêu chuẩn công nghiệp **3M Floor Marking Tapes for 5S System**:
 
-![Sơ đồ bố trí mặt bằng kho bãi và hệ thống kẻ vạch sàn 3M Industrial Marking Tapes cho hệ thống 5S](../assets/3M-grindu-zenklinimo-juostu-naudojimas-5S-sistemai.png)
+![Sơ đồ bố trí mặt bằng kho bãi và hệ thống kẻ vạch sàn 3M Industrial Marking Tapes cho hệ thống 5S](../assets/3M-5s.png)
 
 *Hình 2.1: Sơ đồ kiến trúc mặt bằng kho và quy chuẩn phân vùng kẻ vạch sàn 3M Industrial Floor Marking*
 
@@ -61,26 +61,16 @@ Dựa trên sơ đồ kiến trúc mặt bằng, kho hàng được chia thành 
 ### 2.2.2. Phương pháp quản lý 5S trong kho hàng (Warehouse 5S Methodology)
 Bên cạnh việc kẻ vạch sàn vật lý, doanh nghiệp áp dụng phương pháp quản trị hiện trường **5S Nhật Bản** làm tiêu chuẩn vận hành kho:
 
-![Quy trình 5 bước theo phương pháp 5S trong quản lý kho hàng](../assets/phuong-phap-5s-quan-ly-kho-hang-abd53bae.webp)
+![Quy trình 5 bước theo phương pháp 5S trong quản lý kho hàng](../assets/5s.png)
 
 *Hình 2.2: Quy trình 5 bước chuẩn hóa theo phương pháp 5S trong quản lý vận hành kho hàng*
 
-Nội dung và ý nghĩa của 5 bước trong quản lý kho hàng công nghiệp:
-1. **1. Seiri (Sort – Sàng lọc):** 
-   - *Mục tiêu:* Loại bỏ hoàn toàn các vật dụng không cần thiết, bao bì rách hỏng và phế thải khỏi mặt bằng kho; giải phóng diện tích sàn lưu trữ.
-   - *Nghiệp vụ kho:* Kiểm tra và loại bỏ hàng lỗi ngay tại cửa kho (`BR-INB-04`); phát hiện và chuyển các lô hàng hết hạn, phụ tùng biến chất sang khu vực cách ly phế liệu `SCRAP` (`BR-OUT-05`).
-2. **2. Seiton (Set in order – Sắp xếp):**
-   - *Mục tiêu:* Sắp xếp công cụ, thiết bị và hàng hóa gọn gàng, đúng vị trí quy định; bảo đảm nguyên tắc "dễ tìm, dễ thấy, dễ lấy, dễ kiểm tra".
-   - *Nghiệp vụ kho:* Định danh mã vị trí lưu kho duy nhất theo Khu vực - Kệ - Ô (`Zone - Shelf - Bin`) (`BR-CAT-02`); hàng hóa khi nhập bắt buộc chỉ định vị trí cất (`BR-INB-03`); xuất hàng theo chỉ dẫn bốc dỡ FEFO/FIFO (`BR-OUT-02`).
-3. **3. Seiso (Shine – Sạch sẽ):**
-   - *Mục tiêu:* Giữ gìn kho bãi, giá kệ và thiết bị luôn sạch sẽ, không bụi bẩn; kiểm tra tình trạng hàng hóa trong quá trình vệ sinh.
-   - *Nghiệp vụ kho:* Vệ sinh kệ hàng ngăn ngừa phụ tùng cơ khí bị gỉ sét, hóa chất bị ẩm mốc; kiểm tra phát hiện sớm các kiện hàng bị rách thủng bao bì bảo quản.
-4. **4. Seiketsu (Standardize – Săn sóc / Chuẩn hóa):**
-   - *Mục tiêu:* Chuẩn hóa toàn bộ các bảng kiểm (Checklist), quy định vận hành và thiết lập hệ thống kiểm soát trực quan (Visual Controls) đồng bộ giữa các ca làm việc.
-   - *Nghiệp vụ kho:* Thiết lập bộ **25 Quy tắc nghiệp vụ cốt lõi (`BR-xxx`)**; chuẩn hóa ngưỡng định mức dự trữ an toàn Min/Max Stock (`BR-CAT-05`); trực quan hóa các cảnh báo thiếu hàng và cận hạn bằng màu sắc trên Dashboard (`BR-INV-02..03`).
-5. **5. Shitsuke (Sustain – Sẵn sàng / Duy trì kỷ luật):**
-   - *Mục tiêu:* Xây dựng ý thức tự giác, thói quen tuân thủ quy chuẩn của nhân viên; đào tạo định kỳ và cam kết cải tiến liên tục (Kaizen).
-   - *Nghiệp vụ kho:* Duy trì nghiêm ngặt cơ chế kiểm soát nội bộ 4 mắt (**Maker-Checker**), cấm người lập tự duyệt chứng từ (`BR-SEC-03`); lưu vết toàn bộ lịch sử thao tác (Audit Trail) để đối soát và nâng cao trách nhiệm giải trình cá nhân (`BR-SEC-02`).
+Ý nghĩa cốt lõi của 5 bước trong quản lý kho hàng:
+1. **Seiri (Sort – Sàng lọc):** Phân loại và loại bỏ vật dụng không cần thiết, rác thải bao bì; phát hiện và đưa các kiện hàng lỗi, hư hỏng hoặc quá hạn vào khu cách ly phế liệu (Scrap Area) để giải phóng diện tích sàn.
+2. **Seiton (Set in order – Sắp xếp):** Sắp xếp hàng hóa và công cụ ngăn nắp theo nguyên tắc "dễ tìm, dễ thấy, dễ lấy"; định danh vị trí lưu trữ rõ ràng theo Khu vực - Kệ - Ô (Zone - Shelf - Bin).
+3. **Seiso (Shine – Sạch sẽ):** Thường xuyên vệ sinh kho bãi, giá kệ và thiết bị; kiểm tra tình trạng bao bì, ngăn ngừa hàng hóa bị ẩm mốc, gỉ sét trong quá trình lưu kho.
+4. **Seiketsu (Standardize – Săn sóc / Chuẩn hóa):** Chuẩn hóa quy trình vận hành và biểu mẫu kiểm tra; duy trì kiểm soát trực quan bằng nhãn dán, vạch kẻ sàn và định mức dự trữ an toàn (Min/Max Stock).
+5. **Shitsuke (Sustain – Sẵn sàng / Kỷ luật):** Xây dựng ý thức tự giác tuân thủ quy định cho nhân viên; duy trì kỷ luật kiểm soát chéo và đào tạo định kỳ để nâng cao hiệu quả vận hành.
 
 ---
 
