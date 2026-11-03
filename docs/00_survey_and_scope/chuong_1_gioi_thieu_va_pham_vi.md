@@ -38,7 +38,11 @@ Phân tích và thiết kế hệ thống Quản lý Kho hàng (SmartWMS) giúp 
 
 ## 1.3. ĐỐI TƯỢNG VÀ BỐI CẢNH ÁP DỤNG
 
-* **Bối cảnh doanh nghiệp:** Hệ thống hướng tới một công ty sản xuất - phân phối phụ tùng, linh kiện kỹ thuật (tương ứng với một nhà máy thành viên trong tập đoàn của case study). Doanh nghiệp sở hữu một kho trung tâm thực hiện chức năng kép: quản lý nguyên vật liệu đầu vào và quản lý thành phẩm đầu ra.
+* **Bối cảnh doanh nghiệp:** Hệ thống hướng tới một công ty sản xuất - phân phối phụ tùng, linh kiện kỹ thuật (tương ứng với một nhà máy thành viên trong tập đoàn công nghiệp Nhật Bản của case study VTI Solutions). Doanh nghiệp sở hữu một kho trung tâm thực hiện chức năng kép: quản lý nguyên vật liệu đầu vào và quản lý thành phẩm đầu ra.
+* **Kiến trúc kho bãi & Phương pháp quản trị vận hành:** 
+  - Kế thừa tiêu chuẩn quản trị sản xuất tinh gọn của Nhật Bản, kho hàng được tổ chức theo phương pháp **5S (Seiri – Sàng lọc, Seiton – Sắp xếp, Seiso – Sạch sẽ, Seiketsu – Săn sóc / Chuẩn hóa, Shitsuke – Sẵn sàng / Kỷ luật)** kết hợp với tiêu chuẩn **trực quan hóa mặt bằng kho (Visual Warehouse)** bằng hệ thống kẻ vạch sàn công nghiệp **3M Floor Marking Tapes**.
+  - Không gian sàn kho được quy hoạch thành các phân vùng chức năng rõ ràng: Cầu cảng xuất nhập hàng (Loading Dock Area), Khu vực kiểm tra chất lượng & kiểm đếm đầu vào (Product Inspection Area), Khu vực lưu trữ Nguyên vật liệu (Raw Material Area), Khu vực lưu trữ Thành phẩm (Finished Goods Storage), Khu vực cách ly hàng hỏng/phế liệu (Scrap Material Area / Quarantine Area), Khu vực thiết bị xe nâng (Equipment Storage) và Lối đi phân luồng giao thông an toàn (Traffic Lanes).
+  - Tuy nhiên, do thiếu công cụ phần mềm WMS tập trung thời gian thực, các nguyên tắc 5S và vạch kẻ sàn 3M chỉ dừng lại ở mức biển báo vật lý, trong khi quy trình dữ liệu lại vận hành bằng sổ sách giấy và Excel rời rạc. Điều này gây ra nghịch lý: mặt bằng có vạch kẻ nhưng hàng hóa vẫn bị xếp ngẫu nhiên và vi phạm nguyên tắc FIFO/FEFO. Dự án SmartWMS đóng vai trò là giải pháp **"Số hóa phương pháp 5S" (Digital 5S)** để đưa 5S từ vạch sơn vật lý thành các ràng buộc logic nghiệp vụ tự động trên phần mềm.
 * **Đối tượng sử dụng chính:**
   - *Quản lý kho (Thủ kho trưởng):* Phê duyệt chứng từ, giám sát số liệu, tổ chức kiểm kê.
   - *Nhân viên kho (Thủ kho):* Thực hiện các thao tác nhập, xuất, kiểm đếm và cất hàng.
@@ -79,6 +83,7 @@ Dự án thực tế của VTI Solutions có quy mô rất lớn (triển khai �
 
 ### 1.4.3. Giả định và ràng buộc
 * **Ràng buộc phạm vi:** Một kho hàng vật lý duy nhất, sử dụng một đơn vị tiền tệ thống nhất (VND) và một ngôn ngữ giao diện chính thức (tiếng Việt).
+* **Giả định tổ chức mặt bằng & 5S:** Mặt bằng kho đã được thiết lập vạch kẻ phân vùng theo tiêu chuẩn 3M Floor Marking và quy định 5S; hệ thống SmartWMS số hóa kiến trúc này thành cấu trúc dữ liệu Khu vực - Kệ - Ô (`Zone - Shelf - Bin`) để quản lý vị trí trên phần mềm.
 * **Ràng buộc dữ liệu:** Dữ liệu danh mục ban đầu (sản phẩm, nhà cung cấp, vị trí) được nạp sẵn hoặc import từ bảng tính Excel mẫu. Mỗi mặt hàng sử dụng đúng một đơn vị tính cơ sở duy nhất.
 * **Môi trường vận hành:** Người dùng thao tác thông qua trình duyệt Web hiện đại (Chrome, Edge, Firefox) trên máy tính làm việc tại kho hoặc văn phòng.
 * **Sản phẩm cài đặt:** Ứng dụng demo được xây dựng trên nền tảng Java Web (Spring Boot 3.x, Spring Data JPA, Thymeleaf, MySQL/H2) và kịch bản demo chạy trên bộ dữ liệu kiểm thử chuẩn mực.
@@ -92,6 +97,8 @@ Dự án thực tế của VTI Solutions có quy mô rất lớn (triển khai �
 | Thuật ngữ | Tên tiếng Anh đầy đủ | Định nghĩa và Ý nghĩa nghiệp vụ |
 | :--- | :--- | :--- |
 | **WMS** | Warehouse Management System | Hệ thống phần mềm quản lý toàn diện các hoạt động vận hành kho bãi. |
+| **5S** | Seiri, Seiton, Seiso, Seiketsu, Shitsuke | Phương pháp quản lý nơi làm việc của Nhật Bản: Sàng lọc, Sắp xếp, Sạch sẽ, Săn sóc, Sẵn sàng. |
+| **Floor Marking** | Industrial Floor Marking Tapes | Tiêu chuẩn kẻ vạch sơn/băng dính sàn công nghiệp để phân định ranh giới các khu vực chức năng trong kho (tiêu chuẩn 3M). |
 | **PO** | Purchase Order | Đơn mua hàng (Đơn đặt hàng mua) do phòng Mua hàng gửi cho nhà cung cấp, làm căn cứ đối chiếu số lượng khi nhập kho. |
 | **SKU** | Stock Keeping Unit | Mã định danh đơn vị lưu kho, là chuỗi ký tự duy nhất dùng để phân biệt từng mặt hàng cụ thể. |
 | **FIFO** | First In, First Out | Nguyên tắc "Nhập trước, Xuất trước" – lô hàng nào nhập vào kho trước sẽ được ưu tiên xuất trước. |

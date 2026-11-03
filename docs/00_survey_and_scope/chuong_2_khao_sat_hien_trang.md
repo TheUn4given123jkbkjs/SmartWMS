@@ -3,18 +3,21 @@
 ---
 
 ### GHI CHÚ VỀ NGUỒN DỮ LIỆU KHẢO SÁT
-Toàn bộ dữ liệu hiện trạng trong chương này được trích xuất trực tiếp từ **bài viết nghiên cứu trường hợp (Case study) được công bố công khai trên website của VTI Solutions** (ngày 28/07/2025): *"Hành trình cải tiến hệ thống Quản lý kho và Mua hàng cùng Tập đoàn Công nghiệp Nhật Bản"*. 
+Toàn bộ dữ liệu hiện trạng trong chương này được trích xuất và tổng hợp từ ba nguồn tài liệu đối sánh thực tế:
+1. **Nghiên cứu trường hợp (Case study) từ VTI Solutions** (công bố ngày 28/07/2025): *"Hành trình cải tiến hệ thống Quản lý kho và Mua hàng cùng Tập đoàn Công nghiệp Nhật Bản"* – Cung cấp bối cảnh thực tế tại các nhà máy cơ khí/điện tử FDI, các điểm nghẽn vận hành thủ công (Excel, thẻ kho giấy, email) và 10 vấn đề hiện trạng cốt lõi (`P-01` đến `P-10`).
+2. **Chuẩn kiến trúc mặt bằng & Kẻ vạch sàn kho bãi công nghiệp 3M (3M™ Industrial Floor Marking Tapes for 5S)** – Cung cấp mô hình kiến trúc phân vùng không gian trực quan (Visual Warehouse) cho kho hàng công nghiệp.
+3. **Phương pháp quản trị hiện trường 5S Nhật Bản (5S Methodology for Warehouse Management)** – Cung cấp quy chuẩn vận hành 5 bước (Seiri, Seiton, Seiso, Seiketsu, Shitsuke) nhằm tối ưu hóa an toàn, năng suất và giảm thiểu lãng phí trong kho.
 
-Nhóm tác giả đóng vai trò là đội ngũ phân tích nghiệp vụ độc lập, tiếp nhận các thông tin bối cảnh, thực trạng vận hành thủ công và các chỉ số đo lường thực tế do VTI Solutions công bố để làm đề bài nghiên cứu. Nhóm **không thực hiện phỏng vấn thực tế tại nhà máy hay tiếp cận tài liệu nội bộ không công khai**, mà sử dụng phương pháp **Suy luận nghiệp vụ (Business Deduction)**, **Phân tích chân dung vai trò (Persona Analysis)** và **Đối chiếu chuẩn vận hành kho tiêu chuẩn (SOP Benchmarking)** để bóc tách luồng công việc AS-IS, xác định điểm nghẽn và tổng hợp nhu cầu cải tiến.
+Nhóm tác giả đóng vai trò là đội ngũ phân tích nghiệp vụ độc lập, sử dụng phương pháp **Suy luận nghiệp vụ (Business Deduction)**, **Phân tích chân dung vai trò (Persona Analysis)** và **Đối chiếu chuẩn vận hành kho tiêu chuẩn (SOP Benchmarking)** để bóc tách luồng công việc AS-IS, xác định nguyên nhân gốc rễ và thiết lập các yêu cầu phần mềm.
 
 ---
 
 ## 2.1. PHƯƠNG PHÁP KHẢO SÁT
 
-Từ nội dung bài viết tình huống của VTI Solutions, nhóm BA áp dụng quy trình xử lý thông tin gồm ba kỹ thuật phân tích nghiệp vụ chuẩn mực:
+Từ các nguồn dữ kiện thực tế, nhóm BA áp dụng quy trình xử lý thông tin gồm ba kỹ thuật phân tích nghiệp vụ chuẩn mực:
 1. **Trích xuất dữ kiện thực tế (Case Study Fact Extraction):** Thu thập toàn bộ các mô tả về thực trạng vận hành thủ công, các điểm nghẽn (bottlenecks) và số liệu đo lường định lượng có thật được VTI Solutions nêu rõ trong bài viết (như: tình trạng sử dụng Excel/thẻ kho giấy/email, hàng xếp ngẫu nhiên, độ chính xác chỉ đạt 85–90%, đứt gãy thông tin giữa Mua hàng và Kho).
 2. **Phân tích chân dung vai trò (Persona Analysis):** Từ các bộ phận được đề cập trong bài viết (Thủ kho, Mua hàng, Kế hoạch sản xuất, Quản lý), nhóm tái hiện lại trách nhiệm, khó khăn thực tế và luồng thao tác hàng ngày của từng vai trò trong môi trường kho thủ công.
-3. **Đối chiếu với Chuẩn vận hành kho (SOP Benchmarking):** Đối sánh các bất cập trong bài viết với quy trình quản lý kho hàng chuẩn mực trong ngành sản xuất - phân phối (nhập kho theo PO, lưu kho có vị trí, lấy hàng FIFO/FEFO, xuất kho kiểm soát tồn khả dụng, kiểm kê định kỳ) để làm rõ các mắt xích đang bị lỗi.
+3. **Đối chiếu với Chuẩn vận hành kho (SOP Benchmarking & 5S):** Đối sánh các bất cập trong bài viết với quy trình quản lý kho hàng chuẩn mực trong ngành sản xuất - phân phối (nhập kho theo PO, lưu kho có vị trí, lấy hàng FIFO/FEFO, xuất kho kiểm soát tồn khả dụng, kiểm kê định kỳ) để làm rõ các mắt xích đang bị lỗi.
 
 ### Bảng 2.1: Bảng trích xuất dữ kiện hiện trạng từ Case Study theo từng vai trò nghiệp vụ
 
@@ -29,9 +32,79 @@ Từ nội dung bài viết tình huống của VTI Solutions, nhóm BA áp dụ
 
 ## 2.2. TỔNG QUAN TỔ CHỨC VÀ BỐI CẢNH NGHIỆP VỤ
 
-Như đã giới thiệu tại **Chương 1**, đề tài dựa trên Case Study của VTI Solutions công bố tháng 07/2025 về một tập đoàn công nghiệp Nhật Bản có nhiều nhà máy tại Việt Nam. Trong đó, hai nhà máy thuộc phân mảng sản xuất phụ tùng và linh kiện điện tử vận hành kho hoàn toàn thủ công, chưa có phần mềm quản lý. Đây chính là phạm vi khảo sát của đề tài.
+### 2.2.1. Bối cảnh doanh nghiệp và mô hình kho trung tâm
+Hệ thống nghiên cứu phục vụ một công ty sản xuất - phân phối phụ tùng, linh kiện kỹ thuật (tương ứng với một nhà máy thành viên trong tập đoàn công nghiệp Nhật Bản của Case Study VTI Solutions). Doanh nghiệp sở hữu một kho trung tâm thực hiện chức năng kép:
+* **Tiếp nhận & Quản lý Nguyên vật liệu đầu vào:** Tiếp nhận linh kiện, phụ tùng, phôi kim loại và hóa chất từ các nhà cung cấp theo Đơn mua hàng (PO), lưu trữ và cấp phát cho các phân xưởng sản xuất lắp ráp.
+* **Lưu trữ & Phân phối Thành phẩm đầu ra:** Tiếp nhận thành phẩm hoàn thiện sau kiểm định từ phân xưởng sản xuất, bảo quản theo số lô/hạn dùng và xuất kho giao hàng cho khách hàng hoặc đại lý phân phối.
 
-Mỗi nhà máy sở hữu kho nguyên vật liệu đầu vào và kho thành phẩm đầu ra riêng biệt. Đề tài tập trung vào **hiện trạng kho thủ công** — nơi các vấn đề nghiêm trọng nhất và lợi ích của hệ thống mới là rõ rệt nhất. Các bộ phận liên quan trực tiếp đến hoạt động kho gồm: Bộ phận Kho, Phòng Mua hàng, Bộ phận Kế hoạch Sản xuất, Bộ phận Kế toán và Ban Quản lý Nhà máy.
+---
+
+### 2.2.2. Kiến trúc mặt bằng kho bãi theo chuẩn kẻ vạch công nghiệp 3M Floor Marking
+Nhằm đảm bảo an toàn lao động và trực quan hóa hoạt động bốc dỡ hàng, mặt bằng kho vật lý của doanh nghiệp được quy hoạch và đánh dấu phân vùng theo tiêu chuẩn công nghiệp **3M Floor Marking Tapes for 5S System**:
+
+![Sơ đồ bố trí mặt bằng kho bãi và hệ thống kẻ vạch sàn 3M Industrial Marking Tapes cho hệ thống 5S](../assets/3M-grindu-zenklinimo-juostu-naudojimas-5S-sistemai.png)
+
+*Hình 2.1: Sơ đồ kiến trúc mặt bằng kho và quy chuẩn phân vùng kẻ vạch sàn 3M Industrial Floor Marking*
+
+Dựa trên sơ đồ kiến trúc mặt bằng, kho hàng được chia thành các phân vùng chức năng chuyên biệt sau:
+
+### Bảng 2.2a: Phân vùng chức năng mặt bằng kho bãi theo tiêu chuẩn 3M Floor Marking
+
+| Phân vùng chức năng (Area) | Quy chuẩn vạch kẻ sàn (3M Tape) | Chức năng nghiệp vụ thực tế trong kho | Ánh xạ mô hình dữ liệu hệ thống (Zone Code) |
+| :--- | :--- | :--- | :---: |
+| **Loading Dock Area** | Vạch vàng viền liền (3M Ultra Durable 971) | Khu vực cửa xuất/nhập hàng, nơi đỗ xe tải của nhà cung cấp và xe giao hàng phân phối. | `DOCK` (Cầu cảng xuất nhập) |
+| **Product Inspection Area** | Vạch cam nổi bật (3M Vinyl Tape 471) | Khu vực kiểm tra chất lượng, đối chiếu PO và kiểm đếm số lượng thực nhận tại cửa kho. Hàng lỗi bị từ chối tiếp nhận ngay tại đây (`BR-INB-04`). | `INSP` (Khu kiểm đếm) |
+| **Raw Material Area** | Vạch xanh dương (3M Vinyl Tape 471) | Khu vực giá kệ lưu trữ nguyên vật liệu, phụ tùng đầu vào, bố trí gần phân xưởng sản xuất để cấp phát nhanh. | `RAW` (Khu Nguyên vật liệu) |
+| **Finished Goods Storage** | Vạch xanh lá cây (3M Ultra Durable 971) | Khu vực hệ thống giá kệ lưu trữ Thành phẩm hoàn chỉnh, bố trí gần Loading Dock để thuận tiện xuất giao. | `FG` (Khu Thành phẩm) |
+| **Scrap Material Area / Quarantine** | Vạch đỏ cảnh báo (3M Vinyl Tape 471) | **Khu vực cách ly phế liệu & hàng hỏng**. Nơi cô lập các kiện hàng quá hạn sử dụng, phụ tùng gỉ sét hoặc hàng chờ thanh lý/xuất hủy (`BR-OUT-05`). | `SCRAP` (Khu Hàng hỏng / Cách ly) |
+| **Equipment Storage** | Vạch vàng viền ô (3M Ultra Durable 971) | Nơi đỗ cố định các phương tiện vận chuyển nội bộ: xe nâng tay, xe nâng điện (Forklift), thang bốc xếp. | `EQUIP` (Bãi đỗ thiết bị kho) |
+| **Traffic Lanes** | Vạch vàng / trắng phân làn (3M Tape 971) | Lối đi nội bộ phân luồng giao thông an toàn giữa người đi bộ và xe nâng di chuyển. | `LANE` (Lối đi nội bộ) |
+| **Caution Areas** | Vạch kẻ sọc vàng/đen (3M Hazard Tape 766) | Khu vực cảnh báo nguy hiểm gần góc cua, cửa điện, bảng điện điều khiển. | Cảnh báo an toàn vật lý |
+
+---
+
+### 2.2.3. Phương pháp quản lý 5S trong kho hàng (Warehouse 5S Methodology)
+Bên cạnh việc kẻ vạch sàn vật lý, doanh nghiệp áp dụng phương pháp quản trị hiện trường **5S Nhật Bản** làm tiêu chuẩn vận hành kho:
+
+![Quy trình 5 bước theo phương pháp 5S trong quản lý kho hàng](../assets/phuong-phap-5s-quan-ly-kho-hang-abd53bae.webp)
+
+*Hình 2.2: Quy trình 5 bước chuẩn hóa theo phương pháp 5S trong quản lý vận hành kho hàng*
+
+Nội dung và ý nghĩa của 5 bước trong quản lý kho hàng công nghiệp:
+1. **1. Seiri (Sort – Sàng lọc):** 
+   - *Mục tiêu:* Loại bỏ hoàn toàn các vật dụng không cần thiết, bao bì rách hỏng và phế thải khỏi mặt bằng kho; giải phóng diện tích sàn lưu trữ.
+   - *Nghiệp vụ kho:* Kiểm tra và loại bỏ hàng lỗi ngay tại cửa kho (`BR-INB-04`); phát hiện và chuyển các lô hàng hết hạn, phụ tùng biến chất sang khu vực cách ly phế liệu `SCRAP` (`BR-OUT-05`).
+2. **2. Seiton (Set in order – Sắp xếp):**
+   - *Mục tiêu:* Sắp xếp công cụ, thiết bị và hàng hóa gọn gàng, đúng vị trí quy định; bảo đảm nguyên tắc "dễ tìm, dễ thấy, dễ lấy, dễ kiểm tra".
+   - *Nghiệp vụ kho:* Định danh mã vị trí lưu kho duy nhất theo Khu vực - Kệ - Ô (`Zone - Shelf - Bin`) (`BR-CAT-02`); hàng hóa khi nhập bắt buộc chỉ định vị trí cất (`BR-INB-03`); xuất hàng theo chỉ dẫn bốc dỡ FEFO/FIFO (`BR-OUT-02`).
+3. **3. Seiso (Shine – Sạch sẽ):**
+   - *Mục tiêu:* Giữ gìn kho bãi, giá kệ và thiết bị luôn sạch sẽ, không bụi bẩn; kiểm tra tình trạng hàng hóa trong quá trình vệ sinh.
+   - *Nghiệp vụ kho:* Vệ sinh kệ hàng ngăn ngừa phụ tùng cơ khí bị gỉ sét, hóa chất bị ẩm mốc; kiểm tra phát hiện sớm các kiện hàng bị rách thủng bao bì bảo quản.
+4. **4. Seiketsu (Standardize – Săn sóc / Chuẩn hóa):**
+   - *Mục tiêu:* Chuẩn hóa toàn bộ các bảng kiểm (Checklist), quy định vận hành và thiết lập hệ thống kiểm soát trực quan (Visual Controls) đồng bộ giữa các ca làm việc.
+   - *Nghiệp vụ kho:* Thiết lập bộ **25 Quy tắc nghiệp vụ cốt lõi (`BR-xxx`)**; chuẩn hóa ngưỡng định mức dự trữ an toàn Min/Max Stock (`BR-CAT-05`); trực quan hóa các cảnh báo thiếu hàng và cận hạn bằng màu sắc trên Dashboard (`BR-INV-02..03`).
+5. **5. Shitsuke (Sustain – Sẵn sàng / Duy trì kỷ luật):**
+   - *Mục tiêu:* Xây dựng ý thức tự giác, thói quen tuân thủ quy chuẩn của nhân viên; đào tạo định kỳ và cam kết cải tiến liên tục (Kaizen).
+   - *Nghiệp vụ kho:* Duy trì nghiêm ngặt cơ chế kiểm soát nội bộ 4 mắt (**Maker-Checker**), cấm người lập tự duyệt chứng từ (`BR-SEC-03`); lưu vết toàn bộ lịch sử thao tác (Audit Trail) để đối soát và nâng cao trách nhiệm giải trình cá nhân (`BR-SEC-02`).
+
+---
+
+### 2.2.4. Nghịch lý hiện trạng: Sự đứt gãy giữa 5S vật lý và thực tế vận hành thủ công
+Từ khảo sát thực tế Case Study VTI, nhóm BA nhận diện một **nghịch lý nghiệp vụ nghiêm trọng** tại nhà máy:
+
+> **Doanh nghiệp đã đầu tư kẻ vạch mặt bằng 3M và dán khẩu hiệu 5S trên sàn, nhưng do vận hành bằng công cụ thủ công (bảng tính Excel, thẻ kho giấy, email), các nguyên tắc 5S bị đứt gãy hoàn toàn trong thực tế vận hành.**
+
+### Bảng 2.2b: Ma trận đối chiếu sự đứt gãy giữa Phương pháp 5S và 10 Vấn đề hiện trạng
+
+| Bước trong 5S | Tiêu chuẩn 5S kỳ vọng | Thực tế vận hành thủ công tại nhà máy | Mã vấn đề hiện trạng liên quan |
+| :--- | :--- | :--- | :---: |
+| **Seiri (Sàng lọc)** | Loại bỏ hàng hỏng, hàng hết hạn để giải phóng mặt sàn. | Thẻ kho giấy không theo dõi hạn dùng (EXP); hàng cũ quá hạn và phụ tùng gỉ sét nằm tồn đọng đáy kệ nhiều tháng mà không ai biết để thanh lý. | `P-05`, `P-08` |
+| **Seiton (Sắp xếp)** | Hàng hóa có mã vị trí cố định, dễ tìm, bốc hàng nhanh theo FEFO/FIFO. | Dù sàn có vạch kẻ nhưng trên phần mềm/Excel **hoàn toàn không có mã vị trí Ô kệ**. Hàng xếp ngẫu nhiên theo chỗ trống; nhân viên mất 30–60 phút tìm hàng; tiện đâu bốc đó ngoài cùng vi phạm FEFO. | `P-04`, `P-05` |
+| **Seiso (Sạch sẽ)** | Giữ gìn tình trạng vật tư, định kỳ kiểm tra thiết bị và giá kệ. | Hàng hóa để lộn xộn, không nắm được vị trí nên khó vệ sinh, bụi bẩn bám dính lâu ngày gây gỉ sét linh kiện. | `P-04`, `P-05` |
+| **Seiketsu (Chuẩn hóa)** | Quy trình chuẩn, số liệu đồng nhất, kiểm soát trực quan bằng ngưỡng Min/Max. | Hai nguồn dữ liệu song song (Thẻ kho giấy và Excel) lệch nhau 10–15%; không có định mức Min/Max Stock dẫn đến thiếu hàng đột ngột hoặc nhập quá trần làm đọng vốn. | `P-01`, `P-06`, `P-07` |
+| **Shitsuke (Kỷ luật)** | Tuân thủ quy trình, kiểm soát chéo Maker-Checker, lưu vết kiểm toán. | Quy trình chứng từ giấy lỏng lẻo; nhân viên tự đếm tự sửa số liệu; không có nhật ký số (Audit Log) để truy cứu trách nhiệm cá nhân. | `P-08`, `P-09`, `P-10` |
+
+$\rightarrow$ **Kết luận:** Hệ thống SmartWMS chính là giải pháp **"SỐ HÓA PHƯƠNG PHÁP 5S" (Digital 5S)**, đưa các nguyên tắc 5S và phân vùng 3M từ các vạch sơn trên mặt sàn thành **các ràng buộc logic, thuật toán tự động và ma trận kiểm soát bất biến trên phần mềm**.
 
 ---
 
@@ -61,8 +134,8 @@ Dựa trên các dữ kiện thực tế từ Case Study của VTI Solutions k�
 ### 2.4.1. Quy trình Nhập kho
 Đối với hoạt động tiếp nhận hàng từ nhà cung cấp, quy trình nhập kho diễn ra theo các bước sau:
 1. Phòng Mua hàng thông báo kế hoạch nhập hàng cho bộ phận kho thông qua email hoặc gửi file Excel/PO. Tuy nhiên, thông báo thường đến muộn hoặc đến cùng lúc khi xe hàng của nhà cung cấp đã tới cửa kho, khiến nhân viên kho bị động, không kịp chuẩn bị trước vị trí giá kệ và nhân lực bốc dỡ.
-2. Xe nhà cung cấp đến, nhân viên kho đối chiếu phiếu giao hàng của lái xe với bản in Đơn mua hàng (PO).
-3. Nhân viên kho tiến hành mở kiện, kiểm đếm số lượng và kiểm tra ngoại quan sản phẩm. Mọi số liệu thực tế được nhân viên ghi tay bằng bút bi vào góc phiếu giao hàng.
+2. Xe nhà cung cấp đến Loading Dock, nhân viên kho đối chiếu phiếu giao hàng của lái xe với bản in Đơn mua hàng (PO).
+3. Tại khu vực kiểm tra hàng (Product Inspection Area), nhân viên kho tiến hành mở kiện, kiểm đếm số lượng và kiểm tra ngoại quan sản phẩm. Mọi số liệu thực tế được nhân viên ghi tay bằng bút bi vào góc phiếu giao hàng.
 4. Nhân viên kho tự chọn vị trí cất hàng theo thói quen và chỗ trống hiện có trên kệ, không có tiêu chí phân vùng rõ ràng theo chủng loại hay đặc tính hàng hóa.
 5. Nhân viên lập Phiếu nhập kho bằng tay (hoặc in từ mẫu Excel có sẵn), Thủ kho và lái xe ký xác nhận.
 6. Nhân viên kho lấy cuốn Thẻ kho giấy của mặt hàng đó để ghi thêm số lượng vừa nhập.
@@ -98,14 +171,10 @@ Khi phát sinh nhu cầu xuất nguyên vật liệu cho xưởng sản xuất h
 Đối với việc theo dõi mức dự trữ và đặt hàng bổ sung:
 * Hiện tại kho **hoàn toàn không có định mức tồn kho tối thiểu (Min Stock) hay tồn tối đa (Max Stock)** được quản lý có hệ thống. Thủ kho nhận biết hàng sắp hết chủ yếu dựa vào kinh nghiệm nhìn thấy kệ vơi đi hoặc khi xưởng sản xuất sang đòi hàng thì mới phát hiện hết hàng.
 * Phòng Mua hàng muốn biết số lượng tồn kho để lên kế hoạch đặt hàng phải gọi điện hoặc gửi email sang kho rồi chờ thủ kho kiểm tra phản hồi.
-* Phòng Mua hàng lập PO dựa trên thông tin nhận được nhưng thường xuyên rơi vào tình trạng "đặt hàng khẩn cấp", dẫn đến giá mua kém thuận lợi và chi phí vận tải phát sinh cao. Ngược lại, bộ phận kho không biết trước các PO nào sắp về để chủ động chuẩn bị nhân lực và sắp xếp mặt bằng giá kệ.
 
 ---
 
-## 2.5. CÔNG CỤ, BIỂU MẪU VÀ DỮ LIỆU ĐANG SỬ DỤNG
-
-### 2.5.1. Công cụ và biểu mẫu hiện tại
-Trong phương thức vận hành truyền thống tại hai nhà máy, các bộ phận sử dụng tập hợp các công cụ thủ công và biểu mẫu rời rạc:
+## 2.5. HẠN CHẾ CỦA HỆ THỐNG VÀ CÔNG CỤ HIỆN TẠI
 
 ### Bảng 2.3: Công cụ và biểu mẫu hiện tại trong vận hành kho
 
@@ -118,7 +187,7 @@ Trong phương thức vận hành truyền thống tại hai nhà máy, các b�
 | **Điện thoại / Zalo** | Hỏi số lượng tồn tức thời, giải quyết các phát sinh khẩn cấp. | Không lưu vết lịch sử; không thể dùng làm bằng chứng đối soát khi xảy ra sai lệch số lượng. |
 | **Phần mềm WMS cũ** *(1 nhà máy)* | Quản lý kho điện tử bước đầu. | Còn nhiều hạn chế khi sử dụng thực tế; quy trình riêng biệt, không đồng bộ dữ liệu với 2 nhà máy còn lại. |
 
-Dữ liệu đang quản lý bao gồm các trường cơ bản: Mã sản phẩm (SKU), Tên, Đơn vị tính, Số lượng tồn sổ sách, Ngày ghi nhận, Tên nhà cung cấp, Số PO, Số phiếu nhập/xuất, Người giao/nhận và Ghi chú. Tuy nhiên, các trường nghiệp vụ thiết yếu hoàn toàn vắng mặt: **mã vị trí kho chuẩn hóa** theo phân vùng Khu vực - Ô kệ (Zone - Location Code), **số lô và hạn dùng** (Lot/EXP) từng kiện hàng, **định mức dự trữ an toàn** (Min/Max Stock), và **phân tách trạng thái tồn** giữa $On\text{-}hand$, $Reserved$ và $Available$. Đây chính là căn nguyên kỹ thuật dữ liệu của các vấn đề `P-02`, `P-04`, `P-05` và `P-07` được trình bày ở mục 2.6.
+Dữ liệu đang quản lý bao gồm các trường cơ bản: Mã sản phẩm (SKU), Tên, Đơn vị tính, Số lượng tồn sổ sách, Ngày ghi nhận, Tên nhà cung cấp, Số PO, Số phiếu nhập/xuất, Người giao/nhận và Ghi chú. Tuy nhiên, các trường nghiệp vụ thiết yếu hoàn toàn vắng mặt: **mã vị trí kho chuẩn hóa** theo phân vùng Khu vực - Kệ - Ô (Zone - Location Code), **số lô và hạn dùng** (Lot/EXP) từng kiện hàng, **định mức dự trữ an toàn** (Min/Max Stock), và **phân tách trạng thái tồn** giữa $On\text{-}hand$, $Reserved$ và $Available$. Đây chính là căn nguyên kỹ thuật dữ liệu của các vấn đề `P-02`, `P-04`, `P-05` và `P-07` được trình bày ở mục 2.6.
 
 ---
 
@@ -171,20 +240,20 @@ Từ các nút thắt trong 5 quy trình AS-IS và hạn chế công cụ nêu t
 
 ---
 
-## 2.7. NHU CẦU VÀ KỲ VỌNG CỦA NGƯỜI DÙNG
+## 2.7. NHU CẦU VÀ KỲ VỌNG CỦA NGƯỜI DÙNG (USER REQUIREMENTS)
 
-Từ phân tích chân dung vai trò nghiệp vụ (Persona Analysis) và các điểm nghẽn thực tế ghi nhận từ Case Study, nhu cầu của người dùng được chuẩn hóa theo từng vai trò nghiệp vụ. Phần này là căn cứ đầu vào trực tiếp cho Chương 3 (Đặc tả yêu cầu chức năng và phi chức năng):
+Từ phân tích chân dung vai trò nghiệp vụ (Persona Analysis), các điểm nghẽn thực tế ghi nhận từ Case Study và quy chuẩn 5S, nhu cầu của người dùng được chuẩn hóa theo từng vai trò nghiệp vụ với hệ thống mã định danh **`URxx` (User Requirement)**. Đây là căn cứ đầu vào trực tiếp cho phần Đặc tả yêu cầu chức năng (FR) và Ma trận truy vết (RTM) ở Chương 3:
 
 ### Bảng 2.5: Nhu cầu và kỳ vọng của người dùng theo từng vai trò nghiệp vụ
 
-| Nhóm vai trò nghiệp vụ | Nhu cầu và Kỳ vọng nghiệp vụ cụ thể | Mã vấn đề liên quan giải quyết |
-| :--- | :--- | :---: |
-| **Nhân viên kho (Thủ kho)** | - Nhập liệu một lần trên giao diện số, loại bỏ việc ghi chép trùng lặp giữa thẻ kho giấy và Excel.<br>- Hệ thống chỉ dẫn rõ ràng mặt hàng đang nằm ở Khu vực nào, Ô kệ nào theo mã vị trí (Zone - Location Code).<br>- Tự động hiển thị danh sách các lô hàng cần lấy xuất trước theo quy tắc FEFO/FIFO. | `P-01`, `P-04`, `P-05` |
-| **Quản lý kho / Thủ kho trưởng** | - Quy trình kiểm kê điện tử nhanh chóng, tự động tính chênh lệch thừa/thiếu, hỗ trợ kiểm đếm lại lần 2.<br>- Phê duyệt chứng từ nhập/xuất điện tử theo cơ chế Maker-Checker; chỉ khi duyệt mới thay đổi số tồn.<br>- Tra cứu số tồn thực tế thời gian thực tại mọi thời điểm mà không phải chờ tổng hợp cuối tuần. | `P-01`, `P-06`, `P-08`, `P-09` |
-| **Phòng Mua hàng** | - Hệ thống tự động phát cảnh báo khi tồn kho khả dụng chạm ngưỡng tối thiểu (Min Stock).<br>- Tự động gợi ý danh sách và số lượng hàng cần đặt bổ sung dựa trên định mức Max Stock và lượng hàng đang về theo PO đã duyệt (On-order) nhằm tránh đặt trùng.<br>- Theo dõi tiến độ giao hàng thực tế của các đơn mua hàng (PO) đã gửi cho nhà cung cấp. | `P-03`, `P-07` |
-| **Bộ phận Sản xuất / Kế hoạch** | - Gửi yêu cầu xuất kho trực tuyến và biết ngay lượng hàng khả dụng ($Available$) có đủ hay không.<br>- Được cấp phát nguyên vật liệu đúng chủng loại, đúng hạn dùng, không bị gián đoạn dây chuyền. | `P-02`, `P-03`, `P-07` |
-| **Bộ phận Kế toán kho** | - Chứng từ nhập xuất điện tử minh bạch, khớp 100% với số liệu biến động thực tế tại kho.<br>- Đầy đủ vết kiểm toán (Audit Trail) ghi nhận ai tạo, ai duyệt, vào thời gian nào để đối soát tài chính. | `P-01`, `P-08`, `P-09` |
-| **Quản lý nhà máy / Ban Lãnh đạo** | - Dashboard tổng quan trực quan: theo dõi tỷ lệ chính xác tồn kho, hàng cảnh báo, giá trị tồn kho.<br>- Báo cáo tổng hợp Nhập - Xuất - Tồn kết xuất tức thời chỉ với một thao tác bấm chuột. | `P-09`, `P-10` |
+| Mã UR | Nhóm vai trò nghiệp vụ | Nhu cầu và Kỳ vọng nghiệp vụ cụ thể | Mã vấn đề giải quyết |
+| :---: | :--- | :--- | :---: |
+| **UR01** | **Nhân viên kho (Thủ kho)** | - Nhập liệu một lần trên giao diện số, loại bỏ việc ghi chép trùng lặp giữa thẻ kho giấy và Excel.<br>- Hệ thống chỉ dẫn rõ ràng mặt hàng đang nằm ở Khu vực nào, Kệ nào, Ô nào theo mã vị trí (`Zone - Location Code`) phù hợp mặt bằng 5S.<br>- Tự động hiển thị danh sách các lô hàng cần lấy xuất trước theo quy tắc FEFO/FIFO. | `P-01`, `P-04`, `P-05` |
+| **UR02** | **Quản lý kho / Thủ kho trưởng** | - Quy trình kiểm kê điện tử nhanh chóng, tự động tính chênh lệch thừa/thiếu, hỗ trợ kiểm đếm lại lần 2.<br>- Phê duyệt chứng từ nhập/xuất điện tử theo cơ chế Maker-Checker; chỉ khi duyệt mới thay đổi số tồn.<br>- Tra cứu số tồn thực tế thời gian thực tại mọi thời điểm mà không phải chờ tổng hợp cuối tuần. | `P-01`, `P-06`, `P-08`, `P-09` |
+| **UR03** | **Phòng Mua hàng** | - Hệ thống tự động phát cảnh báo khi tồn kho khả dụng chạm ngưỡng tối thiểu (Min Stock).<br>- Tự động gợi ý danh sách và số lượng hàng cần đặt bổ sung dựa trên định mức Max Stock và lượng hàng đang về theo PO đã duyệt (On-order) nhằm tránh đặt trùng.<br>- Theo dõi tiến độ giao hàng thực tế của các đơn mua hàng (PO) đã gửi cho nhà cung cấp. | `P-03`, `P-07` |
+| **UR04** | **Bộ phận Sản xuất / Kế hoạch** | - Gửi yêu cầu xuất kho trực tuyến và biết ngay lượng hàng khả dụng ($Available$) có đủ hay không.<br>- Được cấp phát nguyên vật liệu đúng chủng loại, đúng hạn dùng, không bị gián đoạn dây chuyền. | `P-02`, `P-03`, `P-07` |
+| **UR05** | **Bộ phận Kế toán kho** | - Chứng từ nhập xuất điện tử minh bạch, khớp 100% với số liệu biến động thực tế tại kho.<br>- Đầy đủ vết kiểm toán (Audit Trail) ghi nhận ai tạo, ai duyệt, vào thời gian nào để đối soát tài chính. | `P-01`, `P-08`, `P-09` |
+| **UR06** | **Quản lý nhà máy / Ban Lãnh đạo** | - Dashboard tổng quan trực quan: theo dõi tỷ lệ chính xác tồn kho, hàng cảnh báo, giá trị tồn kho.<br>- Báo cáo tổng hợp Nhập - Xuất - Tồn kết xuất tức thời chỉ với một thao tác bấm chuột. | `P-09`, `P-10` |
 
 ---
 
@@ -195,5 +264,4 @@ Hiện trạng quản lý kho thủ công bằng bảng tính Excel, thẻ kho g
 2. **Đứt gãy thông tin giữa Mua hàng và Kho:** Thiếu chia sẻ dữ liệu đơn mua hàng (PO) và định mức dự trữ khiến phòng mua hàng bị động, phát sinh đơn hàng khẩn cấp (`P-03`, `P-07`).
 3. **Thất thoát và vận hành kém hiệu quả:** Không quản lý vị trí khiến mất nhiều thời gian tìm hàng; không theo dõi Lô và Hạn dùng làm vi phạm nguyên tắc FIFO/FEFO dẫn đến nguy cơ hư hỏng, quá hạn (`P-04`, `P-05`, `P-08`, `P-09`).
 
-Nguyên nhân cốt lõi là doanh nghiệp thiếu một hệ thống phần mềm quản lý kho tập trung thời gian thực. Toàn bộ 10 vấn đề hiện trạng (`P-01` đến `P-10`) và các kỳ vọng của người dùng nêu trên là căn cứ trực tiếp để thiết lập 25 Quy tắc nghiệp vụ (BR), đồng thời được cụ thể hóa thành Danh mục Yêu cầu chức năng (FR) và Yêu cầu phi chức năng (NFR) ở Chương 3.
-
+Nguyên nhân cốt lõi là doanh nghiệp thiếu một hệ thống phần mềm quản lý kho tập trung thời gian thực để số hóa toàn diện tiêu chuẩn mặt bằng 3M và phương pháp 5S. Toàn bộ 10 vấn đề hiện trạng (`P-01` đến `P-10`) và các yêu cầu người dùng (`UR01` đến `UR06`) nêu trên là căn cứ trực tiếp để thiết lập 25 Quy tắc nghiệp vụ (BR), đồng thời được cụ thể hóa thành Danh mục Yêu cầu chức năng (FR) và Yêu cầu phi chức năng (NFR) ở Chương 3.
