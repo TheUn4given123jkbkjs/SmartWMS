@@ -30,16 +30,11 @@ Từ các nguồn dữ kiện thực tế, nhóm BA áp dụng quy trình xử l
 
 ---
 
-## 2.2. TỔNG QUAN TỔ CHỨC VÀ BỐI CẢNH NGHIỆP VỤ
+## 2.2. TỔ CHỨC HIỆN TRƯỜNG VÀ PHƯƠNG PHÁP VẬN HÀNH KHO
 
-### 2.2.1. Bối cảnh doanh nghiệp và mô hình kho trung tâm
-Hệ thống nghiên cứu phục vụ một công ty sản xuất - phân phối phụ tùng, linh kiện kỹ thuật (tương ứng với một nhà máy thành viên trong tập đoàn công nghiệp Nhật Bản của Case Study VTI Solutions). Doanh nghiệp sở hữu một kho trung tâm thực hiện chức năng kép:
-* **Tiếp nhận & Quản lý Nguyên vật liệu đầu vào:** Tiếp nhận linh kiện, phụ tùng, phôi kim loại và hóa chất từ các nhà cung cấp theo Đơn mua hàng (PO), lưu trữ và cấp phát cho các phân xưởng sản xuất lắp ráp.
-* **Lưu trữ & Phân phối Thành phẩm đầu ra:** Tiếp nhận thành phẩm hoàn thiện sau kiểm định từ phân xưởng sản xuất, bảo quản theo số lô/hạn dùng và xuất kho giao hàng cho khách hàng hoặc đại lý phân phối.
+Kế thừa bối cảnh doanh nghiệp và mô hình kho trung tâm phục vụ chức năng kép (nguyên vật liệu đầu vào và thành phẩm đầu ra) đã được xác lập tại **Chương 1 (Mục 1.3)**, phần này tập trung phân tích sâu hiện trạng tổ chức không gian vật lý và phương pháp quản trị vận hành thực tế tại mặt bằng kho trước khi triển khai hệ thống phần mềm.
 
----
-
-### 2.2.2. Kiến trúc mặt bằng kho bãi theo chuẩn kẻ vạch công nghiệp 3M Floor Marking
+### 2.2.1. Kiến trúc mặt bằng kho bãi theo chuẩn kẻ vạch công nghiệp 3M Floor Marking
 Nhằm đảm bảo an toàn lao động và trực quan hóa hoạt động bốc dỡ hàng, mặt bằng kho vật lý của doanh nghiệp được quy hoạch và đánh dấu phân vùng theo tiêu chuẩn công nghiệp **3M Floor Marking Tapes for 5S System**:
 
 ![Sơ đồ bố trí mặt bằng kho bãi và hệ thống kẻ vạch sàn 3M Industrial Marking Tapes cho hệ thống 5S](../assets/3M-grindu-zenklinimo-juostu-naudojimas-5S-sistemai.png)
@@ -48,7 +43,7 @@ Nhằm đảm bảo an toàn lao động và trực quan hóa hoạt động b�
 
 Dựa trên sơ đồ kiến trúc mặt bằng, kho hàng được chia thành các phân vùng chức năng chuyên biệt sau:
 
-### Bảng 2.2a: Phân vùng chức năng mặt bằng kho bãi theo tiêu chuẩn 3M Floor Marking
+### Bảng 2.2: Phân vùng chức năng mặt bằng kho bãi theo tiêu chuẩn 3M Floor Marking
 
 | Phân vùng chức năng (Area) | Quy chuẩn vạch kẻ sàn (3M Tape) | Chức năng nghiệp vụ thực tế trong kho | Ánh xạ mô hình dữ liệu hệ thống (Zone Code) |
 | :--- | :--- | :--- | :---: |
@@ -63,7 +58,7 @@ Dựa trên sơ đồ kiến trúc mặt bằng, kho hàng được chia thành 
 
 ---
 
-### 2.2.3. Phương pháp quản lý 5S trong kho hàng (Warehouse 5S Methodology)
+### 2.2.2. Phương pháp quản lý 5S trong kho hàng (Warehouse 5S Methodology)
 Bên cạnh việc kẻ vạch sàn vật lý, doanh nghiệp áp dụng phương pháp quản trị hiện trường **5S Nhật Bản** làm tiêu chuẩn vận hành kho:
 
 ![Quy trình 5 bước theo phương pháp 5S trong quản lý kho hàng](../assets/phuong-phap-5s-quan-ly-kho-hang-abd53bae.webp)
@@ -89,12 +84,12 @@ Nội dung và ý nghĩa của 5 bước trong quản lý kho hàng công nghi�
 
 ---
 
-### 2.2.4. Nghịch lý hiện trạng: Sự đứt gãy giữa 5S vật lý và thực tế vận hành thủ công
+### 2.2.3. Nghịch lý hiện trạng: Sự đứt gãy giữa 5S vật lý và thực tế vận hành thủ công
 Từ khảo sát thực tế Case Study VTI, nhóm BA nhận diện một **nghịch lý nghiệp vụ nghiêm trọng** tại nhà máy:
 
 > **Doanh nghiệp đã đầu tư kẻ vạch mặt bằng 3M và dán khẩu hiệu 5S trên sàn, nhưng do vận hành bằng công cụ thủ công (bảng tính Excel, thẻ kho giấy, email), các nguyên tắc 5S bị đứt gãy hoàn toàn trong thực tế vận hành.**
 
-### Bảng 2.2b: Ma trận đối chiếu sự đứt gãy giữa Phương pháp 5S và 10 Vấn đề hiện trạng
+### Bảng 2.3: Ma trận đối chiếu sự đứt gãy giữa Phương pháp 5S và 10 Vấn đề hiện trạng
 
 | Bước trong 5S | Tiêu chuẩn 5S kỳ vọng | Thực tế vận hành thủ công tại nhà máy | Mã vấn đề hiện trạng liên quan |
 | :--- | :--- | :--- | :---: |
@@ -112,7 +107,7 @@ $\rightarrow$ **Kết luận:** Hệ thống SmartWMS chính là giải pháp **
 
 Trong chuỗi vận hành kho thủ công của doanh nghiệp, các bên liên quan trực tiếp và gián tiếp có vai trò cùng các mối quan tâm cốt lõi được tổng hợp trong bảng sau:
 
-### Bảng 2.2: Danh sách các bên liên quan trong chuỗi vận hành kho
+### Bảng 2.4: Danh sách các bên liên quan trong chuỗi vận hành kho
 
 | Đối tượng liên quan | Vai trò trong nghiệp vụ hiện tại | Mối quan tâm & "Nỗi đau" chính |
 | :--- | :--- | :--- |
@@ -176,7 +171,7 @@ Khi phát sinh nhu cầu xuất nguyên vật liệu cho xưởng sản xuất h
 
 ## 2.5. HẠN CHẾ CỦA HỆ THỐNG VÀ CÔNG CỤ HIỆN TẠI
 
-### Bảng 2.3: Công cụ và biểu mẫu hiện tại trong vận hành kho
+### Bảng 2.5: Công cụ và biểu mẫu hiện tại trong vận hành kho
 
 | Công cụ / Biểu mẫu | Mục đích sử dụng | Hạn chế và Rủi ro vận hành |
 | :--- | :--- | :--- |
@@ -195,7 +190,7 @@ Dữ liệu đang quản lý bao gồm các trường cơ bản: Mã sản phẩ
 
 Từ các nút thắt trong 5 quy trình AS-IS và hạn chế công cụ nêu trên, nhóm BA đã tổng hợp và chuẩn hóa thành **10 vấn đề hiện trạng cốt lõi (`P-01` đến `P-10`)**. Bảng danh mục này là căn cứ đầu vào trực tiếp để thiết lập 25 Quy tắc nghiệp vụ (BR) và Đặc tả yêu cầu chức năng (FR) của hệ thống:
 
-### Bảng 2.4: Danh mục 10 vấn đề hiện trạng cốt lõi và nguyên nhân gốc rễ
+### Bảng 2.6: Danh mục 10 vấn đề hiện trạng cốt lõi và nguyên nhân gốc rễ
 
 | Mã vấn đề | Tên vấn đề hiện trạng | Biểu hiện thực tế tại kho | Hậu quả đối với doanh nghiệp | Nguyên nhân gốc rễ |
 | :---: | :--- | :--- | :--- | :--- |
@@ -242,9 +237,9 @@ Từ các nút thắt trong 5 quy trình AS-IS và hạn chế công cụ nêu t
 
 ## 2.7. NHU CẦU VÀ KỲ VỌNG CỦA NGƯỜI DÙNG (USER REQUIREMENTS)
 
-Từ phân tích chân dung vai trò nghiệp vụ (Persona Analysis), các điểm nghẽn thực tế ghi nhận từ Case Study và quy chuẩn 5S, nhu cầu của người dùng được chuẩn hóa theo từng vai trò nghiệp vụ với hệ thống mã định danh **`URxx` (User Requirement)**. Đây là căn cứ đầu vào trực tiếp cho phần Đặc tả yêu cầu chức năng (FR) và Ma trận truy vết (RTM) ở Chương 3:
+Từ phân tích chân dung vai trò nghiệp vụ (Persona Analysis), các điểm nghẽn thực tế ghi nhận từ Case Study và quy chuẩn 5S, nhu cầu của người dùng được chuẩn hóa theo từng vai trò nghiệp vụ với hệ thống mã định danh **`UR01` đến `UR06` (User Requirement)**. Đây là căn cứ đầu vào trực tiếp cho phần Đặc tả yêu cầu chức năng (FR) và Ma trận truy vết (RTM) ở Chương 3:
 
-### Bảng 2.5: Nhu cầu và kỳ vọng của người dùng theo từng vai trò nghiệp vụ
+### Bảng 2.7: Nhu cầu và kỳ vọng của người dùng theo từng vai trò nghiệp vụ
 
 | Mã UR | Nhóm vai trò nghiệp vụ | Nhu cầu và Kỳ vọng nghiệp vụ cụ thể | Mã vấn đề giải quyết |
 | :---: | :--- | :--- | :---: |
