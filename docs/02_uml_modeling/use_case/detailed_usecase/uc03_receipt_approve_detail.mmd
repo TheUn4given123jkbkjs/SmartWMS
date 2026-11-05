@@ -1,0 +1,28 @@
+flowchart LR
+    classDef base fill:#90caf9,stroke:#1565c0,stroke-width:2px,color:#000000,font-weight:bold;
+    classDef ext fill:#e3f2fd,stroke:#1976d2,stroke-width:1.8px,stroke-dasharray:4 3,color:#1565c0,font-weight:bold;
+    classDef actor fill:#ffffff,stroke:#333333,stroke-width:2px,color:#111111,font-weight:bold;
+
+    subgraph SYSTEM ["SmartWMS - Sơ đồ chi tiết UC03: Phê duyệt phiếu nhập kho"]
+        direction LR
+        subgraph COL_A [" "]
+            direction TB
+            UC03(["Phê duyệt phiếu nhập kho"]):::base
+        end
+        subgraph COL_B [" "]
+            direction TB
+            UC_CHECKER(["Thẩm định Maker-Checker"]):::base
+            UC_STOCKCARD(["Ghi sổ Thẻ kho điện tử"]):::base
+            UC_REJECT(["Từ chối phê duyệt chứng từ"]):::ext
+        end
+    end
+
+    style COL_A fill:none,stroke:none;
+    style COL_B fill:none,stroke:none;
+
+    Actor_Checker["Quản lý kho<br>Checker"]:::actor
+    Actor_Checker --- UC03
+
+    UC03 -. "<<include>>" .-> UC_CHECKER
+    UC03 -. "<<include>>" .-> UC_STOCKCARD
+    UC_REJECT -. "<<extend>>" .-> UC03

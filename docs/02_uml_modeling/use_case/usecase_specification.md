@@ -14,9 +14,9 @@
 ## 1. TỔNG QUAN DANH MỤC 7 USE CASE CỐT LÕI (CORE USE CASES)
 
 Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Cases - `UC01` đến `UC07`) thuộc phạm vi bắt buộc cài đặt và kiểm thử Java Demo (**Must-have**). Danh mục 7 Use Case này được trích xuất trực tiếp từ 3 sơ đồ Use Case phân hệ:
-1. **Sơ đồ Nhập - Xuất kho:** [in_out_uc.jpg](in_out_uc.jpg)
-2. **Sơ đồ Quản lý & Thẩm định (Maker-Checker):** [management_checking_uc.jpg](management_checking_uc.jpg)
-3. **Sơ đồ Cảnh báo & Báo cáo tồn kho:** [warning_report_uc.jpg](warning_report_uc.jpg)
+1. **Sơ đồ Nhập - Xuất kho:** [TQ1.jpg (Nhập - Xuất kho)](Usecase_TongQuat/TQ1.jpg)
+2. **Sơ đồ Quản lý & Thẩm định (Maker-Checker):** [TQ2.jpg (Quản trị & Phê duyệt)](Usecase_TongQuat/TQ2.jpg)
+3. **Sơ đồ Cảnh báo & Báo cáo tồn kho:** [TQ3.jpg (Cảnh báo & Báo cáo)](Usecase_TongQuat/TQ3.jpg)
 
 ---
 
@@ -24,13 +24,13 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 
 | Mã UC | Tên Use Case | Tác nhân chính | Tác nhân phụ | Nhóm FR liên ứng | Quy tắc nghiệp vụ (BR) chi phối | Sơ đồ Use Case nguồn |
 |:---:|:---|:---|:---|:---:|:---|:---:|
-| **UC01** | Quản lý danh mục kho (Manage Warehouse Catalog) | Quản lý kho | Không có | `FR01.01`<br>`FR01.02`<br>`FR01.03` | `BR-CAT-01`, `BR-CAT-02`, `BR-CAT-03`, `BR-CAT-04`, `BR-CAT-05` | [management_checking_uc.jpg](management_checking_uc.jpg) |
-| **UC02** | Lập phiếu nhập kho (Create Goods Receipt Note) | Nhân viên kho | Nhân viên Mua hàng, Nhà cung cấp | `FR02.01`<br>`FR02.02` | `BR-LOT-01`, `BR-INB-01`, `BR-INB-02`, `BR-INB-03`, `BR-INB-04`, `BR-SEC-02` | [in_out_uc.jpg](in_out_uc.jpg) |
-| **UC03** | Phê duyệt phiếu nhập kho (Approve Goods Receipt Note) | Quản lý kho | Không có | `FR02.03` | `BR-CAT-03`, `BR-INB-02`, `BR-SEC-01`, `BR-SEC-02`, `BR-SEC-03` | [management_checking_uc.jpg](management_checking_uc.jpg) |
-| **UC04** | Lập phiếu xuất kho (Create Goods Issue Note) | Nhân viên kho | BP. Sản xuất / Bán hàng | `FR03.01`<br>`FR03.02` | `BR-OUT-01`, `BR-OUT-02`, `BR-OUT-03`, `BR-OUT-06` | [in_out_uc.jpg](in_out_uc.jpg) |
-| **UC05** | Phê duyệt phiếu xuất kho (Approve Goods Issue Note) | Quản lý kho, Nhân viên kho | BP. Sản xuất / Bán hàng | `FR03.03` | `BR-CAT-03`, `BR-OUT-01`, `BR-OUT-04`, `BR-OUT-06`, `BR-SEC-01`, `BR-SEC-02`, `BR-SEC-03` | [management_checking_uc.jpg](management_checking_uc.jpg)<br>[in_out_uc.jpg](in_out_uc.jpg) |
-| **UC06** | Tra cứu tồn kho (Query Inventory) | Nhân viên kho, Quản lý kho | Kế toán kho & Ban Giám đốc | `FR04.01`<br>`FR04.02` | `BR-CAT-03`, `BR-LOT-01`, `BR-SEC-02` | [warning_report_uc.jpg](warning_report_uc.jpg) |
-| **UC07** | Xem cảnh báo tồn kho (View Inventory Alerts) | Nhân viên Mua hàng, Quản lý kho | Bộ định thời (Scheduler) | `FR04.03` | `BR-CAT-05`, `BR-INV-01`, `BR-INV-02`, `BR-INV-03` | [warning_report_uc.jpg](warning_report_uc.jpg) |
+| **UC01** | Quản lý danh mục kho (Manage Warehouse Catalog) | Quản lý kho | Không có | `FR01.01`<br>`FR01.02`<br>`FR01.03` | `BR-CAT-01`, `BR-CAT-02`, `BR-CAT-03`, `BR-CAT-04`, `BR-CAT-05` | [TQ2.jpg](Usecase_TongQuat/TQ2.jpg) |
+| **UC02** | Lập phiếu nhập kho (Create Goods Receipt Note) | Nhân viên kho | Nhân viên Mua hàng, Nhà cung cấp | `FR02.01`<br>`FR02.02` | `BR-LOT-01`, `BR-INB-01`, `BR-INB-02`, `BR-INB-03`, `BR-INB-04`, `BR-SEC-02` | [TQ1.jpg](Usecase_TongQuat/TQ1.jpg) |
+| **UC03** | Phê duyệt phiếu nhập kho (Approve Goods Receipt Note) | Quản lý kho | Không có | `FR02.03` | `BR-CAT-03`, `BR-INB-02`, `BR-SEC-01`, `BR-SEC-02`, `BR-SEC-03` | [TQ2.jpg](Usecase_TongQuat/TQ2.jpg) |
+| **UC04** | Lập phiếu xuất kho (Create Goods Issue Note) | Nhân viên kho | BP. Sản xuất / Bán hàng | `FR03.01`<br>`FR03.02` | `BR-OUT-01`, `BR-OUT-02`, `BR-OUT-03`, `BR-OUT-06` | [TQ1.jpg](Usecase_TongQuat/TQ1.jpg) |
+| **UC05** | Phê duyệt phiếu xuất kho (Approve Goods Issue Note) | Quản lý kho, Nhân viên kho | BP. Sản xuất / Bán hàng | `FR03.03` | `BR-CAT-03`, `BR-OUT-01`, `BR-OUT-04`, `BR-OUT-06`, `BR-SEC-01`, `BR-SEC-02`, `BR-SEC-03` | [TQ2.jpg](Usecase_TongQuat/TQ2.jpg)<br>[TQ1.jpg](Usecase_TongQuat/TQ1.jpg) |
+| **UC06** | Tra cứu tồn kho (Query Inventory) | Nhân viên kho, Quản lý kho | Kế toán kho & Ban Giám đốc | `FR04.01`<br>`FR04.02` | `BR-CAT-03`, `BR-LOT-01`, `BR-SEC-02` | [TQ3.jpg](Usecase_TongQuat/TQ3.jpg) |
+| **UC07** | Xem cảnh báo tồn kho (View Inventory Alerts) | Nhân viên Mua hàng, Quản lý kho | Bộ định thời (Scheduler) | `FR04.03` | `BR-CAT-05`, `BR-INV-01`, `BR-INV-02`, `BR-INV-03` | [TQ3.jpg](Usecase_TongQuat/TQ3.jpg) |
 
 ---
 
@@ -353,7 +353,7 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 
 | Tiêu chí kiểm chứng DoD | Kết quả kiểm tra | Minh chứng đối soát |
 |:---|:---:|:---|
-| Đầy đủ 7 Use Case cốt lõi khớp 100% với 3 sơ đồ hình ảnh Use Case | **ĐẠT** | Ánh xạ từ [in_out_uc.jpg](in_out_uc.jpg), [management_checking_uc.jpg](management_checking_uc.jpg), [warning_report_uc.jpg](warning_report_uc.jpg). |
+| Đầy đủ 7 Use Case cốt lõi khớp 100% với 3 sơ đồ hình ảnh Use Case | **ĐẠT** | Ánh xạ từ [TQ1.jpg](Usecase_TongQuat/TQ1.jpg), [TQ2.jpg](Usecase_TongQuat/TQ2.jpg), [TQ3.jpg](Usecase_TongQuat/TQ3.jpg). |
 | Tuân thủ tuyệt đối cấu trúc Biểu mẫu 2.1 của `SpecificationStandard.md` | **ĐẠT** | Đủ 100% các phần: Metadata, Tiền/Hậu điều kiện, BR chi phối, FR liên ứng, Luồng chính (bảng 3 cột), Luồng phụ, Luồng ngoại lệ. |
 | Ràng buộc đầy đủ 25 Quy tắc nghiệp vụ (`BR-CAT`, `BR-LOT`, `BR-INB`, `BR-OUT`, `BR-INV`, `BR-SEC`) | **ĐẠT** | Từng bước xử lý và luồng ngoại lệ đều trích dẫn chính xác mã BR và hành vi tương ứng. |
 | Tuân thủ cơ chế kiểm soát 4 mắt (Maker-Checker) và phân định thẩm quyền | **ĐẠT** | Thể hiện tường minh tại `UC02`, `UC03`, `UC04`, `UC05` với ràng buộc `checker_id != maker_id` và mã phản hồi `403 Forbidden`. |

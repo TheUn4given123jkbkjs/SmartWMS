@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 580" width="100%" height="100%" style="background-color: #ffffff; font-family: Arial, Helvetica, sans-serif;">
+  <defs>
+    <!-- Standard UML open arrowhead (matching general diagrams) -->
+    <marker id="arrow-uml" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="9" markerHeight="9" orient="auto">
+      <polyline points="2,1 11,6 2,11" fill="none" stroke="#222222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <!-- ================= SYSTEM BOUNDARY ================= -->
+  <rect x="230" y="30" width="910" height="520" fill="#fafbfc" stroke="#222222" stroke-width="1.8" rx="4" />
+  <rect x="230" y="30" width="910" height="42" fill="#f1f5f9" stroke="#222222" stroke-width="1.8" />
+  <text x="685" y="57" text-anchor="middle" font-size="15.5" font-weight="bold" fill="#111111">SmartWMS - Sơ đồ chi tiết UC01: Quản lý danh mục kho</text>
+
+  <!-- ================= ACTOR: Quản lý kho ================= -->
+  <g transform="translate(75, 200)">
+    <!-- Stick figure -->
+    <circle cx="45" cy="25" r="18" fill="#e3f2fd" stroke="#1565c0" stroke-width="2.2" />
+    <line x1="45" y1="43" x2="45" y2="105" stroke="#222222" stroke-width="2.6" />
+    <line x1="12" y1="68" x2="78" y2="68" stroke="#222222" stroke-width="2.6" />
+    <line x1="45" y1="105" x2="18" y2="165" stroke="#222222" stroke-width="2.6" />
+    <line x1="45" y1="105" x2="72" y2="165" stroke="#222222" stroke-width="2.6" />
+    <!-- Label -->
+    <text x="45" y="195" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#111111">Quản lý kho</text>
+    <text x="45" y="214" text-anchor="middle" font-size="13" fill="#555555">Checker</text>
+  </g>
+
+  <!-- ================= SOLID ASSOCIATION LINES FROM ACTOR ================= -->
+  <!-- 1. Đường nối tới Thêm mới Mặt hàng (chạm khít mép oval) -->
+  <line x1="165" y1="290" x2="366.6" y2="212.2" stroke="#222222" stroke-width="1.8" />
+
+  <!-- 2. Đường nối tới Thiết lập vị trí ô kệ kho (chạm khít mép oval) -->
+  <line x1="165" y1="290" x2="366.6" y2="367.8" stroke="#222222" stroke-width="1.8" />
+
+  <!-- ================= HÀNG 1: QUẢN LÝ MẶT HÀNG (QUAN HỆ INCLUDE) ================= -->
+
+  <!-- Node 1: Thêm mới Mặt hàng (Ca gốc bên trái) -->
+  <g filter="url(#shadow)">
+    <ellipse cx="450" cy="180" rx="130" ry="42" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="450" y="186" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">Thêm mới Mặt hàng</text>
+  </g>
+
+  <!-- Mũi tên <<include>> xuất phát từ Thêm mới Mặt hàng TRỎ SANG Cấu hình định mức tồn an toàn -->
+  <!-- Nối từ mép Node 1 (580, 180) sang mép Node 2 (780, 180), mũi tên hướng SANG PHẢI -->
+  <line x1="580.0" y1="180.0" x2="780.0" y2="180.0" stroke="#222222" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-uml)" />
+  <!-- Chữ <<include>> ngang thẳng nằm phía trên mũi tên 17px -->
+  <text x="680" y="163" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#111111">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- Node 2: Cấu hình định mức tồn an toàn (Ca bắt buộc đi kèm bên phải) -->
+  <g filter="url(#shadow)">
+    <ellipse cx="920" cy="180" rx="140" ry="42" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="920" y="186" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">Cấu hình định mức tồn an toàn</text>
+  </g>
+
+  <!-- ================= HÀNG 2: THIẾT LẬP Ô KỆ KHO (QUAN HỆ EXTEND) ================= -->
+
+  <!-- Node 3: Thiết lập vị trí ô kệ kho (Ca gốc bên trái) -->
+  <g filter="url(#shadow)">
+    <ellipse cx="450" cy="400" rx="130" ry="42" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="450" y="406" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">Thiết lập vị trí ô kệ kho</text>
+  </g>
+
+  <!-- Mũi tên <<extend>> xuất phát từ Import danh mục từ file Excel TRỎ VỀ Thiết lập vị trí ô kệ kho -->
+  <!-- Nối từ mép Node 4 (780, 400) sang mép Node 3 (580, 400), mũi tên hướng SANG TRÁI -->
+  <line x1="780.0" y1="400.0" x2="580.0" y2="400.0" stroke="#222222" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-uml)" />
+  <!-- Chữ <<extend>> ngang thẳng nằm phía trên mũi tên 17px -->
+  <text x="680" y="383" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#111111">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- Node 4: Import danh mục từ file Excel (Ca mở rộng bên phải) -->
+  <g filter="url(#shadow)">
+    <ellipse cx="920" cy="400" rx="140" ry="42" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.8" stroke-dasharray="4,3" />
+    <text x="920" y="406" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1565c0">Import danh mục từ file Excel</text>
+  </g>
+</svg>

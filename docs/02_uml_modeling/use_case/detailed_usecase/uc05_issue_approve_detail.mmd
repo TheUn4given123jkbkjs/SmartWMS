@@ -1,0 +1,34 @@
+flowchart LR
+    classDef base fill:#90caf9,stroke:#1565c0,stroke-width:2px,color:#000000,font-weight:bold;
+    classDef ext fill:#e3f2fd,stroke:#1976d2,stroke-width:1.8px,stroke-dasharray:4 3,color:#1565c0,font-weight:bold;
+    classDef actor fill:#ffffff,stroke:#333333,stroke-width:2px,color:#111111,font-weight:bold;
+
+    subgraph SYSTEM ["SmartWMS - Sơ đồ chi tiết UC05: Phê duyệt phiếu xuất kho"]
+        direction LR
+        subgraph COL_A [" "]
+            direction TB
+            UC05_APP(["Phê duyệt phiếu xuất kho"]):::base
+            UC05_CONFIRM(["Xác nhận hoàn tất giao hàng"]):::base
+        end
+        subgraph COL_B [" "]
+            direction TB
+            UC_RELEASE(["Giải phóng lượng giữ chỗ"]):::ext
+            UC_CHECKER(["Thẩm định Maker-Checker"]):::base
+            UC_PICK(["In phiếu lấy hàng Pick list"]):::base
+            UC_DEDUCT(["Cập nhật giảm tồn kho"]):::base
+        end
+    end
+
+    style COL_A fill:none,stroke:none;
+    style COL_B fill:none,stroke:none;
+
+    Actor_Checker["Quản lý kho<br>Checker"]:::actor
+    Actor_Maker["Nhân viên kho<br>Maker"]:::actor
+
+    Actor_Checker --- UC05_APP
+    Actor_Maker --- UC05_CONFIRM
+
+    UC_RELEASE -. "<<extend>>" .-> UC05_APP
+    UC05_APP -. "<<include>>" .-> UC_CHECKER
+    UC05_CONFIRM -. "<<include>>" .-> UC_PICK
+    UC05_CONFIRM -. "<<include>>" .-> UC_DEDUCT

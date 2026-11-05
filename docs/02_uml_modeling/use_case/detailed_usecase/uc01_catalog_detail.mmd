@@ -1,0 +1,35 @@
+flowchart LR
+    classDef base fill:#90caf9,stroke:#1565c0,stroke-width:2px,color:#000000,font-weight:bold;
+    classDef ext fill:#e3f2fd,stroke:#1976d2,stroke-width:1.8px,stroke-dasharray:4 3,color:#1565c0,font-weight:bold;
+    classDef actor fill:#ffffff,stroke:#333333,stroke-width:2px,color:#111111,font-weight:bold;
+
+    subgraph SYSTEM ["SmartWMS - Sơ đồ chi tiết UC01: Quản lý danh mục kho"]
+        direction LR
+
+        subgraph COL_A [" "]
+            direction TB
+            UC_SKU(["Thêm mới Mặt hàng"]):::base
+            UC_LOCATION(["Thiết lập vị trí ô kệ kho"]):::base
+        end
+
+        subgraph COL_B [" "]
+            direction TB
+            UC_MINMAX(["Cấu hình định mức tồn an toàn"]):::base
+            UC_IMPORT(["Import danh mục từ file Excel"]):::ext
+        end
+    end
+
+    style COL_A fill:none,stroke:none;
+    style COL_B fill:none,stroke:none;
+
+    Actor_Manager["Quản lý kho<br>Checker"]:::actor
+
+    %% Actor chỉ nối vào 2 cổng chức năng chính
+    Actor_Manager --- UC_SKU
+    Actor_Manager --- UC_LOCATION
+
+    %% Hàng trên: include từ Thêm mặt hàng sang Cấu hình định mức
+    UC_SKU -. "<<include>>" .-> UC_MINMAX
+
+    %% Hàng dưới: extend từ Import Excel về Thiết lập vị trí ô kệ
+    UC_IMPORT -. "<<extend>>" .-> UC_LOCATION
