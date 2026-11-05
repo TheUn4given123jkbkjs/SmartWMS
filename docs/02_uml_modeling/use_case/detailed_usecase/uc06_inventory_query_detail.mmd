@@ -1,0 +1,28 @@
+flowchart LR
+    classDef base fill:#90caf9,stroke:#1565c0,stroke-width:2px,color:#000000,font-weight:bold;
+    classDef ext fill:#e3f2fd,stroke:#1976d2,stroke-width:1.8px,stroke-dasharray:4 3,color:#1565c0,font-weight:bold;
+    classDef actor fill:#ffffff,stroke:#333333,stroke-width:2px,color:#111111,font-weight:bold;
+
+    subgraph SYSTEM ["SmartWMS - Sơ đồ chi tiết UC06: Tra cứu tồn kho"]
+        direction LR
+        subgraph COL_A [" "]
+            direction TB
+            UC06(["Tra cứu tồn kho tức thời"]):::base
+        end
+        subgraph COL_B [" "]
+            direction TB
+            UC_CALC(["Tính toán tồn khả dụng"]):::base
+            UC_STOCKCARD(["Xem Thẻ kho điện tử"]):::ext
+            UC_LOCATION(["Tra cứu theo vị trí ô kệ 3M"]):::ext
+        end
+    end
+
+    style COL_A fill:none,stroke:none;
+    style COL_B fill:none,stroke:none;
+
+    Actor_User["Người tra cứu<br>Nhân viên / Quản lý"]:::actor
+    Actor_User --- UC06
+
+    UC06 -. "<<include>>" .-> UC_CALC
+    UC_STOCKCARD -. "<<extend>>" .-> UC06
+    UC_LOCATION -. "<<extend>>" .-> UC06

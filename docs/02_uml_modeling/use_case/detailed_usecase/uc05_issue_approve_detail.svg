@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 700" width="100%" height="100%" style="background-color: #ffffff; font-family: Arial, Helvetica, sans-serif;">
+  <defs>
+    <marker id="arrow-uml" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="9" markerHeight="9" orient="auto">
+      <polyline points="2,1 11,6 2,11" fill="none" stroke="#222222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <!-- SYSTEM BOUNDARY -->
+  <rect x="230" y="30" width="950" height="640" fill="#fafbfc" stroke="#222222" stroke-width="1.8" rx="4" />
+  <rect x="230" y="30" width="950" height="42" fill="#f1f5f9" stroke="#222222" stroke-width="1.8" />
+  <text x="705.0" y="57" text-anchor="middle" font-size="15.5" font-weight="bold" fill="#111111">SmartWMS - Sơ đồ chi tiết UC05: Phê duyệt phiếu xuất kho</text>
+
+  <!-- ACTORS -->
+  <g transform="translate(75, 120)">
+    <circle cx="45" cy="25" r="18" fill="#e3f2fd" stroke="#1565c0" stroke-width="2.2" />
+    <line x1="45" y1="43" x2="45" y2="105" stroke="#222222" stroke-width="2.6" />
+    <line x1="12" y1="68" x2="78" y2="68" stroke="#222222" stroke-width="2.6" />
+    <line x1="45" y1="105" x2="18" y2="165" stroke="#222222" stroke-width="2.6" />
+    <line x1="45" y1="105" x2="72" y2="165" stroke="#222222" stroke-width="2.6" />
+    <text x="45" y="195" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#111111">Quản lý kho</text>
+    <text x="45" y="214" text-anchor="middle" font-size="13" fill="#555555">Checker</text>
+  </g>
+  
+  <g transform="translate(75, 380)">
+    <circle cx="45" cy="25" r="18" fill="#e3f2fd" stroke="#1565c0" stroke-width="2.2" />
+    <line x1="45" y1="43" x2="45" y2="105" stroke="#222222" stroke-width="2.6" />
+    <line x1="12" y1="68" x2="78" y2="68" stroke="#222222" stroke-width="2.6" />
+    <line x1="45" y1="105" x2="18" y2="165" stroke="#222222" stroke-width="2.6" />
+    <line x1="45" y1="105" x2="72" y2="165" stroke="#222222" stroke-width="2.6" />
+    <text x="45" y="195" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#111111">Nhân viên kho</text>
+    <text x="45" y="214" text-anchor="middle" font-size="13" fill="#555555">Maker</text>
+  </g>
+
+  <!-- SOLID LINES -->
+  <line x1="165" y1="210" x2="313.7" y2="220.4" stroke="#222222" stroke-width="1.8" />
+  <line x1="165" y1="470" x2="310.0" y2="470.0" stroke="#222222" stroke-width="1.8" />
+
+  <!-- USE CASES -->
+  <g filter="url(#shadow)">
+    <ellipse cx="450" cy="230" rx="140" ry="42" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="450" y="236" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">Phê duyệt phiếu xuất kho</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <ellipse cx="450" cy="470" rx="140" ry="42" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="450" y="476" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">Xác nhận hoàn tất giao hàng</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <ellipse cx="940" cy="145" rx="140" ry="38" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.2" stroke-dasharray="4,3" />
+    <text x="940" y="151" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1565c0">Giải phóng lượng giữ chỗ</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <ellipse cx="940" cy="250" rx="140" ry="40" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="940" y="256" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">Thẩm định Maker-Checker</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <ellipse cx="940" cy="420" rx="140" ry="40" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="940" y="426" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">In phiếu lấy hàng Pick list</text>
+  </g>
+  
+  <g filter="url(#shadow)">
+    <ellipse cx="940" cy="540" rx="140" ry="40" fill="#90caf9" stroke="#1565c0" stroke-width="2.2" />
+    <text x="940" y="546" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">Cập nhật giảm tồn kho</text>
+  </g>
+
+  <!-- ARROWS -->
+  <!-- <<extend>> Giải phóng lượng giữ chỗ -> Phê duyệt phiếu xuất kho -->
+  <line x1="822.0" y1="165.5" x2="571.2" y2="209.0" stroke="#222222" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-uml)" />
+  <text x="695.0" y="170.5" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#111111">&lt;&lt;extend&gt;&gt;</text>
+  
+  <!-- <<include>> Phê duyệt phiếu xuất kho -> Thẩm định Maker-Checker -->
+  <line x1="588.7" y1="235.7" x2="801.4" y2="244.3" stroke="#222222" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-uml)" />
+  <text x="695.0" y="223.0" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#111111">&lt;&lt;include&gt;&gt;</text>
+  
+  <!-- <<include>> Xác nhận hoàn tất giao hàng -> In phiếu lấy hàng Pick list -->
+  <line x1="582.5" y1="456.5" x2="808.2" y2="433.5" stroke="#222222" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-uml)" />
+  <text x="695.0" y="428.0" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#111111">&lt;&lt;include&gt;&gt;</text>
+  
+  <!-- <<include>> Xác nhận hoàn tất giao hàng -> Cập nhật giảm tồn kho -->
+  <line x1="576.4" y1="488.1" x2="814.8" y2="522.1" stroke="#222222" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-uml)" />
+  <text x="695.0" y="488.0" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#111111">&lt;&lt;include&gt;&gt;</text>
+</svg>
