@@ -1,0 +1,40 @@
+sequenceDiagram
+    autonumber
+    actor Checker as Quản lý kho (Checker)
+    participant UI as Giao diện (Thymeleaf/Web)
+    participant Ctrl as ReceiptController
+    participant Svc as ReceiptService
+    participant RecRepo as ReceiptNoteRepository
+    participant BatchRepo as StockBatchRepository
+    participant LocRepo as WarehouseLocationRepository
+    participant CardRepo as StockCardRepository
+
+    Checker->>UI: Bấm "Phê duyệt" phiếu nhập kho (noteId)
+    UI->>Ctrl: POST /api/inbound/receipt-notes/{id}/approve
+    Ctrl->>Svc: approveReceiptNote(noteId, currentUserId)
+
+    Svc->>RecRepo: findById(noteId)
+    RecRepo-->>Svc: ReceiptNote (makerId, status, items)
+
+    alt [Tự duyệt phiếu của chính mình (currentUserId == makerId - Vi phạm BR-SEC-03)]
+        Svc-->>Ctrl: Ném SecurityViolationException
+        Ctrl-->>UI: 403 Forbidden ("Vi phạm nguyên tắc Maker-Checker theo BR-SEC-03")
+        UI-->>Checker: Hiển thị cảnh báo: Người lập không được phép tự duyệt phiếu
+    else [Trạng thái chứng từ khác PENDING_APPROVAL]
+        Svc-->>Ctrl: Ném InvalidStateException
+        Ctrl-->>UI: 409 Conflict ("Chứng từ đã được xử lý bởi người dùng khác")
+        UI-->>Checker: Thông báo xung đột, yêu cầu làm mới trang
+    else [Thẩm định hợp lệ -> Mở Transaction (@Transactional)]
+        Note over Svc,CardRepo: Bắt đầu Giao dịch nguyên tử đa bảng (@Transactional)
+        Svc->>RecRepo: updateStatus(noteId, status=COMPLETED, checkerId=currentUserId)
+        Svc->>BatchRepo: saveOrIncreaseOnHand(skuCode, lotNumber, expDate, locationId, acceptedQty)
+        Note over BatchRepo: Tăng số lượng tồn kho thực tế On-hand (BR-INB-02)
+        Svc->>LocRepo: updateStatus(locationId, status=OCCUPIED)
+        Note over LocRepo: Cập nhật trạng thái ô kệ chứa hàng (BR-CAT-03)
+        Svc->>CardRepo: save(StockCard: type="NHẬP_PO", qty, afterQty, referenceCode)
+        Note over CardRepo: Ghi nhận 01 dòng bút toán vào Thẻ kho điện tử (BR-SEC-02)
+        Note over Svc,RecRepo: Khóa vĩnh viễn phiếu nhập COMPLETED, cấm sửa/xóa (BR-SEC-01)
+        Svc-->>Ctrl: ApprovalResultDTO (status=SUCCESS, noteNumber)
+        Ctrl-->>UI: 200 OK ("Phê duyệt phiếu nhập kho thành công")
+        UI-->>Checker: Cập nhật giao diện: Đã duyệt & số dư kho đã được ghi nhận
+    end
