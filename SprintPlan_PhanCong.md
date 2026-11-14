@@ -50,7 +50,7 @@
 | :---: | :--- | :---: | :---: | :---: | :---: |
 | **T3.1** | Thiết kế Lược đồ quan hệ CSDL 3NF & Viết mã SQL DDL (Khóa, ràng buộc) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 07/11 | **Hoàn thành** |
 | **T3.2** | Lập Bảng Từ điển dữ liệu (Data Dictionary 8 cột) cho các bảng chính | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 07/11 | **Hoàn thành** |
-| **T3.3** | Thiết kế cấu trúc Component & Tổ chức Package Spring Boot (`entity`, `repository`, `service`, `controller`, `dto`) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 08/11 | Chờ làm |
+| **T3.3** | Thiết kế cấu trúc Component & Tổ chức Package Spring Boot (`entity`, `repository`, `service`, `controller`, `dto`) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 08/11 | **Hoàn thành** |
 | **T3.4** | Thiết kế chữ ký hàm Service & REST API / Controller Endpoints (Request/Response DTO) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 08/11 | Chờ làm |
 
 ---
