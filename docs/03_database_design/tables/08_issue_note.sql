@@ -37,3 +37,4 @@ CREATE TABLE IF NOT EXISTS issue_note (
 
 CREATE INDEX idx_issue_status ON issue_note(status);
 CREATE INDEX idx_issue_maker ON issue_note(maker_id);
+

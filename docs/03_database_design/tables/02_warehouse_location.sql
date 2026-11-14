@@ -23,3 +23,4 @@ CREATE TABLE IF NOT EXISTS warehouse_location (
     -- Ràng buộc trạng thái ô kệ (BR-CAT-03)
     CONSTRAINT chk_location_status CHECK (status IN ('EMPTY', 'OCCUPIED', 'MAINTENANCE'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

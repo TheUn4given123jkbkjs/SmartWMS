@@ -34,3 +34,4 @@ CREATE TABLE IF NOT EXISTS receipt_note (
 CREATE INDEX idx_receipt_po ON receipt_note(po_number);
 CREATE INDEX idx_receipt_status ON receipt_note(status);
 CREATE INDEX idx_receipt_maker ON receipt_note(maker_id);
+

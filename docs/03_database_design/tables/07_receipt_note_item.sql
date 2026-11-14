@@ -34,3 +34,4 @@ CREATE TABLE IF NOT EXISTS receipt_note_item (
 
 CREATE INDEX idx_receipt_item_note ON receipt_note_item(receipt_id);
 CREATE INDEX idx_receipt_item_batch ON receipt_note_item(batch_id);
+

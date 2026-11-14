@@ -14,3 +14,4 @@ CREATE TABLE IF NOT EXISTS category (
     -- Ràng buộc tính duy nhất của mã ngành hàng
     CONSTRAINT uk_category_code UNIQUE (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

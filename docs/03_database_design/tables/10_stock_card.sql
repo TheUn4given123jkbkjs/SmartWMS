@@ -32,3 +32,4 @@ CREATE TABLE IF NOT EXISTS stock_card (
 CREATE INDEX idx_card_product_date ON stock_card(product_id, transaction_date);
 CREATE INDEX idx_card_batch ON stock_card(batch_id);
 CREATE INDEX idx_card_ref ON stock_card(reference_code);
+

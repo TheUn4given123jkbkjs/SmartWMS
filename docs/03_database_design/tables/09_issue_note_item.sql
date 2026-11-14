@@ -26,3 +26,4 @@ CREATE TABLE IF NOT EXISTS issue_note_item (
 
 CREATE INDEX idx_issue_item_note ON issue_note_item(issue_id);
 CREATE INDEX idx_issue_item_batch ON issue_note_item(batch_id);
+

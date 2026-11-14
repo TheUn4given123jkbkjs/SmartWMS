@@ -39,3 +39,4 @@ CREATE TABLE IF NOT EXISTS stock_batch (
 
 CREATE INDEX idx_batch_product_exp ON stock_batch(product_id, exp_date);
 CREATE INDEX idx_batch_location ON stock_batch(location_id);
+

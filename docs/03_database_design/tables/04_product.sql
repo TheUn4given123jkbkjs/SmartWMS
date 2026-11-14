@@ -29,3 +29,4 @@ CREATE TABLE IF NOT EXISTS product (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_product_category ON product(category_id);
+
