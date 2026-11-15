@@ -1,0 +1,41 @@
+sequenceDiagram
+    autonumber
+    actor Maker as Nhân viên kho (Maker)
+    participant UI as Giao diện (Thymeleaf/Web)
+    participant Ctrl as IssueController
+    participant Svc as IssueService
+    participant Engine as AllocationEngine
+    participant BatchRepo as StockBatchRepository
+    participant IssueRepo as IssueNoteRepository
+
+    Maker->>UI: Nhập SKU và số lượng cần xuất (requestedQty)
+    UI->>Ctrl: POST /api/outbound/issue-notes (IssueRequestDTO)
+    Ctrl->>Svc: createIssueNote(dto, currentUserId)
+
+    Svc->>BatchRepo: findAvailableBatches(skuCode, currentDate)
+    BatchRepo-->>Svc: Danh sách lô còn hạn (EXP > CurrentDate)
+    Note over Svc,BatchRepo: Tồn khả dụng Available = on_hand_qty - reserved_qty (Chuẩn 3NF tính phái sinh)
+
+    alt [requestedQty > Tổng Available hiện có (Vi phạm BR-OUT-01)]
+        Svc-->>Ctrl: Ném InsufficientStockException
+        Ctrl-->>UI: 400 Bad Request ("Số lượng xuất vượt quá tồn khả dụng theo BR-OUT-01")
+        UI-->>Maker: Báo lỗi không đủ hàng khả dụng để xuất
+    else [Đủ tồn khả dụng để xuất hàng]
+        Svc->>Engine: calculateAllocation(batches, requestedQty, isManageByLot)
+        Note over Engine: Thuật toán FEFO (hạn gần xuất trước) hoặc FIFO (nhập trước xuất trước) theo BR-OUT-02
+        Engine-->>Svc: PickListProposal (Lô, Ô kệ, Qty phân bổ)
+
+        opt [Nhân viên đổi lô khác do trở ngại ô kệ (Luồng 4a: Override FEFO/FIFO)]
+            Maker->>UI: Chọn lô khác & nhập lý do ngoại lệ
+            UI->>Ctrl: Gửi kèm overrideReason (tối thiểu 10 ký tự)
+            Ctrl->>Svc: setOverrideInfo(isOverridden=true, reason)
+        end
+
+        Svc->>BatchRepo: reserveBatch(batchId, allocatedQty)
+        Note over BatchRepo: Cập nhật reserved_qty += allocatedQty (Tạm giữ chỗ, On-hand không đổi)
+        Svc->>IssueRepo: save(IssueNote: PENDING_APPROVAL, makerId, isOverridden, items)
+        IssueRepo-->>Svc: IssueNote đã lưu kèm ID (IN-xxx) & Pick list
+        Svc-->>Ctrl: IssueNoteResponseDTO
+        Ctrl-->>UI: 201 Created (Chi tiết phiếu xuất & bảng chỉ dẫn lấy hàng)
+        UI-->>Maker: Hiển thị chỉ dẫn vị trí ô kệ cần lấy hàng (Pick list)
+    end

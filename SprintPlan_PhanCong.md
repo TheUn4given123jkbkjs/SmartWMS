@@ -39,7 +39,7 @@
 | **T2.1** | Vẽ Biểu đồ Use Case tổng quát (toàn bộ hệ thống, actor, phân ranh giới) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 03/11 | Đang làm |
 | **T2.2** | Đặc tả chi tiết 5–7 Use Case cốt lõi (Main flow, Alt flow, Exception flow) | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 03/11 | **Hoàn thành** |
 | **T2.3** | Vẽ Biểu đồ lớp phân tích (Class Diagram) & ERD mức phân tích nghiệp vụ | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 04/11 | **Hoàn thành** |
-| **T2.4** | Vẽ Biểu đồ tuần tự (Sequence Diagram) cho các Use Case trọng tâm (tối thiểu 3 SQ) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 04/11 | Đang làm |
+| **T2.4** | Vẽ Biểu đồ tuần tự (Sequence Diagram) cho các Use Case trọng tâm (tối thiểu 3 SQ) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 04/11 | **Hoàn thành** |
 
 ---
 
@@ -48,9 +48,9 @@
 
 | Mã Task | Hạng mục công việc | Maker | Reviewer | Hạn chót | Trạng thái |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| **T3.1** | Thiết kế Lược đồ quan hệ CSDL 3NF & Viết mã SQL DDL (Khóa, ràng buộc) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 07/11 | Chờ làm |
-| **T3.2** | Lập Bảng Từ điển dữ liệu (Data Dictionary 8 cột) cho các bảng chính | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 07/11 | Chờ làm |
-| **T3.3** | Thiết kế cấu trúc Component & Tổ chức Package Spring Boot (`entity`, `repository`, `service`, `controller`, `dto`) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 08/11 | Chờ làm |
+| **T3.1** | Thiết kế Lược đồ quan hệ CSDL 3NF & Viết mã SQL DDL (Khóa, ràng buộc) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 07/11 | **Hoàn thành** |
+| **T3.2** | Lập Bảng Từ điển dữ liệu (Data Dictionary 8 cột) cho các bảng chính | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 07/11 | **Hoàn thành** |
+| **T3.3** | Thiết kế cấu trúc Component & Tổ chức Package Spring Boot (`entity`, `repository`, `service`, `controller`, `dto`) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 08/11 | **Hoàn thành** |
 | **T3.4** | Thiết kế chữ ký hàm Service & REST API / Controller Endpoints (Request/Response DTO) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 08/11 | Chờ làm |
 
 ---

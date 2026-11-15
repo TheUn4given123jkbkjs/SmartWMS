@@ -1,0 +1,42 @@
+sequenceDiagram
+    autonumber
+    actor Maker as Nhân viên kho (Maker)
+    participant UI as Giao diện (Thymeleaf/Web)
+    participant Ctrl as ReceiptController
+    participant Svc as ReceiptService
+    participant ExtPO as ExternalPOService
+    participant LocRepo as WarehouseLocationRepository
+    participant RecRepo as ReceiptNoteRepository
+
+    Maker->>UI: Chọn mã PO & nhập thông tin nhận hàng (SKU, Qty, Lot, EXP, Location)
+    UI->>Ctrl: POST /api/inbound/receipt-notes (ReceiptNoteCreateDTO)
+    Ctrl->>Svc: createReceiptNote(dto, currentUserId)
+
+    %% Bước kiểm tra PO
+    Svc->>ExtPO: getPurchaseOrder(dto.poNumber)
+    ExtPO-->>Svc: PO Data (trạng thái, số lượng còn lại)
+
+    alt [Số lượng nhận > Số lượng còn lại trên PO (Vi phạm BR-INB-01)]
+        Svc-->>Ctrl: Ném InvalidQuantityException
+        Ctrl-->>UI: 400 Bad Request ("Giao thừa số lượng theo BR-INB-01")
+        UI-->>Maker: Báo lỗi số lượng vượt quá đơn hàng PO
+    else [Hạn dùng EXP <= Ngày hiện tại (Vi phạm BR-LOT-01)]
+        Svc-->>Ctrl: Ném ExpiredLotException
+        Ctrl-->>UI: 400 Bad Request ("Hạn sử dụng không hợp lệ theo BR-LOT-01")
+        UI-->>Maker: Báo lỗi từ chối tiếp nhận hàng hết hạn
+    else [Vị trí ô kệ không hợp lệ / không thuộc RAW-FG (Vi phạm BR-INB-03)]
+        Svc->>LocRepo: findById(dto.locationId)
+        LocRepo-->>Svc: WarehouseLocation (zone, status)
+        Svc-->>Ctrl: Ném InvalidLocationException
+        Ctrl-->>UI: 400 Bad Request ("Vị trí cất hàng không hợp lệ theo BR-INB-03")
+        UI-->>Maker: Báo lỗi vị trí kho không hợp lệ
+    else [Dữ liệu kiểm tra hợp lệ]
+        Svc->>LocRepo: findById(dto.locationId)
+        LocRepo-->>Svc: WarehouseLocation (zone=RAW/FG, status=EMPTY/ACTIVE)
+        Svc->>RecRepo: save(ReceiptNote: PENDING_APPROVAL, makerId, items)
+        RecRepo-->>Svc: ReceiptNote đã lưu kèm ID (RN-xxx)
+        Note over Svc,RecRepo: Tuyệt đối không thay đổi On-hand tồn kho thực tế (BR-INB-02)
+        Svc-->>Ctrl: ReceiptNoteResponseDTO
+        Ctrl-->>UI: 201 Created (Thông tin phiếu nhập kho)
+        UI-->>Maker: Hiển thị thông báo: Tạo phiếu nhập thành công, chờ duyệt
+    end
