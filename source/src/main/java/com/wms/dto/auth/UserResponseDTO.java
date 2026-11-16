@@ -12,6 +12,14 @@ public class UserResponseDTO {
 
     public UserResponseDTO() {}
 
+    public UserResponseDTO(Long id, String username, String fullName, UserRole role) {
+        this.id = id;
+        this.username = username;
+        this.fullName = fullName;
+        this.role = role;
+        this.active = true;
+    }
+
     public UserResponseDTO(Long id, String username, String fullName, String email, UserRole role, Boolean active) {
         this.id = id;
         this.username = username;
@@ -39,4 +47,3 @@ public class UserResponseDTO {
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
 }
-

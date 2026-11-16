@@ -1,0 +1,41 @@
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f1f5f9;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 36px 32px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .brand-icon-box {
+            width: 44px;
+            height: 44px;
+            background-color: #ff6a00;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.5rem;
+        }
+        .btn-orange {
+            background-color: #ff6a00;
+            color: #ffffff;
+            font-weight: 700;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            width: 100%;
+        }
+        .btn-orange:hover {
+            background-color: #e55a00;
+            color: #ffffff;
+        }

@@ -21,15 +21,12 @@ public class ProductCreateDTO {
     @NotBlank(message = "Đơn vị tính bắt buộc")
     private String uom;
 
-    @NotNull(message = "Ngưỡng cảnh báo tồn tối thiểu bắt buộc")
-    @Min(value = 0, message = "Ngưỡng tồn không được âm")
+    private Integer minStock = 0;
+    private Integer maxStock = 1000;
+    private Boolean manageByLot = true;
+
     private BigDecimal minStockAlert;
-
-    @NotNull(message = "Trọng lượng mỗi đơn vị bắt buộc")
-    @Min(value = 0, message = "Trọng lượng không được âm")
     private BigDecimal maxWeightPerUnit;
-
-    @Min(value = 0, message = "Thời hạn bảo quản không được âm")
     private Integer shelfLifeDays;
 
     public ProductCreateDTO() {}
@@ -46,8 +43,30 @@ public class ProductCreateDTO {
     public String getUom() { return uom; }
     public void setUom(String uom) { this.uom = uom; }
 
+    public Integer getMinStock() {
+        if (minStock != null) return minStock;
+        if (minStockAlert != null) return minStockAlert.intValue();
+        return 0;
+    }
+    public void setMinStock(Integer minStock) {
+        this.minStock = minStock;
+        if (minStock != null) this.minStockAlert = BigDecimal.valueOf(minStock);
+    }
+
+    public Integer getMaxStock() {
+        if (maxStock != null) return maxStock;
+        return 1000;
+    }
+    public void setMaxStock(Integer maxStock) { this.maxStock = maxStock; }
+
+    public Boolean getManageByLot() { return manageByLot != null ? manageByLot : true; }
+    public void setManageByLot(Boolean manageByLot) { this.manageByLot = manageByLot; }
+
     public BigDecimal getMinStockAlert() { return minStockAlert; }
-    public void setMinStockAlert(BigDecimal minStockAlert) { this.minStockAlert = minStockAlert; }
+    public void setMinStockAlert(BigDecimal minStockAlert) {
+        this.minStockAlert = minStockAlert;
+        if (minStockAlert != null) this.minStock = minStockAlert.intValue();
+    }
 
     public BigDecimal getMaxWeightPerUnit() { return maxWeightPerUnit; }
     public void setMaxWeightPerUnit(BigDecimal maxWeightPerUnit) { this.maxWeightPerUnit = maxWeightPerUnit; }
@@ -55,4 +74,3 @@ public class ProductCreateDTO {
     public Integer getShelfLifeDays() { return shelfLifeDays; }
     public void setShelfLifeDays(Integer shelfLifeDays) { this.shelfLifeDays = shelfLifeDays; }
 }
-

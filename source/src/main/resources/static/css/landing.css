@@ -1,0 +1,564 @@
+        :root {
+            --wms-orange: #ff6a00;
+            --wms-orange-dark: #e55a00;
+            --wms-orange-light: #fff3eb;
+            --wms-dark: #20242b;
+            --wms-gray-light: #f8fafc;
+            --wms-border: #e5e7eb;
+            --text-main: #334155;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .font-heading {
+            font-family: 'Be Vietnam Pro', 'Poppins', sans-serif;
+        }
+
+        /* 1. Top Bar (Orange Strip) */
+        .top-notice-strip {
+            background-color: var(--wms-orange);
+            color: #ffffff;
+            font-size: 0.78rem;
+            padding: 6px 0;
+            font-weight: 500;
+        }
+
+        .top-notice-strip a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        /* 2. Header Contact Info Bar */
+        .header-info-bar {
+            background-color: #ffffff;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--wms-border);
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-icon-box {
+            width: 44px;
+            height: 44px;
+            background-color: var(--wms-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(255, 106, 0, 0.25);
+        }
+
+        .brand-title {
+            font-family: 'Be Vietnam Pro', 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.45rem;
+            color: var(--wms-dark);
+            line-height: 1.1;
+        }
+
+        .brand-title span {
+            color: var(--wms-orange);
+        }
+
+        .header-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .meta-circle-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-color: var(--wms-orange-light);
+            color: var(--wms-orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .meta-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--wms-dark);
+        }
+
+        /* 3. Dark Navbar */
+        .navbar-main-dark {
+            background-color: var(--wms-dark);
+            padding: 0;
+        }
+
+        .navbar-main-dark .nav-link {
+            color: #d1d5db;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 18px 18px !important;
+            transition: all 0.2s ease;
+        }
+
+        .navbar-main-dark .nav-link:hover,
+        .navbar-main-dark .nav-link.active {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-bottom: 3px solid var(--wms-orange);
+        }
+
+        .btn-search-orange {
+            background-color: var(--wms-orange);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 18px 24px;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-search-orange:hover {
+            background-color: var(--wms-orange-dark);
+            color: #ffffff;
+        }
+
+        /* 4. Hero Section */
+        .hero-warehouse {
+            position: relative;
+            background: linear-gradient(rgba(20, 24, 33, 0.72), rgba(20, 24, 33, 0.8)), 
+                        url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            color: #ffffff;
+            padding: 130px 0 140px;
+        }
+
+        .hero-title-box {
+            max-width: 680px;
+        }
+
+        .hero-heading {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 3.1rem;
+            font-weight: 800;
+            line-height: 1.25;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            margin-bottom: 18px;
+        }
+
+        .hero-subtext {
+            font-size: 1.05rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .btn-orange-quote {
+            background-color: var(--wms-orange);
+            color: #ffffff;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 13px 30px;
+            border-radius: 4px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 106, 0, 0.4);
+            transition: all 0.25s;
+        }
+
+        .btn-orange-quote:hover {
+            background-color: var(--wms-orange-dark);
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+
+        /* 5. 4 Cards Overlap (1 Orange + 3 White) */
+        .cards-overlap-container {
+            margin-top: -65px;
+            position: relative;
+            z-index: 30;
+            margin-bottom: 60px;
+        }
+
+        .storage-feature-card {
+            background-color: #ffffff;
+            border: 1px solid var(--wms-border);
+            border-radius: 6px;
+            padding: 32px 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+            height: 100%;
+            transition: all 0.25s ease;
+        }
+
+        .storage-feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        /* Card 1 is Orange */
+        .storage-feature-card.primary-orange-card {
+            background-color: var(--wms-orange);
+            color: #ffffff;
+            border-color: var(--wms-orange);
+        }
+
+        .storage-feature-card.primary-orange-card .card-head {
+            color: #ffffff;
+        }
+
+        .storage-feature-card.primary-orange-card .card-text {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .storage-feature-card.primary-orange-card .card-icon {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .storage-feature-card.primary-orange-card .card-link {
+            color: #ffffff;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border: 1px solid #fed7aa;
+            background-color: var(--wms-orange-light);
+            color: var(--wms-orange);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+        }
+
+        .card-head {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--wms-dark);
+            margin-bottom: 12px;
+        }
+
+        .card-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        .card-link {
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--wms-orange);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 6. Section "What size storage unit..." */
+        .storage-size-section {
+            padding: 70px 0;
+            background-color: #ffffff;
+        }
+
+        .clean-boxes-img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        /* 5S Accordion Custom Styling */
+        .custom-5s-accordion .accordion-item {
+            border: 1px solid var(--wms-border);
+            border-radius: 8px !important;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: all 0.25s ease;
+        }
+
+        .custom-5s-accordion .accordion-item:hover {
+            border-color: var(--wms-orange);
+            box-shadow: 0 4px 15px rgba(255, 106, 0, 0.08);
+        }
+
+        .custom-5s-accordion .accordion-button {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--wms-dark);
+            padding: 16px 20px;
+            background-color: #ffffff;
+            box-shadow: none !important;
+        }
+
+        .custom-5s-accordion .accordion-button:not(.collapsed) {
+            background-color: var(--wms-orange-light);
+            color: var(--wms-orange-dark);
+            border-bottom: 1px solid #fed7aa;
+        }
+
+        .custom-5s-accordion .accordion-button::after {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ff6a00'%3e%3cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e");
+            transform: scale(1.15);
+            transition: transform 0.25s ease;
+        }
+
+        .custom-5s-accordion .accordion-button:not(.collapsed)::after {
+            transform: rotate(180deg) scale(1.15);
+        }
+
+        .custom-5s-accordion .accordion-body {
+            padding: 22px 24px;
+            background-color: #ffffff;
+            font-size: 0.88rem;
+            line-height: 1.7;
+        }
+
+        .step-tag-pill {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .max-w-700 { max-width: 700px; }
+        .max-w-850 { max-width: 850px; }
+        .max-w-1000 { max-width: 1000px; }
+
+        /* Modal Tabs Styling */
+        #authTab .nav-link {
+            color: var(--text-muted);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+        }
+
+        #authTab .nav-link.active {
+            background-color: var(--wms-orange) !important;
+            color: #ffffff !important;
+        }
+
+        .unit-spec-box {
+            border: 1px solid var(--wms-border);
+            border-left: 4px solid var(--wms-orange);
+            padding: 12px 18px;
+            margin-bottom: 10px;
+            background-color: #fcfcfc;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .unit-spec-box:hover {
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            transform: translateX(4px);
+        }
+
+        .unit-spec-title {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--wms-orange);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 7. 8 Circular Icons Highlights Grid */
+        .services-highlight-section {
+            padding: 80px 0;
+            background-color: var(--wms-gray-light);
+            border-top: 1px solid var(--wms-border);
+            border-bottom: 1px solid var(--wms-border);
+        }
+
+        .round-orange-badge {
+            width: 72px;
+            height: 72px;
+            background-color: var(--wms-orange);
+            color: #ffffff;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 16px rgba(255, 106, 0, 0.25);
+            transition: transform 0.2s;
+        }
+
+        .service-col:hover .round-orange-badge {
+            transform: scale(1.08);
+            background-color: var(--wms-orange-dark);
+        }
+
+        .service-col h6 {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--wms-dark);
+            margin-bottom: 8px;
+        }
+
+        .service-col p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* 8. Dedicated Yamaha Case Study Strip (At the bottom) */
+        .yamaha-case-study-section {
+            padding: 70px 0;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--wms-border);
+        }
+
+        .yamaha-badge-tag {
+            background-color: #fee2e2;
+            color: #dc2626;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .bike-thumb-card {
+            border: 1px solid var(--wms-border);
+            border-radius: 8px;
+            padding: 16px 12px;
+            text-align: center;
+            background-color: #ffffff;
+            transition: all 0.2s;
+        }
+
+        .bike-thumb-card:hover {
+            border-color: var(--wms-orange);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            transform: translateY(-3px);
+        }
+
+        .bike-thumb-card img {
+            max-height: 90px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .bike-thumb-name {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--wms-dark);
+        }
+
+        /* 9. Bottom CTA Section */
+        .ready-cta-section {
+            position: relative;
+            background: linear-gradient(rgba(32, 36, 43, 0.85), rgba(32, 36, 43, 0.9)), 
+                        url('https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            color: #ffffff;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        /* 10. Newsletter Subscribe Strip */
+        .newsletter-strip {
+            background-color: #171a1f;
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: #ffffff;
+        }
+
+        /* 11. Footer */
+        footer.main-footer {
+            background-color: #20242b;
+            color: #9ca3af;
+            padding: 60px 0 25px;
+            font-size: 0.85rem;
+        }
+
+        footer h6 {
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 20px;
+        }
+
+        footer a {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--wms-orange);
+        }
+
+        .sub-footer-bar {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 20px;
+            margin-top: 40px;
+            font-size: 0.78rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .scroll-top-btn {
+            width: 32px;
+            height: 32px;
+            background-color: var(--wms-orange);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            text-decoration: none;
+        }

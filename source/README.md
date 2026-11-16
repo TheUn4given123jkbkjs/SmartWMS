@@ -78,7 +78,7 @@ source/src/
 ---
 
 ### 2. Thư mục `src/main/resources/`
-- **`application.properties`:** Chứa mọi thông số môi trường của ứng dụng: cổng chạy (`server.port=8080`), cấu hình kết nối CSDL (URL, username, password), cấu hình cache Thymeleaf.
+- **`application.properties`:** Chứa mọi thông số môi trường của ứng dụng: cổng chạy (`server.port=8088`), cấu hình kết nối CSDL (URL, username, password), cấu hình cache Thymeleaf.
 - **`static/`:** Chứa các tài nguyên tĩnh không bị thay đổi bởi server, được trình duyệt tải trực tiếp:
   - `css/`: File định dạng giao diện (`custom.css`, thư viện Bootstrap 5).
   - `js/`: Mã JavaScript hỗ trợ người dùng ở Client (thông báo Toast, AJAX Fetch API).

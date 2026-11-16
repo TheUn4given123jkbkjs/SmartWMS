@@ -257,8 +257,9 @@ source/
     │   │
     │   └── resources/
     │       ├── application.properties              # Cấu hình DataSource, JPA, Port 8080
-    │       ├── schema.sql                          # Kịch bản DDL khởi tạo 10 bảng CSDL
+    │       ├── schema.sql                          # Kịch bản DDL tổng hợp khởi tạo 10 bảng CSDL
     │       ├── data.sql                            # Kịch bản DML nạp dữ liệu mẫu ban đầu
+    │       ├── tables/                             # 10 file DDL SQL bóc tách chi tiết từng bảng (01..10)
     │       │
     │       ├── static/                             # Tài nguyên Web tĩnh
     │       │   ├── css/                            # Bootstrap 5 & Custom Style CSS
