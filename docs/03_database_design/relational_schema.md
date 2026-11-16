@@ -36,10 +36,10 @@ Mô hình dữ liệu SmartWMS gồm **10 bảng** được chuẩn hóa theo qu
 
 ## 3. TỔ CHỨC MÃ NGUỒN SQL DDL
 
-Mã DDL được bóc tách thành **10 file SQL độc lập** tại thư mục [`tables/`](tables/) theo thứ tự phụ thuộc:
-1. [`01_category.sql`](tables/01_category.sql) $\rightarrow$ 2. [`02_warehouse_location.sql`](tables/02_warehouse_location.sql) $\rightarrow$ 3. [`03_user.sql`](tables/03_user.sql)
-4. [`04_product.sql`](tables/04_product.sql) $\rightarrow$ 5. [`05_stock_batch.sql`](tables/05_stock_batch.sql) $\rightarrow$ 6. [`06_receipt_note.sql`](tables/06_receipt_note.sql)
-7. [`07_receipt_note_item.sql`](tables/07_receipt_note_item.sql) $\rightarrow$ 8. [`08_issue_note.sql`](tables/08_issue_note.sql) $\rightarrow$ 9. [`09_issue_note_item.sql`](tables/09_issue_note_item.sql)
-10. [`10_stock_card.sql`](tables/10_stock_card.sql)
+Mã DDL được bóc tách thành **10 file SQL độc lập** tại thư mục mã nguồn [`source/src/main/resources/tables/`](../../source/src/main/resources/tables/) theo thứ tự phụ thuộc:
+1. [`01_category.sql`](../../source/src/main/resources/tables/01_category.sql) $\rightarrow$ 2. [`02_warehouse_location.sql`](../../source/src/main/resources/tables/02_warehouse_location.sql) $\rightarrow$ 3. [`03_user.sql`](../../source/src/main/resources/tables/03_user.sql)
+4. [`04_product.sql`](../../source/src/main/resources/tables/04_product.sql) $\rightarrow$ 5. [`05_stock_batch.sql`](../../source/src/main/resources/tables/05_stock_batch.sql) $\rightarrow$ 6. [`06_receipt_note.sql`](../../source/src/main/resources/tables/06_receipt_note.sql)
+7. [`07_receipt_note_item.sql`](../../source/src/main/resources/tables/07_receipt_note_item.sql) $\rightarrow$ 8. [`08_issue_note.sql`](../../source/src/main/resources/tables/08_issue_note.sql) $\rightarrow$ 9. [`09_issue_note_item.sql`](../../source/src/main/resources/tables/09_issue_note_item.sql)
+10. [`10_stock_card.sql`](../../source/src/main/resources/tables/10_stock_card.sql)
 
-👉 **Kịch bản tổng hợp duy nhất:** [schema.sql](schema.sql) (đã đồng bộ tại `source/src/main/resources/schema.sql`).
+👉 **Kịch bản tổng hợp duy nhất:** [`schema.sql`](../../source/src/main/resources/tables/schema.sql) (được định vị và quản trị tập trung tại `source/src/main/resources/tables/schema.sql`).

@@ -36,7 +36,7 @@
 
 | Mã Task | Hạng mục công việc | Maker | Reviewer | Hạn chót | Trạng thái |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| **T2.1** | Vẽ Biểu đồ Use Case tổng quát (toàn bộ hệ thống, actor, phân ranh giới) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 03/11 | Đang làm |
+| **T2.1** | Vẽ Biểu đồ Use Case tổng quát (toàn bộ hệ thống, actor, phân ranh giới) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 03/11 | **Hoàn thành** |
 | **T2.2** | Đặc tả chi tiết 5–7 Use Case cốt lõi (Main flow, Alt flow, Exception flow) | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 03/11 | **Hoàn thành** |
 | **T2.3** | Vẽ Biểu đồ lớp phân tích (Class Diagram) & ERD mức phân tích nghiệp vụ | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 04/11 | **Hoàn thành** |
 | **T2.4** | Vẽ Biểu đồ tuần tự (Sequence Diagram) cho các Use Case trọng tâm (tối thiểu 3 SQ) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 04/11 | **Hoàn thành** |
@@ -60,10 +60,10 @@
 
 | Mã Task | Hạng mục công việc | Maker | Reviewer | Hạn chót | Trạng thái |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| **T4.1** | Thiết kế Wireframe/Layout Web Dashboard & Forms (Thymeleaf / Bootstrap 5) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 11/11 | Chờ làm |
-| **T4.2** | Lập Bảng Đặc tả màn hình Web & Luồng điều hướng Route (SCR Navigation Flow) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 11/11 | Chờ làm |
-| **T4.3** | Thiết kế bộ Ca kiểm thử nghiệp vụ (**Test Design**: Positive `-P` và Negative `-N`) | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 12/11 | Chờ làm |
-| **T4.4** | Xây dựng Ma trận truy vết yêu cầu (RTM: Vấn đề $\rightarrow$ FR $\rightarrow$ UC $\rightarrow$ DB $\rightarrow$ SCR $\rightarrow$ TC) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 12/11 | Chờ làm |
+| **T4.1** | Thiết kế Wireframe/Layout Web Dashboard & Forms (Thymeleaf / Bootstrap 5) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 11/11 | **Hoàn thành** |
+| **T4.2** | Lập Bảng Đặc tả màn hình Web & Luồng điều hướng Route (SCR Navigation Flow) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 11/11 | **Hoàn thành** |
+| **T4.3** | Thiết kế bộ Ca kiểm thử nghiệp vụ (**Test Design**: Positive `-P` và Negative `-N`) | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 12/11 | Đang thực hiện |
+| **T4.4** | Xây dựng Ma trận truy vết yêu cầu (RTM: Vấn đề $\rightarrow$ FR $\rightarrow$ UC $\rightarrow$ DB $\rightarrow$ SCR $\rightarrow$ TC) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 12/11 | Đang thực hiện |
 
 ---
 
@@ -72,9 +72,9 @@
 
 | Mã Task | Hạng mục công việc | Maker | Reviewer | Hạn chót | Trạng thái |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| **T5.1** | Xây dựng tầng Dữ liệu & Nghiệp vụ (JPA Entities, Spring Repositories, Services `@Transactional`) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 15/11 | Chờ làm |
-| **T5.2** | Xây dựng tầng Giao diện Web (Controllers, Thymeleaf Views / Web Forms, Bootstrap UI) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 15/11 | Chờ làm |
-| **T5.3** | Nối hoàn chỉnh luồng nghiệp vụ 3–5 chức năng Must-have chạy thực tế trên Web (localhost:8080) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 16/11 | Chờ làm |
+| **T5.1** | Xây dựng tầng Dữ liệu & Nghiệp vụ (JPA Entities, Spring Repositories, Services `@Transactional`) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 15/11 | **Hoàn thành** |
+| **T5.2** | Xây dựng tầng Giao diện Web (Controllers, Thymeleaf Views / Web Forms, Bootstrap UI) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 15/11 | **Hoàn thành** |
+| **T5.3** | Nối hoàn chỉnh luồng nghiệp vụ 3–5 chức năng Must-have chạy thực tế trên Web (localhost:8080/8088) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 16/11 | **Hoàn thành** |
 | **T5.4** | Chạy kiểm thử (**Test Execution**) theo bộ Test Case đã thiết kế, lập biên bản test | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 16/11 | Chờ làm |
 
 ---

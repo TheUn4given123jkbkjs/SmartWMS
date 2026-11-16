@@ -15,23 +15,22 @@ public class LocationSetupDTO {
     @NotNull(message = "Phân khu chức năng bắt buộc")
     private ZoneType zone;
 
-    @NotBlank(message = "Dãy (Aisle) bắt buộc")
     private String aisle;
-
-    @NotBlank(message = "Kệ (Rack) bắt buộc")
     private String rack;
-
-    @NotBlank(message = "Tầng (Shelf) bắt buộc")
     private String shelf;
-
-    @NotBlank(message = "Ô (Bin) bắt buộc")
     private String bin;
 
-    @NotNull(message = "Tải trọng tối đa bắt buộc")
-    @Min(value = 1, message = "Tải trọng phải lớn hơn 0")
+    private BigDecimal maxCapacity;
     private BigDecimal maxWeightCapacity;
 
     public LocationSetupDTO() {}
+
+    public LocationSetupDTO(String locationCode, ZoneType zone, BigDecimal maxCapacity) {
+        this.locationCode = locationCode;
+        this.zone = zone;
+        this.maxCapacity = maxCapacity;
+        this.maxWeightCapacity = maxCapacity;
+    }
 
     public String getLocationCode() { return locationCode; }
     public void setLocationCode(String locationCode) { this.locationCode = locationCode; }
@@ -51,7 +50,21 @@ public class LocationSetupDTO {
     public String getBin() { return bin; }
     public void setBin(String bin) { this.bin = bin; }
 
-    public BigDecimal getMaxWeightCapacity() { return maxWeightCapacity; }
-    public void setMaxWeightCapacity(BigDecimal maxWeightCapacity) { this.maxWeightCapacity = maxWeightCapacity; }
-}
+    public BigDecimal getMaxCapacity() {
+        if (maxCapacity != null) return maxCapacity;
+        return maxWeightCapacity;
+    }
+    public void setMaxCapacity(BigDecimal maxCapacity) {
+        this.maxCapacity = maxCapacity;
+        this.maxWeightCapacity = maxCapacity;
+    }
 
+    public BigDecimal getMaxWeightCapacity() {
+        if (maxWeightCapacity != null) return maxWeightCapacity;
+        return maxCapacity;
+    }
+    public void setMaxWeightCapacity(BigDecimal maxWeightCapacity) {
+        this.maxWeightCapacity = maxWeightCapacity;
+        this.maxCapacity = maxWeightCapacity;
+    }
+}
