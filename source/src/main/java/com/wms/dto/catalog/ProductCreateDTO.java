@@ -7,70 +7,123 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public class ProductCreateDTO {
-    @NotBlank(message = "Mã SKU bắt buộc nhập")
-    @Size(max = 50, message = "Mã SKU tối đa 50 ký tự")
-    private String skuCode;
 
-    @NotBlank(message = "Tên hàng hóa bắt buộc nhập")
-    @Size(max = 255, message = "Tên hàng hóa tối đa 255 ký tự")
-    private String name;
+  @NotBlank(message = "Mã SKU bắt buộc nhập")
+  @Size(min = 3, max = 30)
+  @jakarta.validation.constraints.Pattern(regexp = "[A-Z0-9-]+")
+  private String skuCode;
 
-    @NotNull(message = "Phải chọn ngành hàng")
-    private Long categoryId;
+  @NotBlank(message = "Tên hàng hóa bắt buộc nhập")
+  @Size(max = 255, message = "Tên hàng hóa tối đa 255 ký tự")
+  private String name;
 
-    @NotBlank(message = "Đơn vị tính bắt buộc")
-    private String uom;
+  @NotNull(message = "Phải chọn ngành hàng")
+  private Long categoryId;
 
-    private Integer minStock = 0;
-    private Integer maxStock = 1000;
-    private Boolean manageByLot = true;
+  @NotBlank(message = "Đơn vị tính bắt buộc")
+  @Size(max = 20)
+  private String uom;
 
-    private BigDecimal minStockAlert;
-    private BigDecimal maxWeightPerUnit;
-    private Integer shelfLifeDays;
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal minStock = BigDecimal.ZERO;
 
-    public ProductCreateDTO() {}
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal maxStock = new BigDecimal("1000");
 
-    public String getSkuCode() { return skuCode; }
-    public void setSkuCode(String skuCode) { this.skuCode = skuCode; }
+  private Boolean manageByLot = true;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal minStockAlert;
 
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal maxWeightPerUnit;
 
-    public String getUom() { return uom; }
-    public void setUom(String uom) { this.uom = uom; }
+  private Integer shelfLifeDays;
 
-    public Integer getMinStock() {
-        if (minStock != null) return minStock;
-        if (minStockAlert != null) return minStockAlert.intValue();
-        return 0;
-    }
-    public void setMinStock(Integer minStock) {
-        this.minStock = minStock;
-        if (minStock != null) this.minStockAlert = BigDecimal.valueOf(minStock);
-    }
+  public ProductCreateDTO() {}
 
-    public Integer getMaxStock() {
-        if (maxStock != null) return maxStock;
-        return 1000;
-    }
-    public void setMaxStock(Integer maxStock) { this.maxStock = maxStock; }
+  public String getSkuCode() {
+    return skuCode;
+  }
 
-    public Boolean getManageByLot() { return manageByLot != null ? manageByLot : true; }
-    public void setManageByLot(Boolean manageByLot) { this.manageByLot = manageByLot; }
+  public void setSkuCode(String skuCode) {
+    this.skuCode = skuCode;
+  }
 
-    public BigDecimal getMinStockAlert() { return minStockAlert; }
-    public void setMinStockAlert(BigDecimal minStockAlert) {
-        this.minStockAlert = minStockAlert;
-        if (minStockAlert != null) this.minStock = minStockAlert.intValue();
-    }
+  public String getName() {
+    return name;
+  }
 
-    public BigDecimal getMaxWeightPerUnit() { return maxWeightPerUnit; }
-    public void setMaxWeightPerUnit(BigDecimal maxWeightPerUnit) { this.maxWeightPerUnit = maxWeightPerUnit; }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public Integer getShelfLifeDays() { return shelfLifeDays; }
-    public void setShelfLifeDays(Integer shelfLifeDays) { this.shelfLifeDays = shelfLifeDays; }
+  public Long getCategoryId() {
+    return categoryId;
+  }
+
+  public void setCategoryId(Long categoryId) {
+    this.categoryId = categoryId;
+  }
+
+  public String getUom() {
+    return uom;
+  }
+
+  public void setUom(String uom) {
+    this.uom = uom;
+  }
+
+  public BigDecimal getMinStock() {
+    if (minStock != null) return minStock;
+    if (minStockAlert != null) return minStockAlert;
+    return BigDecimal.ZERO;
+  }
+
+  public void setMinStock(BigDecimal minStock) {
+    this.minStock = minStock;
+    if (minStock != null) this.minStockAlert = minStock;
+  }
+
+  public BigDecimal getMaxStock() {
+    if (maxStock != null) return maxStock;
+    return new BigDecimal("1000");
+  }
+
+  public void setMaxStock(BigDecimal maxStock) {
+    this.maxStock = maxStock;
+  }
+
+  public Boolean getManageByLot() {
+    return manageByLot != null ? manageByLot : true;
+  }
+
+  public void setManageByLot(Boolean manageByLot) {
+    this.manageByLot = manageByLot;
+  }
+
+  public BigDecimal getMinStockAlert() {
+    return minStockAlert;
+  }
+
+  public void setMinStockAlert(BigDecimal minStockAlert) {
+    this.minStockAlert = minStockAlert;
+    if (minStockAlert != null) this.minStock = minStockAlert;
+  }
+
+  public BigDecimal getMaxWeightPerUnit() {
+    return maxWeightPerUnit;
+  }
+
+  public void setMaxWeightPerUnit(BigDecimal maxWeightPerUnit) {
+    this.maxWeightPerUnit = maxWeightPerUnit;
+  }
+
+  public Integer getShelfLifeDays() {
+    return shelfLifeDays;
+  }
+
+  public void setShelfLifeDays(Integer shelfLifeDays) {
+    this.shelfLifeDays = shelfLifeDays;
+  }
 }

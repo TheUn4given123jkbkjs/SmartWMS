@@ -8,63 +8,111 @@ import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
 
 public class LocationSetupDTO {
-    @NotBlank(message = "Mã vị trí ô kệ bắt buộc")
-    @Pattern(regexp = "^[A-Z0-9-]+$", message = "Mã vị trí chỉ gồm chữ in hoa, số và dấu gạch nối")
-    private String locationCode;
 
-    @NotNull(message = "Phân khu chức năng bắt buộc")
-    private ZoneType zone;
+  @NotBlank(message = "Mã vị trí ô kệ bắt buộc")
+  @Pattern(
+    regexp = "^[A-Z0-9-]+$",
+    message = "Mã vị trí chỉ gồm chữ in hoa, số và dấu gạch nối"
+  )
+  @jakarta.validation.constraints.Size(min = 3, max = 20)
+  @jakarta.validation.constraints.Size(min = 3, max = 20)
+  private String locationCode;
 
-    private String aisle;
-    private String rack;
-    private String shelf;
-    private String bin;
+  @NotNull(message = "Phân khu chức năng bắt buộc")
+  private ZoneType zone;
 
-    private BigDecimal maxCapacity;
-    private BigDecimal maxWeightCapacity;
+  private String aisle;
+  private String rack;
 
-    public LocationSetupDTO() {}
+  @NotBlank
+  @jakarta.validation.constraints.Size(max = 20)
+  @NotBlank
+  @jakarta.validation.constraints.Size(max = 20)
+  private String shelf;
 
-    public LocationSetupDTO(String locationCode, ZoneType zone, BigDecimal maxCapacity) {
-        this.locationCode = locationCode;
-        this.zone = zone;
-        this.maxCapacity = maxCapacity;
-        this.maxWeightCapacity = maxCapacity;
-    }
+  private String bin;
 
-    public String getLocationCode() { return locationCode; }
-    public void setLocationCode(String locationCode) { this.locationCode = locationCode; }
+  private BigDecimal maxCapacity;
+  private BigDecimal maxWeightCapacity;
 
-    public ZoneType getZone() { return zone; }
-    public void setZone(ZoneType zone) { this.zone = zone; }
+  public LocationSetupDTO() {}
 
-    public String getAisle() { return aisle; }
-    public void setAisle(String aisle) { this.aisle = aisle; }
+  public LocationSetupDTO(
+    String locationCode,
+    ZoneType zone,
+    BigDecimal maxCapacity
+  ) {
+    this.locationCode = locationCode;
+    this.zone = zone;
+    this.maxCapacity = maxCapacity;
+    this.maxWeightCapacity = maxCapacity;
+  }
 
-    public String getRack() { return rack; }
-    public void setRack(String rack) { this.rack = rack; }
+  public String getLocationCode() {
+    return locationCode;
+  }
 
-    public String getShelf() { return shelf; }
-    public void setShelf(String shelf) { this.shelf = shelf; }
+  public void setLocationCode(String locationCode) {
+    this.locationCode = locationCode;
+  }
 
-    public String getBin() { return bin; }
-    public void setBin(String bin) { this.bin = bin; }
+  public ZoneType getZone() {
+    return zone;
+  }
 
-    public BigDecimal getMaxCapacity() {
-        if (maxCapacity != null) return maxCapacity;
-        return maxWeightCapacity;
-    }
-    public void setMaxCapacity(BigDecimal maxCapacity) {
-        this.maxCapacity = maxCapacity;
-        this.maxWeightCapacity = maxCapacity;
-    }
+  public void setZone(ZoneType zone) {
+    this.zone = zone;
+  }
 
-    public BigDecimal getMaxWeightCapacity() {
-        if (maxWeightCapacity != null) return maxWeightCapacity;
-        return maxCapacity;
-    }
-    public void setMaxWeightCapacity(BigDecimal maxWeightCapacity) {
-        this.maxWeightCapacity = maxWeightCapacity;
-        this.maxCapacity = maxWeightCapacity;
-    }
+  public String getAisle() {
+    return aisle;
+  }
+
+  public void setAisle(String aisle) {
+    this.aisle = aisle;
+  }
+
+  public String getRack() {
+    return rack;
+  }
+
+  public void setRack(String rack) {
+    this.rack = rack;
+  }
+
+  public String getShelf() {
+    return shelf;
+  }
+
+  public void setShelf(String shelf) {
+    this.shelf = shelf;
+  }
+
+  public String getBin() {
+    return bin;
+  }
+
+  public void setBin(String bin) {
+    this.bin = bin;
+  }
+
+  public BigDecimal getMaxCapacity() {
+    if (maxCapacity != null) return maxCapacity;
+    return maxWeightCapacity;
+  }
+
+  public void setMaxCapacity(BigDecimal maxCapacity) {
+    this.maxCapacity = maxCapacity;
+    this.maxWeightCapacity = maxCapacity;
+  }
+
+  public BigDecimal getMaxWeightCapacity() {
+    if (maxWeightCapacity != null) return maxWeightCapacity;
+    return maxCapacity;
+  }
+
+  public void setMaxWeightCapacity(BigDecimal maxWeightCapacity) {
+    this.maxWeightCapacity = maxWeightCapacity;
+    this.maxCapacity = maxWeightCapacity;
+  }
 }

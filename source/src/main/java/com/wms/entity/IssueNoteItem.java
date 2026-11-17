@@ -1,6 +1,7 @@
 package com.wms.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -10,44 +11,74 @@ import java.time.LocalDateTime;
 @Table(name = "issue_note_item")
 public class IssueNoteItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "issue_id", nullable = false)
-    private IssueNote issueNote;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "issue_id", nullable = false)
+  private IssueNote issueNote;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "batch_id", nullable = false)
-    private StockBatch stockBatch;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "batch_id", nullable = false)
+  private StockBatch stockBatch;
 
-    @Column(name = "requested_qty", nullable = false)
-    private Integer requestedQty;
+  @Column(name = "requested_qty", nullable = false, precision = 12, scale = 2)
+  private BigDecimal requestedQty;
 
-    @Column(name = "allocated_qty", nullable = false)
-    private Integer allocatedQty = 0;
+  @Column(name = "allocated_qty", nullable = false, precision = 12, scale = 2)
+  private BigDecimal allocatedQty = BigDecimal.ZERO;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt = LocalDateTime.now();
 
-    public IssueNoteItem() {}
+  public IssueNoteItem() {}
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+  public Long getId() {
+    return id;
+  }
 
-    public IssueNote getIssueNote() { return issueNote; }
-    public void setIssueNote(IssueNote issueNote) { this.issueNote = issueNote; }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public StockBatch getStockBatch() { return stockBatch; }
-    public void setStockBatch(StockBatch stockBatch) { this.stockBatch = stockBatch; }
+  public IssueNote getIssueNote() {
+    return issueNote;
+  }
 
-    public Integer getRequestedQty() { return requestedQty; }
-    public void setRequestedQty(Integer requestedQty) { this.requestedQty = requestedQty; }
+  public void setIssueNote(IssueNote issueNote) {
+    this.issueNote = issueNote;
+  }
 
-    public Integer getAllocatedQty() { return allocatedQty; }
-    public void setAllocatedQty(Integer allocatedQty) { this.allocatedQty = allocatedQty; }
+  public StockBatch getStockBatch() {
+    return stockBatch;
+  }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+  public void setStockBatch(StockBatch stockBatch) {
+    this.stockBatch = stockBatch;
+  }
+
+  public BigDecimal getRequestedQty() {
+    return requestedQty;
+  }
+
+  public void setRequestedQty(BigDecimal requestedQty) {
+    this.requestedQty = requestedQty;
+  }
+
+  public BigDecimal getAllocatedQty() {
+    return allocatedQty;
+  }
+
+  public void setAllocatedQty(BigDecimal allocatedQty) {
+    this.allocatedQty = allocatedQty;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
 }

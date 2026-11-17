@@ -1,122 +1,322 @@
 package com.wms.service.impl;
 
-import com.wms.dto.receipt.ReceiptApprovalDTO;
-import com.wms.dto.receipt.ReceiptNoteCreateDTO;
-import com.wms.dto.receipt.ReceiptNoteResponseDTO;
+import com.wms.dto.receipt.*;
 import com.wms.entity.*;
-import com.wms.exception.ResourceNotFoundException;
-import com.wms.exception.SecurityViolationException;
+import com.wms.exception.*;
 import com.wms.repository.*;
-import com.wms.service.ReceiptService;
-import com.wms.util.ReceiptStatus;
+import com.wms.service.*;
+import com.wms.util.*;
+import java.math.BigDecimal;
+import java.time.*;
+import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * Hiện thực Service Quản lý Nhập kho & Phê duyệt Nhập hàng (ACID Transaction).
- */
 @Service
 @Transactional
 public class ReceiptServiceImpl implements ReceiptService {
 
-    private final ReceiptNoteRepository receiptNoteRepository;
-    private final ReceiptNoteItemRepository receiptNoteItemRepository;
-    private final ProductRepository productRepository;
-    private final WarehouseLocationRepository locationRepository;
-    private final StockBatchRepository stockBatchRepository;
-    private final StockCardRepository stockCardRepository;
-    private final UserRepository userRepository;
+  private final ReceiptNoteRepository notes;
+  private final StockBatchRepository batches;
+  private final WarehouseLocationRepository locations;
+  private final PurchaseOrderService orders;
+  private final WarehouseOperations ops;
 
-    public ReceiptServiceImpl(ReceiptNoteRepository receiptNoteRepository,
-                              ReceiptNoteItemRepository receiptNoteItemRepository,
-                              ProductRepository productRepository,
-                              WarehouseLocationRepository locationRepository,
-                              StockBatchRepository stockBatchRepository,
-                              StockCardRepository stockCardRepository,
-                              UserRepository userRepository) {
-        this.receiptNoteRepository = receiptNoteRepository;
-        this.receiptNoteItemRepository = receiptNoteItemRepository;
-        this.productRepository = productRepository;
-        this.locationRepository = locationRepository;
-        this.stockBatchRepository = stockBatchRepository;
-        this.stockCardRepository = stockCardRepository;
-        this.userRepository = userRepository;
+  public ReceiptServiceImpl(
+    ReceiptNoteRepository n,
+    StockBatchRepository b,
+    WarehouseLocationRepository l,
+    PurchaseOrderService p,
+    WarehouseOperations o
+  ) {
+    notes = n;
+    batches = b;
+    locations = l;
+    orders = p;
+    ops = o;
+  }
+
+  public ReceiptNoteResponseDTO createReceiptNote(
+    ReceiptNoteCreateDTO dto,
+    Long userId
+  ) {
+    ops.lock();
+    User maker = ops.actor(userId, UserRole.ROLE_STAFF);
+    PurchaseOrder po = orders.require(dto.getPoNumber());
+    if (!"APPROVED".equals(po.getStatus())) throw new ConflictException(
+      "PO không còn hiệu lực nhận hàng."
+    );
+    ReceiptNote note = new ReceiptNote();
+    note.setReceiptNumber(ops.code("RN"));
+    note.setPoNumber(po.getPoNumber());
+    note.setSupplierName(po.getSupplierName());
+    note.setNote(dto.getNote());
+    note.setMaker(maker);
+    Map<Long, BigDecimal> total = new HashMap<>();
+    for (ReceiptItemDTO d : dto.getItems()) {
+      PurchaseOrderItem order = po
+        .getItems()
+        .stream()
+        .filter(i -> i.getProduct().getId().equals(d.getProductId()))
+        .findFirst()
+        .orElseThrow(() ->
+          new InvalidQuantityException("Mặt hàng không thuộc PO.")
+        );
+      Product product = order.getProduct();
+      if (
+        !Boolean.TRUE.equals(product.getActive())
+      ) throw new InvalidQuantityException("Mặt hàng đã ngừng hoạt động.");
+      BigDecimal qty = ops.qty(d.getActualQty(), true);
+      total.merge(product.getId(), qty, BigDecimal::add);
+      BigDecimal remaining = order
+        .getOrderedQty()
+        .subtract(order.getReceivedQty())
+        .subtract(orders.pending(po.getPoNumber(), product.getId(), null));
+      if (
+        total.get(product.getId()).compareTo(remaining) > 0
+      ) throw new InvalidQuantityException(
+        "Thực nhận vượt số lượng PO còn được nhận: " + remaining
+      );
+      validateDates(
+        product,
+        d.getBatchCode(),
+        d.getManufactureDate(),
+        d.getExpiryDate()
+      );
+      WarehouseLocation location = locations
+        .findById(d.getLocationId())
+        .orElseThrow(() ->
+          new ResourceNotFoundException("Không tìm thấy vị trí.")
+        );
+      validateLocation(location, product);
+      BigDecimal rejected = ops.qty(
+        d.getRejectedQty() == null ? BigDecimal.ZERO : d.getRejectedQty(),
+        false
+      );
+      if (
+        rejected.signum() > 0 &&
+        (d.getRejectionReason() == null || d.getRejectionReason().isBlank())
+      ) throw new InvalidQuantityException("Phải nhập lý do hàng bị từ chối.");
+      ReceiptNoteItem item = new ReceiptNoteItem();
+      item.setReceiptNote(note);
+      item.setProduct(product);
+      item.setLocation(location);
+      item.setLotNumber(
+        d.getBatchCode() == null || d.getBatchCode().isBlank()
+          ? ops.code("LOT")
+          : d.getBatchCode()
+      );
+      item.setExpDate(d.getExpiryDate());
+      item.setManufactureDate(d.getManufactureDate());
+      item.setAcceptedQty(qty);
+      item.setDamagedQty(rejected);
+      item.setRejectionReason(d.getRejectionReason());
+      note.getItems().add(item);
     }
+    notes.save(note);
+    ops.audit(note.getReceiptNumber(), "CREATE_RECEIPT", maker);
+    return map(note);
+  }
 
-    @Override
-    public ReceiptNoteResponseDTO createReceiptNote(ReceiptNoteCreateDTO dto, Long currentUserId) {
-        User maker = userRepository.findById(currentUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người lập phiếu ID: " + currentUserId));
+  private void validateDates(
+    Product p,
+    String lot,
+    LocalDate mfg,
+    LocalDate exp
+  ) {
+    if (
+      Boolean.TRUE.equals(p.getManageByLot()) &&
+      (lot == null || lot.isBlank() || exp == null)
+    ) throw new InvalidQuantityException(
+      "Hàng quản lý hạn dùng phải có số lô và EXP."
+    );
+    if (lot != null && lot.length() > 50) throw new InvalidQuantityException(
+      "Số lô tối đa 50 ký tự."
+    );
+    if (
+      exp != null && !exp.isAfter(LocalDate.now())
+    ) throw new ExpiredLotException("Hạn dùng nhập kho phải sau hôm nay.");
+    if (
+      mfg != null &&
+      (mfg.isAfter(LocalDate.now()) || (exp != null && mfg.isAfter(exp)))
+    ) throw new InvalidQuantityException("Ngày sản xuất không hợp lệ.");
+  }
 
-        ReceiptNote note = new ReceiptNote();
-        note.setReceiptNumber("RN-" + System.currentTimeMillis());
-        note.setPoNumber(dto.getPoNumber());
-        note.setMaker(maker);
-        note.setStatus(ReceiptStatus.PENDING_APPROVAL);
+  private void validateLocation(WarehouseLocation location, Product product) {
+    if (
+      location.getZone() != ZoneType.RAW && location.getZone() != ZoneType.FG
+    ) throw new InvalidLocationException("Chỉ được cất hàng ở RAW hoặc FG.");
+    if (
+      batches
+        .findAll()
+        .stream()
+        .anyMatch(
+          b ->
+            b.getLocation().getId().equals(location.getId()) &&
+            b.getOnHandQty().signum() > 0 &&
+            !b.getProduct().getId().equals(product.getId())
+        )
+    ) throw new InvalidLocationException("Vị trí đang chứa SKU khác.");
+  }
 
-        ReceiptNote saved = receiptNoteRepository.save(note);
-        return mapToResponseDTO(saved);
+  public ReceiptNoteResponseDTO approveReceiptNote(
+    Long id,
+    ReceiptApprovalDTO decision,
+    Long userId
+  ) {
+    ops.lock();
+    User checker = ops.actor(userId, UserRole.ROLE_MANAGER);
+    ReceiptNote note = require(id);
+    ops.checker(note.getMaker(), checker);
+    if (
+      note.getStatus() != ReceiptStatus.PENDING_APPROVAL
+    ) throw new ConflictException("Phiếu nhập đã được xử lý.");
+    note.setChecker(checker);
+    note.setApprovedAt(LocalDateTime.now());
+    note.setUpdatedAt(LocalDateTime.now());
+    if (!Boolean.TRUE.equals(decision.getApproved())) {
+      if (
+        decision.getReviewNote() == null || decision.getReviewNote().isBlank()
+      ) throw new InvalidQuantityException("Từ chối phải có lý do.");
+      note.setRejectionNote(decision.getReviewNote());
+      note.setStatus(ReceiptStatus.REJECTED);
+      ops.audit(note.getReceiptNumber(), "REJECT_RECEIPT", checker);
+      return map(note);
     }
-
-    @Override
-    public ReceiptNoteResponseDTO approveReceiptNote(Long receiptId, ReceiptApprovalDTO approvalDTO, Long currentUserId) {
-        ReceiptNote note = receiptNoteRepository.findById(receiptId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu nhập kho ID: " + receiptId));
-
-        // Kiểm tra nguyên tắc phân tách trách nhiệm (người duyệt không trùng người lập)
-        if (note.getMaker().getId().equals(currentUserId)) {
-            throw new SecurityViolationException("Người lập phiếu không được phép tự phê duyệt phiếu nhập kho.");
-        }
-
-        User checker = userRepository.findById(currentUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người phê duyệt ID: " + currentUserId));
-
-        note.setChecker(checker);
-        note.setStatus(ReceiptStatus.APPROVED);
-        note.setUpdatedAt(LocalDateTime.now());
-
-        ReceiptNote approved = receiptNoteRepository.save(note);
-        return mapToResponseDTO(approved);
+    PurchaseOrder po = orders.require(note.getPoNumber());
+    if (!"APPROVED".equals(po.getStatus())) throw new ConflictException(
+      "PO đã đóng hoặc hủy."
+    );
+    for (ReceiptNoteItem item : note.getItems()) {
+      validateDates(
+        item.getProduct(),
+        item.getLotNumber(),
+        item.getManufactureDate(),
+        item.getExpDate()
+      );
+      validateLocation(item.getLocation(), item.getProduct());
+      PurchaseOrderItem line = po
+        .getItems()
+        .stream()
+        .filter(i -> i.getProduct().getId().equals(item.getProduct().getId()))
+        .findFirst()
+        .orElseThrow();
+      if (
+        line
+          .getReceivedQty()
+          .add(item.getAcceptedQty())
+          .compareTo(line.getOrderedQty()) >
+        0
+      ) throw new ConflictException("PO không còn đủ số lượng nhận.");
+      StockBatch batch = batches
+        .findByProductIdAndLocationIdAndLotNumber(
+          item.getProduct().getId(),
+          item.getLocation().getId(),
+          item.getLotNumber()
+        )
+        .orElseGet(() -> {
+          StockBatch b = new StockBatch();
+          b.setProduct(item.getProduct());
+          b.setLocation(item.getLocation());
+          b.setLotNumber(item.getLotNumber());
+          b.setExpDate(item.getExpDate());
+          return batches.save(b);
+        });
+      if (
+        !Objects.equals(batch.getExpDate(), item.getExpDate())
+      ) throw new ConflictException("Lô cùng mã có hạn dùng khác.");
+      batch.setOnHandQty(batch.getOnHandQty().add(item.getAcceptedQty()));
+      batch.setUpdatedAt(LocalDateTime.now());
+      item.setStockBatch(batch);
+      line.setReceivedQty(line.getReceivedQty().add(item.getAcceptedQty()));
+      ops.location(item.getLocation());
+      ops.card(
+        batch,
+        item.getAcceptedQty(),
+        note.getReceiptNumber(),
+        checker,
+        checker,
+        note.getNote()
+      );
     }
+    if (
+      po
+        .getItems()
+        .stream()
+        .allMatch(i -> i.getReceivedQty().compareTo(i.getOrderedQty()) == 0)
+    ) po.setStatus("CLOSED");
+    note.setStatus(ReceiptStatus.COMPLETED);
+    ops.audit(note.getReceiptNumber(), "COMPLETE_RECEIPT", checker);
+    return map(note);
+  }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ReceiptNoteResponseDTO> getReceiptNotes(String status, String poNumber) {
-        List<ReceiptNote> notes;
-        if (status != null && !status.isBlank()) {
-            notes = receiptNoteRepository.findByStatus(ReceiptStatus.valueOf(status));
-        } else if (poNumber != null && !poNumber.isBlank()) {
-            notes = receiptNoteRepository.findByPoNumber(poNumber);
-        } else {
-            notes = receiptNoteRepository.findAll();
-        }
+  private ReceiptNote require(Long id) {
+    return notes
+      .findById(id)
+      .orElseThrow(() ->
+        new ResourceNotFoundException("Không tìm thấy phiếu nhập.")
+      );
+  }
 
-        return notes.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
-    }
+  @Transactional(readOnly = true)
+  public List<ReceiptNoteResponseDTO> getReceiptNotes(
+    String status,
+    String po
+  ) {
+    return notes
+      .findAll()
+      .stream()
+      .filter(
+        n ->
+          status == null ||
+          status.isBlank() ||
+          n.getStatus().name().equals(status)
+      )
+      .filter(n -> po == null || po.isBlank() || n.getPoNumber().contains(po))
+      .map(this::map)
+      .toList();
+  }
 
-    @Override
-    @Transactional(readOnly = true)
-    public ReceiptNoteResponseDTO getReceiptNoteById(Long receiptId) {
-        ReceiptNote note = receiptNoteRepository.findById(receiptId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu nhập kho ID: " + receiptId));
-        return mapToResponseDTO(note);
-    }
+  @Transactional(readOnly = true)
+  public ReceiptNoteResponseDTO getReceiptNoteById(Long id) {
+    return map(require(id));
+  }
 
-    private ReceiptNoteResponseDTO mapToResponseDTO(ReceiptNote note) {
-        ReceiptNoteResponseDTO dto = new ReceiptNoteResponseDTO();
-        dto.setId(note.getId());
-        dto.setReceiptCode(note.getReceiptNumber());
-        dto.setPoNumber(note.getPoNumber());
-        dto.setMakerName(note.getMaker() != null ? note.getMaker().getFullName() : null);
-        dto.setCheckerName(note.getChecker() != null ? note.getChecker().getFullName() : null);
-        dto.setStatus(note.getStatus());
-        dto.setCreatedAt(note.getCreatedAt());
-        dto.setItems(new ArrayList<>());
-        return dto;
-    }
+  private ReceiptNoteResponseDTO map(ReceiptNote n) {
+    ReceiptNoteResponseDTO d = new ReceiptNoteResponseDTO();
+    d.setId(n.getId());
+    d.setMakerId(n.getMaker().getId());
+    d.setMakerName(n.getMaker().getFullName());
+    d.setCheckerName(
+      n.getChecker() == null ? null : n.getChecker().getFullName()
+    );
+    d.setReceiptCode(n.getReceiptNumber());
+    d.setPoNumber(n.getPoNumber());
+    d.setSupplierName(n.getSupplierName());
+    d.setNote(
+      n.getRejectionNote() != null ? n.getRejectionNote() : n.getNote()
+    );
+    d.setCreatedAt(n.getCreatedAt());
+    d.setApprovedAt(n.getApprovedAt());
+    d.setStatus(n.getStatus());
+    d.setItems(
+      n
+        .getItems()
+        .stream()
+        .map(i -> {
+          ReceiptItemDTO r = new ReceiptItemDTO();
+          r.setProductId(i.getProduct().getId());
+          r.setLocationId(i.getLocation().getId());
+          r.setBatchCode(i.getLotNumber());
+          r.setManufactureDate(i.getManufactureDate());
+          r.setExpiryDate(i.getExpDate());
+          r.setActualQty(i.getAcceptedQty());
+          r.setRejectedQty(i.getDamagedQty());
+          r.setRejectionReason(i.getRejectionReason());
+          return r;
+        })
+        .toList()
+    );
+    return d;
+  }
 }
