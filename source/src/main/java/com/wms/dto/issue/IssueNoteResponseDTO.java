@@ -30,7 +30,16 @@ public class IssueNoteResponseDTO {
   private LocalDateTime approvedAt;
   private List<PickListProposalDTO> pickList;
 
+  private boolean isOverridden;
   private String overrideReason;
+
+  public boolean getIsOverridden() {
+    return isOverridden;
+  }
+
+  public void setIsOverridden(boolean isOverridden) {
+    this.isOverridden = isOverridden;
+  }
 
   public String getOverrideReason() {
     return overrideReason;

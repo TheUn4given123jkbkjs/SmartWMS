@@ -146,6 +146,9 @@ public class ReceiptServiceImpl implements ReceiptService {
     if (
       location.getZone() != ZoneType.RAW && location.getZone() != ZoneType.FG
     ) throw new InvalidLocationException("Chỉ được cất hàng ở RAW hoặc FG.");
+    if (location.getStatus() == LocationStatus.MAINTENANCE) {
+      throw new InvalidLocationException("Không được cất hàng vào ô đang bảo trì.");
+    }
     if (
       batches
         .findAll()

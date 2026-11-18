@@ -159,14 +159,12 @@ public class InventoryServiceImpl implements InventoryService {
     if (days < 1 || days > 365) throw new InvalidQuantityException(
       "Ngưỡng cận hạn phải từ 1 đến 365 ngày."
     );
+    LocalDate today = LocalDate.now();
     return batches
-      .findNearExpiryBatches(LocalDate.now().plusDays(days))
+      .findNearExpiryBatches(today.plusDays(days))
       .stream()
       .map(b -> {
-        long remaining = ChronoUnit.DAYS.between(
-          LocalDate.now(),
-          b.getExpDate()
-        );
+        long remaining = ChronoUnit.DAYS.between(today, b.getExpDate());
         return new NearExpiryAlertDTO(
           b.getId(),
           b.getLotNumber(),

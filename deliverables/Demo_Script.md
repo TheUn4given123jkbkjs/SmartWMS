@@ -14,7 +14,7 @@ H2 nằm trong RAM; mỗi lần khởi động lại trở về dữ liệu demo
 ## Luồng demo chính
 
 1. **Danh mục — FR01:** dùng Manager/Admin mở Danh Mục Hàng Hóa, thử nút “Thiết lập Min/Max”, nhập Min `5.25`, Max `100.50` cho SKU muốn demo. Ô kệ cho tạo mã mới, khu RAW/FG và tầng. Nếu tạo SKU mới, Manager cần tiếp nhận một PO đã duyệt cho SKU đó trước khi nhập.
-2. **Lập nhập — FR02.01–02:** với Staff mở Lập Phiếu Nhập, chọn `PO-DEMO-001`, chọn SKU đầu tiên, SL đạt `20.50`, số lô `DEMO-LOT-01`, EXP sau hôm nay ít nhất 30 ngày, chọn `RAW-A01-01`. Có thể ghi hàng từ chối riêng kèm lý do. Bấm Gửi duyệt, mở link chứng từ. Lúc này On-hand vẫn 0.
+2. **Lập nhập — FR02.01–02:** với Staff mở Lập Phiếu Nhập, chọn `PO-DEMO-001`, chọn SKU đầu tiên, SL đạt `20.50`, số lô `DEMO-LOT-01`, EXP sau hôm nay, ví dụ còn 31 ngày, chọn `RAW-A01-01`. Có thể ghi hàng từ chối riêng kèm lý do. Bấm Gửi duyệt, mở link chứng từ. Lúc này On-hand vẫn 0.
 3. **Duyệt nhập — FR02.03:** với Manager mở Phê Duyệt Nhập, mở phiếu vừa lập, bấm Chấp thuận và xác nhận. Phiếu thành COMPLETED; tồn thực tế là `20.50`, vị trí OCCUPIED. Duyệt lại bị chặn.
 4. **Giữ chỗ xuất — FR03.01–02:** với Staff mở Lập Lệnh Xuất, nhập số đơn/đơn vị nhận, chọn đúng SKU, số lượng `5.25`, chiến lược FEFO. Bấm Gợi ý phân bổ để thấy lô/vị trí, rồi Tạo lệnh xuất. Tồn: On-hand `20.50`, Reserved `5.25`, Available `15.25`.
 5. **Duyệt và bàn giao — FR03.03:** Manager mở Bốc Hàng Pick List, mở lệnh và Chấp thuận. Tồn vật lý vẫn `20.50`. Staff mở lại lệnh, bấm Xác nhận bàn giao. Phiếu COMPLETED; On-hand `15.25`, Reserved `0`, Available `15.25`.

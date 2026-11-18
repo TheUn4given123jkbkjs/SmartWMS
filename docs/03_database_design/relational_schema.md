@@ -30,7 +30,7 @@ Mô hình dữ liệu SmartWMS gồm **12 bảng** được chuẩn hóa theo qu
 | **`stock_batch`** | `id` | `product_id` $\rightarrow$ `product.id`<br>`location_id` $\rightarrow$ `warehouse_location.id` | ON DELETE RESTRICT | `UNIQUE(product_id, location_id, lot_number)` (`BR-LOT-01`), `exp_date` cho phép NULL khi `product.manage_by_lot = 0`, CHECK `on_hand_qty >= 0`, `reserved_qty >= 0`, `reserved_qty <= on_hand_qty` (`BR-OUT-01`) |
 | **`receipt_note`** | `id` | `maker_id` $\rightarrow$ `user.id`<br>`checker_id` $\rightarrow$ `user.id` | ON DELETE RESTRICT | `UNIQUE(receipt_number)`, CHECK `checker_id IS NULL OR checker_id <> maker_id` (`BR-SEC-03`), CHECK `status IN ('PENDING_APPROVAL','COMPLETED','REJECTED','CANCELLED')` |
 | **`receipt_note_item`**| `id` | `receipt_id` $\rightarrow$ `receipt_note.id`<br>`batch_id` $\rightarrow$ `stock_batch.id`<br>`product_id` $\rightarrow$ `product.id`<br>`location_id` $\rightarrow$ `warehouse_location.id` | ON DELETE CASCADE (phiếu)<br>ON DELETE SET NULL (lô)<br>ON DELETE RESTRICT | CHECK `accepted_qty >= 0`, `damaged_qty >= 0`, `accepted_qty + damaged_qty > 0` (`BR-INB-01`, `04`), `exp_date` cho phép NULL khi `product.manage_by_lot = 0` (`BR-LOT-01`) |
-| **`issue_note`** | `id` | `maker_id` $\rightarrow$ `user.id`<br>`checker_id` $\rightarrow$ `user.id` | ON DELETE RESTRICT | `UNIQUE(issue_number)`, CHECK `checker_id IS NULL OR checker_id <> maker_id` (`BR-SEC-03`), CHECK `dispatch_strategy IN ('FEFO','FIFO')` (`BR-OUT-02`) |
+| **`issue_note`** | `id` | `maker_id` $\rightarrow$ `user.id`<br>`checker_id` $\rightarrow$ `user.id`<br>`confirmed_by` $\rightarrow$ `user.id` | ON DELETE RESTRICT | `UNIQUE(issue_number)`, CHECK `checker_id IS NULL OR checker_id <> maker_id` (`BR-SEC-03`), CHECK `dispatch_strategy IN ('FEFO','FIFO')` (`BR-OUT-02`) |
 | **`issue_note_item`** | `id` | `issue_id` $\rightarrow$ `issue_note.id`<br>`batch_id` $\rightarrow$ `stock_batch.id` | ON DELETE CASCADE (phiếu)<br>ON DELETE RESTRICT (lô) | CHECK `requested_qty > 0`, `allocated_qty >= 0`, `allocated_qty <= requested_qty` (`BR-OUT-01`) |
 | **`stock_card`** | `id` | `product_id` $\rightarrow$ `product.id`<br>`batch_id` $\rightarrow$ `stock_batch.id`<br>`performed_by` $\rightarrow$ `user.id`<br>`approved_by` $\rightarrow$ `user.id` | ON DELETE RESTRICT | CHECK `change_type IN ('NHAP_PO','XUAT_KHO','KIEM_KE','DIEU_CHINH')`, CHECK `qty_changed <> 0`, `after_changed >= 0` (`BR-SEC-02`) |
 
@@ -39,13 +39,19 @@ Mô hình dữ liệu SmartWMS gồm **12 bảng** được chuẩn hóa theo qu
 
 ---
 
+**Kiểu dữ liệu số lượng.** Định mức min/max, số lượng PO, tồn và giữ chỗ theo lô, số lượng nhập/xuất và lượng trên thẻ kho dùng `DECIMAL(12,2)`. Các ID tiếp tục dùng `BIGINT`. `stock_card.after_changed` là tổng On-hand của SKU ngay sau từng dòng phát sinh.
+
+**Khóa Maker–Checker.** ID người dùng đã được chứng từ tham chiếu qua `maker_id` hoặc `checker_id` bị hạn chế cập nhật để MySQL thực thi đồng thời FK và CHECK cấm tự duyệt.
+
 ## 3. TỔ CHỨC MÃ NGUỒN SQL DDL
 
 Mã DDL được bóc tách thành **12 file SQL độc lập** tại thư mục mã nguồn [`source/src/main/resources/tables/`](../../source/src/main/resources/tables/) theo thứ tự phụ thuộc:
 1. [`01_category.sql`](../../source/src/main/resources/tables/01_category.sql) $\rightarrow$ 2. [`02_warehouse_location.sql`](../../source/src/main/resources/tables/02_warehouse_location.sql) $\rightarrow$ 3. [`03_user.sql`](../../source/src/main/resources/tables/03_user.sql)
-4. [`04_product.sql`](../../source/src/main/resources/tables/04_product.sql) $\rightarrow$ 5. [`05_purchase_order.sql`](../../source/src/main/resources/tables/05_purchase_order.sql) $\rightarrow$ 6. [`06_purchase_order_item.sql`](../../source/src/main/resources/tables/06_purchase_order_item.sql)
-7. [`07_stock_batch.sql`](../../source/src/main/resources/tables/07_stock_batch.sql) $\rightarrow$ 8. [`08_receipt_note.sql`](../../source/src/main/resources/tables/08_receipt_note.sql)
-9. [`09_receipt_note_item.sql`](../../source/src/main/resources/tables/09_receipt_note_item.sql) $\rightarrow$ 10. [`10_issue_note.sql`](../../source/src/main/resources/tables/10_issue_note.sql) $\rightarrow$ 11. [`11_issue_note_item.sql`](../../source/src/main/resources/tables/11_issue_note_item.sql)
-12. [`12_stock_card.sql`](../../source/src/main/resources/tables/12_stock_card.sql)
+4. [`04_product.sql`](../../source/src/main/resources/tables/04_product.sql) $\rightarrow$ 5. [`04_1_purchase_order.sql`](../../source/src/main/resources/tables/04_1_purchase_order.sql) $\rightarrow$ 6. [`04_2_purchase_order_item.sql`](../../source/src/main/resources/tables/04_2_purchase_order_item.sql)
+7. [`05_stock_batch.sql`](../../source/src/main/resources/tables/05_stock_batch.sql) $\rightarrow$ 8. [`06_receipt_note.sql`](../../source/src/main/resources/tables/06_receipt_note.sql)
+9. [`07_receipt_note_item.sql`](../../source/src/main/resources/tables/07_receipt_note_item.sql) $\rightarrow$ 10. [`08_issue_note.sql`](../../source/src/main/resources/tables/08_issue_note.sql) $\rightarrow$ 11. [`09_issue_note_item.sql`](../../source/src/main/resources/tables/09_issue_note_item.sql)
+12. [`10_stock_card.sql`](../../source/src/main/resources/tables/10_stock_card.sql)
 
-👉 **Kịch bản tổng hợp duy nhất:** [`schema.sql`](../../source/src/main/resources/tables/schema.sql) (được định vị và quản trị tập trung tại `source/src/main/resources/tables/schema.sql`).
+`schema.sql` chứa `DROP TABLE` và chỉ dùng cho khởi tạo hoặc reset DB thử nghiệm. DB có dữ liệu cần kế hoạch migration riêng được phê duyệt.
+
+**Kịch bản tổng hợp** [`schema.sql`](../../source/src/main/resources/tables/schema.sql) (được định vị và quản trị tập trung tại `source/src/main/resources/tables/schema.sql`).

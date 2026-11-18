@@ -9,12 +9,26 @@ import org.springframework.web.servlet.HandlerInterceptor;
 /** Session identity and catalog role guard for the workspace. Warehouse roles are enforced by services. */
 public class SessionInterceptor implements HandlerInterceptor {
 
+  private final boolean writeOnly;
+
+  public SessionInterceptor() {
+    this(false);
+  }
+
+  public SessionInterceptor(boolean writeOnly) {
+    this.writeOnly = writeOnly;
+  }
+
   @Override
   public boolean preHandle(
     HttpServletRequest request,
     HttpServletResponse response,
     Object handler
   ) throws Exception {
+    boolean write =
+      !"GET".equals(request.getMethod()) && !"HEAD".equals(request.getMethod());
+    if (writeOnly && !write) return true;
+
     var session = request.getSession(false);
     var user = session == null
       ? null
@@ -32,8 +46,6 @@ public class SessionInterceptor implements HandlerInterceptor {
       }
       return false;
     }
-    boolean write =
-      !"GET".equals(request.getMethod()) && !"HEAD".equals(request.getMethod());
     if (
       write &&
       path.startsWith("/catalog/") &&

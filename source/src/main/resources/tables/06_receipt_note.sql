@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS receipt_note (
     
     -- Khóa ngoại tham chiếu người lập (Maker) và người duyệt (Checker)
     CONSTRAINT fk_receipt_maker FOREIGN KEY (maker_id) 
-        REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        REFERENCES `user`(id) ON DELETE RESTRICT,
     CONSTRAINT fk_receipt_checker FOREIGN KEY (checker_id) 
-        REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        REFERENCES `user`(id) ON DELETE RESTRICT,
         
     -- Ràng buộc tính duy nhất của mã số phiếu nhập kho
     CONSTRAINT uk_receipt_number UNIQUE (receipt_number),
