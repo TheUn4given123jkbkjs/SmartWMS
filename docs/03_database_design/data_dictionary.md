@@ -170,6 +170,9 @@
 | `change_type` | VARCHAR | 20 | NO | - | None | `IN ('NHAP_PO','XUAT_KHO','KIEM_KE','DIEU_CHINH')` | Loại hình giao dịch phát sinh |
 | `qty_changed` | INT | - | NO | - | None | `qty_changed <> 0` | Lượng biến động (+ khi nhập, - khi xuất) |
 | `after_changed` | INT | - | NO | - | None | `after_changed >= 0` (`BR-SEC-02`) | Tồn kho thực tế lũy kế sau giao dịch |
+| `performed_by` | BIGINT | - | YES | **FK** | NULL | REFERENCES `user(id)` RESTRICT | Khóa ngoại Người trực tiếp thực hiện giao dịch (`BR-SEC-02`) |
+| `approved_by` | BIGINT | - | YES | **FK** | NULL | REFERENCES `user(id)` RESTRICT | Khóa ngoại Quản lý phê duyệt giao dịch (`BR-SEC-02`) |
+| `reason` | VARCHAR | 500 | YES | - | NULL | None | Lý do thực hiện biến động kho |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm ghi nhận dòng Thẻ kho |
 
 ---
