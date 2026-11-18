@@ -107,9 +107,9 @@
       ></span>
       <div class="ms-auto d-flex align-items-center gap-3">
         <div class="user-info">
-          <strong th:text="${session.user.fullName}"></strong
+          <strong th:text="${session.user != null ? session.user.fullName : 'Người dùng'}"></strong
           ><small
-            th:text="${session.user.role.name() == 'ROLE_MANAGER' ? 'Quản lý kho' : (session.user.role.name() == 'ROLE_ADMIN' ? 'Quản trị viên' : 'Nhân viên kho')}"
+            th:text="${session.user != null ? (session.user.role.name() == 'ROLE_MANAGER' ? 'Quản lý kho' : (session.user.role.name() == 'ROLE_ADMIN' ? 'Quản trị viên' : 'Nhân viên kho')) : 'Chưa đăng nhập'}"
           ></small>
         </div>
         <form method="post" action="/auth/logout">
