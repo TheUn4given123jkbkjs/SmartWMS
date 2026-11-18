@@ -44,7 +44,7 @@ Hệ thống SmartWMS được thiết kế dựa trên nền tảng **Spring Bo
 +-----------------------------------------------------------------------------------+
 |                        DATABASE LAYER (Relational Storage)                        |
 |       - MySQL 8.x InnoDB Engine (Hoặc H2 In-Memory chạy kiểm thử / demo dự phòng)  |
-|       - 10 Bảng chuẩn hóa 3NF, Ràng buộc Khóa chính, Khóa ngoại, Bảng chỉ mục IDX  |
+|       - 12 Bảng chuẩn hóa 3NF, Ràng buộc Khóa chính, Khóa ngoại, Bảng chỉ mục IDX  |
 +-----------------------------------------------------------------------------------+
                                           ▲
                                           │  (Cross-cutting Concerns)
@@ -74,6 +74,7 @@ graph TD
         UI_Browser["Trình duyệt Web (Thymeleaf / Bootstrap 5 / Fetch API)"]
         Ctrl_Auth["Auth & Dashboard Controller"]
         Ctrl_Cat["Catalog Controller"]
+        Ctrl_PO["PurchaseOrder Controller"]
         Ctrl_Rec["Receipt Controller"]
         Ctrl_Iss["Issue Controller"]
         Ctrl_Inv["Inventory Controller"]
@@ -82,6 +83,7 @@ graph TD
     subgraph Service_Layer ["Business Logic Layer (Tầng Nghiệp Vụ)"]
         Svc_Auth["AuthService\n(Quản lý Phiên & RBAC)"]
         Svc_Cat["CatalogService\n(Hàng hóa & Vị trí Kho)"]
+        Svc_PO["PurchaseOrderService\n(Đối soát & Kiểm soát đơn PO)"]
         Svc_Rec["ReceiptService\n(Nhập kho & Duyệt PO)"]
         Svc_Iss["IssueService\n(Xuất kho & Duyệt Đơn)"]
         Svc_Inv["InventoryService\n(Thẻ kho & Cảnh báo Tồn)"]
@@ -91,6 +93,7 @@ graph TD
         Repo_User["UserRepository"]
         Repo_CatLoc["Category & Location Repositories"]
         Repo_Prod["ProductRepository"]
+        Repo_PO["PurchaseOrderRepository"]
         Repo_Batch["StockBatchRepository"]
         Repo_Receipt["ReceiptNote & Item Repositories"]
         Repo_Issue["IssueNote & Item Repositories"]
@@ -98,7 +101,7 @@ graph TD
     end
 
     subgraph DB_Layer ["Database Layer (Tầng Cơ Sở Dữ Liệu 3NF)"]
-        DB_Storage[("MySQL Database (10 Bảng 3NF)\ncategory, warehouse_location, user,\nproduct, stock_batch, receipt_note,\nreceipt_note_item, issue_note,\nissue_note_item, stock_card")]
+        DB_Storage[("MySQL Database (12 Bảng 3NF)\ncategory, warehouse_location, user,\nproduct, purchase_order, purchase_order_item,\nstock_batch, receipt_note, receipt_note_item,\nissue_note, issue_note_item, stock_card")]
     end
 
     subgraph Cross_Cutting ["Cross-Cutting Layer (Hạ Tầng Xử Lý Chung)"]
@@ -109,12 +112,14 @@ graph TD
     %% Tương tác Presentation -> Business Logic
     UI_Browser -->|HTTP Request / View Form| Ctrl_Auth
     UI_Browser -->|HTTP Request / View Form| Ctrl_Cat
+    UI_Browser -->|HTTP Request / View Form| Ctrl_PO
     UI_Browser -->|HTTP Request / View Form| Ctrl_Rec
     UI_Browser -->|HTTP Request / View Form| Ctrl_Iss
     UI_Browser -->|HTTP Request / View Form| Ctrl_Inv
 
     Ctrl_Auth -->|invoke| Svc_Auth
     Ctrl_Cat -->|invoke| Svc_Cat
+    Ctrl_PO -->|invoke| Svc_PO
     Ctrl_Rec -->|invoke| Svc_Rec
     Ctrl_Iss -->|invoke| Svc_Iss
     Ctrl_Inv -->|invoke| Svc_Inv
@@ -123,6 +128,8 @@ graph TD
     Svc_Auth --> Repo_User
     Svc_Cat --> Repo_CatLoc
     Svc_Cat --> Repo_Prod
+    Svc_PO --> Repo_PO
+    Svc_Rec --> Repo_PO
     Svc_Rec --> Repo_Receipt
     Svc_Rec --> Repo_Batch
     Svc_Rec --> Repo_Card
@@ -136,6 +143,7 @@ graph TD
     Repo_User --> DB_Storage
     Repo_CatLoc --> DB_Storage
     Repo_Prod --> DB_Storage
+    Repo_PO --> DB_Storage
     Repo_Batch --> DB_Storage
     Repo_Receipt --> DB_Storage
     Repo_Issue --> DB_Storage
@@ -170,6 +178,7 @@ source/
     │   │   ├── controller/                         # Tầng Presentation tiếp nhận HTTP
     │   │   │   ├── AuthController.java             # Đăng nhập, đăng xuất, điều hướng Dashboard
     │   │   │   ├── CatalogController.java          # Quản lý hàng hóa SKU, danh mục & ô kệ kho
+    │   │   │   ├── PurchaseOrderController.java    # Quản lý đơn mua hàng PO & kiểm soát giao hàng
     │   │   │   ├── ReceiptController.java          # Lập & duyệt phiếu nhập kho (UC02, UC03)
     │   │   │   ├── IssueController.java            # Lập & duyệt phiếu xuất kho FEFO (UC04, UC05)
     │   │   │   └── InventoryController.java        # Tra cứu thẻ kho & cảnh báo tồn (UC06, UC07)
@@ -177,6 +186,7 @@ source/
     │   │   ├── service/                            # Tầng Business Logic (Service Interfaces)
     │   │   │   ├── AuthService.java
     │   │   │   ├── CatalogService.java
+    │   │   │   ├── PurchaseOrderService.java       # Đối soát đơn mua hàng PO & tính tồn chưa giao
     │   │   │   ├── ReceiptService.java
     │   │   │   ├── IssueService.java
     │   │   │   ├── InventoryService.java
@@ -184,6 +194,7 @@ source/
     │   │   │   └── impl/                           # Lớp hiện thực Service (@Service)
     │   │   │       ├── AuthServiceImpl.java
     │   │   │       ├── CatalogServiceImpl.java
+    │   │   │       ├── PurchaseOrderServiceImpl.java   # Nghiệp vụ đối soát PO & chống nhận thừa
     │   │   │       ├── ReceiptServiceImpl.java     # Xử lý giao dịch nhập @Transactional
     │   │   │       ├── IssueServiceImpl.java       # Xử lý giao dịch xuất @Transactional
     │   │   │       └── InventoryServiceImpl.java
@@ -193,6 +204,7 @@ source/
     │   │   │   ├── WarehouseLocationRepository.java# CRUD bảng warehouse_location
     │   │   │   ├── UserRepository.java              # CRUD bảng user
     │   │   │   ├── ProductRepository.java           # CRUD bảng product
+    │   │   │   ├── PurchaseOrderRepository.java     # CRUD bảng purchase_order & đối soát PO
     │   │   │   ├── StockBatchRepository.java        # CRUD & truy vấn lô bảng stock_batch
     │   │   │   ├── ReceiptNoteRepository.java       # CRUD bảng receipt_note
     │   │   │   ├── ReceiptNoteItemRepository.java   # CRUD bảng receipt_note_item
@@ -205,6 +217,8 @@ source/
     │   │   │   ├── WarehouseLocation.java
     │   │   │   ├── User.java
     │   │   │   ├── Product.java
+    │   │   │   ├── PurchaseOrder.java
+    │   │   │   ├── PurchaseOrderItem.java
     │   │   │   ├── StockBatch.java
     │   │   │   ├── ReceiptNote.java
     │   │   │   ├── ReceiptNoteItem.java
@@ -220,6 +234,10 @@ source/
     │   │   │   │   ├── ProductCreateDTO.java
     │   │   │   │   ├── ProductResponseDTO.java
     │   │   │   │   └── LocationSetupDTO.java
+    │   │   │   ├── purchase/                       # DTO phân hệ đơn mua hàng PO
+    │   │   │   │   ├── PurchaseOrderImportDTO.java
+    │   │   │   │   ├── PurchaseOrderItemDTO.java
+    │   │   │   │   └── PurchaseOrderResponseDTO.java
     │   │   │   ├── receipt/                        # DTO phân hệ nhập kho
     │   │   │   │   ├── ReceiptNoteCreateDTO.java
     │   │   │   │   ├── ReceiptItemDTO.java
@@ -237,6 +255,7 @@ source/
     │   │   │
     │   │   ├── exception/                          # Tầng Ngoại lệ & Xử lý Lỗi tập trung
     │   │   │   ├── BusinessException.java          # Lớp cha mọi ngoại lệ nghiệp vụ
+    │   │   │   ├── ConflictException.java          # Trùng mã đơn PO (409 Conflict)
     │   │   │   ├── InvalidQuantityException.java   # BR-INB-01 (Vượt số lượng PO)
     │   │   │   ├── ExpiredLotException.java        # BR-LOT-01 (Lô hết hạn)
     │   │   │   ├── InvalidLocationException.java   # BR-INB-03 (Sai khu / quá tải)
@@ -256,10 +275,10 @@ source/
     │   │       └── ChangeType.java                 # Biến động: NHAP_PO, XUAT_KHO...
     │   │
     │   └── resources/
-    │       ├── application.properties              # Cấu hình DataSource, JPA, Port 8080
-    │       ├── schema.sql                          # Kịch bản DDL tổng hợp khởi tạo 10 bảng CSDL
+    │       ├── application.properties              # Cấu hình DataSource, JPA, Port 8088
+    │       ├── schema.sql                          # Kịch bản DDL tổng hợp khởi tạo 12 bảng CSDL 3NF
     │       ├── data.sql                            # Kịch bản DML nạp dữ liệu mẫu ban đầu
-    │       ├── tables/                             # 10 file DDL SQL bóc tách chi tiết từng bảng (01..10)
+    │       ├── tables/                             # 12 file DDL SQL bóc tách chi tiết từng bảng (01..12)
     │       │
     │       ├── static/                             # Tài nguyên Web tĩnh
     │       │   ├── css/                            # Bootstrap 5 & Custom Style CSS
@@ -305,6 +324,7 @@ java.lang.Throwable
   └── java.lang.Exception
         └── java.lang.RuntimeException
               └── BusinessException (Base Class: errorCode, message)
+                    ├── ConflictException           (Mã lỗi: ERR_CONFLICT - 409 Conflict)
                     ├── InvalidQuantityException    (Mã lỗi: ERR_INB_01 - 400 Bad Request)
                     ├── ExpiredLotException         (Mã lỗi: ERR_LOT_01 - 400 Bad Request)
                     ├── InvalidLocationException    (Mã lỗi: ERR_INB_03 - 400 Bad Request)
@@ -317,6 +337,7 @@ java.lang.Throwable
 
 | Lớp Ngoại lệ (Exception Class) | Quy tắc Nghiệp vụ (BR) | Nguyên nhân Kích hoạt | HTTP Code | Hành vi Xử lý & Thông báo Giao diện |
 | :--- | :---: | :--- | :---: | :--- |
+| **`ConflictException`** | `BR-INB-01` | Trùng mã đơn PO khi Import hoặc xung đột trạng thái xử lý dữ liệu. | `409 Conflict` | Hủy lưu, hiển thị Toast đỏ: *"Mã Đơn mua hàng (PO) đã tồn tại trong hệ thống."* |
 | **`InvalidQuantityException`** | `BR-INB-01` | Số lượng nhập thực tế vượt quá số lượng còn lại trên Purchase Order. | `400 Bad Request` | Hủy lưu bản ghi, hiển thị Toast đỏ: *"Số lượng nhập (x) vượt quá số lượng PO cho phép (y)."* |
 | **`ExpiredLotException`** | `BR-LOT-01` | Lô hàng nhập vào có hạn sử dụng đã qua hoặc cận hạn dưới ngưỡng cho phép. | `400 Bad Request` | Từ chối tiếp nhận, hiển thị cảnh báo: *"Lô hàng đã hết hạn sử dụng hoặc không đạt chuẩn lưu kho."* |
 | **`InvalidLocationException`** | `BR-INB-03` | Vị trí ô kệ chọn lưu kho sai phân khu quy định (RAW/FG) hoặc vượt tải trọng `max_weight_capacity`. | `400 Bad Request` | Chặn lưu trữ, thông báo: *"Vị trí ô kệ [CODE] vượt quá tải trọng cho phép hoặc sai phân khu hàng hóa."* |
@@ -333,8 +354,9 @@ Bảng ma trận truy vết chứng minh tính nhất quán giữa các yêu c�
 | Mã UC | Tên Chức năng Nghiệp vụ | Controller tiếp nhận | Service xử lý logic | JPA Repositories | JPA Entities | DTOs liên quan | Ngoại lệ có thể ném |
 | :---: | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`UC01`** | Quản lý danh mục hàng hóa & ô kệ | `CatalogController` | `CatalogService` | `ProductRepository`<br>`LocationRepository` | `Product`<br>`WarehouseLocation` | `ProductCreateDTO`<br>`ProductResponseDTO` | `ResourceNotFoundException`<br>`InvalidLocationException` |
-| **`UC02`** | Lập phiếu nhập kho theo đơn PO | `ReceiptController` | `ReceiptService` | `ReceiptNoteRepository`<br>`ReceiptItemRepository` | `ReceiptNote`<br>`ReceiptNoteItem` | `ReceiptNoteCreateDTO`<br>`ReceiptItemDTO` | `InvalidQuantityException`<br>`ExpiredLotException` |
-| **`UC03`** | Phê duyệt phiếu nhập kho (ACID) | `ReceiptController` | `ReceiptService` | `ReceiptNoteRepository`<br>`StockBatchRepository`<br>`StockCardRepository` | `ReceiptNote`<br>`StockBatch`<br>`StockCard` | `ReceiptApprovalDTO`<br>`ReceiptNoteResponseDTO` | `SecurityViolationException`<br>`InvalidLocationException` |
+| **`PO-MGT`** | Tiếp nhận & Đối soát Đơn mua hàng PO (FR02) | `PurchaseOrderController` | `PurchaseOrderService` | `PurchaseOrderRepository`<br>`ProductRepository`<br>`ReceiptNoteRepository` | `PurchaseOrder`<br>`PurchaseOrderItem`<br>`Product` | `PurchaseOrderImportDTO`<br>`PurchaseOrderResponseDTO`<br>`PurchaseOrderItemDTO` | `ConflictException`<br>`ResourceNotFoundException` |
+| **`UC02`** | Lập phiếu nhập kho theo đơn PO | `ReceiptController` | `ReceiptService` | `ReceiptNoteRepository`<br>`ReceiptItemRepository`<br>`PurchaseOrderRepository` | `ReceiptNote`<br>`ReceiptNoteItem`<br>`PurchaseOrder`<br>`PurchaseOrderItem` | `ReceiptNoteCreateDTO`<br>`ReceiptItemDTO` | `InvalidQuantityException`<br>`ExpiredLotException` |
+| **`UC03`** | Phê duyệt phiếu nhập kho (ACID) | `ReceiptController` | `ReceiptService` | `ReceiptNoteRepository`<br>`StockBatchRepository`<br>`StockCardRepository`<br>`PurchaseOrderRepository` | `ReceiptNote`<br>`StockBatch`<br>`StockCard`<br>`PurchaseOrder` | `ReceiptApprovalDTO`<br>`ReceiptNoteResponseDTO` | `SecurityViolationException`<br>`InvalidLocationException` |
 | **`UC04`** | Lập phiếu xuất kho & Đề xuất FEFO | `IssueController` | `IssueService` | `IssueNoteRepository`<br>`StockBatchRepository` | `IssueNote`<br>`IssueNoteItem`<br>`StockBatch` | `IssueRequestDTO`<br>`PickListProposalDTO` | `InsufficientStockException`<br>`ResourceNotFoundException` |
 | **`UC05`** | Phê duyệt phiếu xuất kho (ACID) | `IssueController` | `IssueService` | `IssueNoteRepository`<br>`StockBatchRepository`<br>`StockCardRepository` | `IssueNote`<br>`StockBatch`<br>`StockCard` | `IssueNoteResponseDTO` | `SecurityViolationException`<br>`InsufficientStockException` |
 | **`UC06`** | Tra cứu thẻ kho & Lịch sử biến động | `InventoryController` | `InventoryService` | `StockCardRepository`<br>`ProductRepository` | `StockCard`<br>`Product` | `StockCardDTO`<br>`AvailableStockDTO` | `ResourceNotFoundException` |

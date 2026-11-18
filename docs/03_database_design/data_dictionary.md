@@ -1,7 +1,7 @@
 # TỪ ĐIỂN DỮ LIỆU CƠ SỞ DỮ LIỆU (DATA DICTIONARY)
 **Học phần:** Phân tích và Thiết kế Yêu cầu (Mã môn: 502050 - ĐH Tôn Đức Thắng)  
 **Nhiệm vụ:** `T3.2` (Sprint 3) | **Maker:** M2 - Nguyễn Bảo Khang | **Reviewer:** M3 - Tôn Thanh Thiên  
-**Phạm vi:** 10 Bảng thuộc 4 Phân hệ Must-have (`FR01` – `FR04`) & Xác thực phân quyền  
+**Phạm vi:** 12 Bảng (10 Bảng nghiệp vụ kho lõi + 2 Bảng tham chiếu Đơn mua hàng PO) thuộc các phân hệ Must-have (`FR01` – `FR04`) & Xác thực phân quyền  
 **Tiêu chuẩn cấu trúc:** Biểu mẫu chuẩn 8 cột theo `SpecificationStandard.md` (Mục 3.2).
 
 ---
@@ -171,3 +171,32 @@
 | `qty_changed` | INT | - | NO | - | None | `qty_changed <> 0` | Lượng biến động (+ khi nhập, - khi xuất) |
 | `after_changed` | INT | - | NO | - | None | `after_changed >= 0` (`BR-SEC-02`) | Tồn kho thực tế lũy kế sau giao dịch |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm ghi nhận dòng Thẻ kho |
+
+---
+
+## 11. BẢNG: `purchase_order` (Đơn mua hàng từ nhà cung cấp - PO Header)
+*Mô tả: Lưu trữ thông tin tham chiếu đơn mua hàng (PO) đã được phê duyệt từ hệ thống Mua hàng/ERP bên ngoài, làm căn cứ đối soát số lượng và chặn nhận thừa khi nhập kho (`BR-INB-01`).*
+
+| Tên trường (Column) | Kiểu dữ liệu | Độ dài | Nullable | Khóa | Giá trị mặc định | Ràng buộc nghiệp vụ (Constraints) | Ý nghĩa nghiệp vụ |
+| :--- | :--- | :---: | :---: | :---: | :---: | :--- | :--- |
+| `id` | BIGINT | - | NO | **PK** | AUTO_INCREMENT | `id > 0` | Khóa chính định danh đơn mua hàng |
+| `po_number` | VARCHAR | 50 | NO | **UK** | None | UNIQUE, Not empty (`BR-INB-01`) | Mã đơn mua hàng duy nhất (VD: `PO-202611-001`) |
+| `supplier_name` | VARCHAR | 255 | NO | - | None | Not empty | Tên nhà cung cấp phụ tùng |
+| `status` | VARCHAR | 30 | NO | - | 'APPROVED' | `IN ('APPROVED','PARTIALLY_RECEIVED','CLOSED','CANCELLED')` | Trạng thái tiếp nhận đơn hàng |
+| `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm đồng bộ/khởi tạo PO |
+| `updated_at` | TIMESTAMP | - | YES | - | CURRENT_TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Thời điểm cập nhật trạng thái |
+
+---
+
+## 12. BẢNG: `purchase_order_item` (Chi tiết dòng đơn mua hàng - PO Detail)
+*Mô tả: Chi tiết số lượng đặt mua và số lượng đã giao lũy kế của từng mặt hàng trên đơn PO, phục vụ tính toán số lượng còn lại chưa giao và hàng đang về (`BR-INV-01`).*
+
+| Tên trường (Column) | Kiểu dữ liệu | Độ dài | Nullable | Khóa | Giá trị mặc định | Ràng buộc nghiệp vụ (Constraints) | Ý nghĩa nghiệp vụ |
+| :--- | :--- | :---: | :---: | :---: | :---: | :--- | :--- |
+| `id` | BIGINT | - | NO | **PK** | AUTO_INCREMENT | `id > 0` | Khóa chính định danh dòng hàng PO |
+| `purchase_order_id`| BIGINT | - | NO | **FK** | None | REFERENCES `purchase_order(id)` CASCADE | Khóa ngoại liên kết đơn mua hàng |
+| `product_id` | BIGINT | - | NO | **FK** | None | REFERENCES `product(id)` RESTRICT | Khóa ngoại mặt hàng đặt mua |
+| `ordered_qty` | DECIMAL | (12, 2)| NO | - | None | `ordered_qty > 0` | Số lượng đặt mua theo hợp đồng/PO |
+| `received_qty` | DECIMAL | (12, 2)| NO | - | 0.00 | `0 <= received_qty <= ordered_qty` | Số lượng thực tế đã nhập kho lũy kế |
+| `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm tạo dòng chi tiết PO |
+| `updated_at` | TIMESTAMP | - | YES | - | CURRENT_TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Thời điểm cập nhật số lượng đã giao |

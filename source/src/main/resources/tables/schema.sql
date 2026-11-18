@@ -15,6 +15,8 @@ DROP TABLE IF EXISTS issue_note;
 DROP TABLE IF EXISTS receipt_note_item;
 DROP TABLE IF EXISTS receipt_note;
 DROP TABLE IF EXISTS stock_batch;
+DROP TABLE IF EXISTS purchase_order_item;
+DROP TABLE IF EXISTS purchase_order;
 DROP TABLE IF EXISTS product;
 DROP TABLE IF EXISTS `user`;
 DROP TABLE IF EXISTS warehouse_location;
@@ -89,6 +91,42 @@ CREATE TABLE product (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_product_category ON product(category_id);
+
+-- =============================================================================
+-- BẢNG 04_1: purchase_order (Đơn mua hàng từ nhà cung cấp - PO Header)
+-- =============================================================================
+CREATE TABLE purchase_order (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    po_number VARCHAR(50) NOT NULL,
+    supplier_name VARCHAR(255) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'APPROVED',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT uk_po_number UNIQUE (po_number),
+    CONSTRAINT chk_po_status CHECK (status IN ('APPROVED', 'PARTIALLY_RECEIVED', 'CLOSED', 'CANCELLED'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_po_status ON purchase_order(status);
+
+-- =============================================================================
+-- BẢNG 04_2: purchase_order_item (Chi tiết mặt hàng trên đơn mua hàng PO)
+-- =============================================================================
+CREATE TABLE purchase_order_item (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    purchase_order_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    ordered_qty DECIMAL(12, 2) NOT NULL,
+    received_qty DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_po_item_header FOREIGN KEY (purchase_order_id) REFERENCES purchase_order(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_po_item_product FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT uk_po_item_product UNIQUE (purchase_order_id, product_id),
+    CONSTRAINT chk_po_item_ordered_qty CHECK (ordered_qty > 0),
+    CONSTRAINT chk_po_item_received_qty CHECK (received_qty >= 0 AND received_qty <= ordered_qty)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_po_item_product ON purchase_order_item(product_id);
 
 -- =============================================================================
 -- BẢNG 05: stock_batch (Lô hàng tồn kho - Thực thể trung tâm phân rã N:N)
