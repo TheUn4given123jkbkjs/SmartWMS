@@ -4,11 +4,14 @@ import com.wms.dto.issue.IssueNoteResponseDTO;
 import com.wms.dto.issue.IssueRequestDTO;
 import com.wms.dto.issue.PickListProposalDTO;
 import com.wms.entity.*;
+import com.wms.exception.ConflictException;
+import com.wms.exception.ExpiredLotException;
 import com.wms.exception.InsufficientStockException;
 import com.wms.exception.ResourceNotFoundException;
 import com.wms.exception.SecurityViolationException;
 import com.wms.repository.*;
 import com.wms.service.IssueService;
+import com.wms.util.ChangeType;
 import com.wms.util.DispatchStrategy;
 import com.wms.util.IssueStatus;
 import org.springframework.stereotype.Service;
@@ -103,6 +106,17 @@ public class IssueServiceImpl implements IssueService {
             throw new SecurityViolationException("Người lập phiếu không được phép tự phê duyệt phiếu xuất kho.");
         }
 
+        // Quyết định D4 (Chốt chặn 1 - Phê duyệt): Kiểm tra hạn dùng lô hàng tại thời điểm Quản lý phê duyệt (BR-OUT-03)
+        if (note.getItems() != null) {
+            for (IssueNoteItem item : note.getItems()) {
+                if (item.getStockBatch() != null && item.getStockBatch().isExpired()) {
+                    throw new ExpiredLotException("Lô hàng " + item.getStockBatch().getLotNumber()
+                        + " đã quá hạn sử dụng (EXP: " + item.getStockBatch().getExpDate()
+                        + ") trong thời gian chờ duyệt. Không thể phê duyệt xuất hàng.");
+                }
+            }
+        }
+
         User checker = userRepository.findById(currentUserId)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người phê duyệt ID: " + currentUserId));
 
@@ -115,9 +129,77 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
+    public IssueNoteResponseDTO confirmDispatch(Long issueId, Long currentUserId) {
+        IssueNote note = issueNoteRepository.findById(issueId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu xuất kho ID: " + issueId));
+
+        if (note.getStatus() != IssueStatus.APPROVED_READY_TO_PICK && note.getStatus() != IssueStatus.APPROVED) {
+            throw new ConflictException("Phiếu xuất kho chưa được phê duyệt hoặc đã hoàn tất/hủy bỏ. Trạng thái hiện tại: " + note.getStatus());
+        }
+
+        // Quyết định D4 (Chốt chặn 2 - Bàn giao thực tế): Kiểm tra hạn sử dụng của từng lô hàng trước khi bốc hàng
+        if (note.getItems() != null) {
+            for (IssueNoteItem item : note.getItems()) {
+                if (item.getStockBatch() != null && item.getStockBatch().isExpired()) {
+                    throw new ExpiredLotException("Lô hàng " + item.getStockBatch().getLotNumber()
+                        + " đã quá hạn sử dụng tại thời điểm bốc hàng xuất kho (EXP: " + item.getStockBatch().getExpDate()
+                        + "). Không thể hoàn tất xuất kho.");
+                }
+            }
+
+            // Trừ tồn kho On-hand, giải phóng Reserved và ghi thẻ kho StockCard (BR-OUT-04, BR-SEC-02)
+            for (IssueNoteItem item : note.getItems()) {
+                StockBatch batch = item.getStockBatch();
+                if (batch != null) {
+                    int qty = item.getAllocatedQty() != null && item.getAllocatedQty() > 0
+                        ? item.getAllocatedQty()
+                        : (item.getRequestedQty() != null ? item.getRequestedQty() : 0);
+
+                    batch.deductDispatched(qty);
+                    stockBatchRepository.save(batch);
+
+                    StockCard card = new StockCard();
+                    card.setProduct(batch.getProduct());
+                    card.setStockBatch(batch);
+                    card.setTransactionDate(LocalDateTime.now());
+                    card.setReferenceCode(note.getIssueNumber());
+                    card.setChangeType(ChangeType.XUAT_KHO);
+                    card.setQuantityChanged(-qty);
+                    card.setAfterQuantity(batch.getOnHandQuantity());
+                    stockCardRepository.save(card);
+                }
+            }
+        }
+
+        User dispatcher = userRepository.findById(currentUserId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân viên giao hàng ID: " + currentUserId));
+
+        note.confirmDispatch(currentUserId);
+        note.setChecker(dispatcher);
+        note.setUpdatedAt(LocalDateTime.now());
+
+        IssueNote completed = issueNoteRepository.save(note);
+        return mapToResponseDTO(completed);
+    }
+
+    @Override
     public void cancelIssueNote(Long issueId, String reason, Long currentUserId) {
         IssueNote note = issueNoteRepository.findById(issueId)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu xuất kho ID: " + issueId));
+
+        // Giải phóng tạm giữ chỗ reserved_qty nếu phiếu đang chờ duyệt hoặc đã duyệt
+        if (note.getItems() != null && (note.getStatus() == IssueStatus.PENDING_APPROVAL || note.getStatus() == IssueStatus.APPROVED_READY_TO_PICK)) {
+            for (IssueNoteItem item : note.getItems()) {
+                StockBatch batch = item.getStockBatch();
+                if (batch != null) {
+                    int qty = item.getAllocatedQty() != null && item.getAllocatedQty() > 0
+                        ? item.getAllocatedQty()
+                        : (item.getRequestedQty() != null ? item.getRequestedQty() : 0);
+                    batch.setReservedQty(Math.max(0, (batch.getReservedQty() != null ? batch.getReservedQty() : 0) - qty));
+                    stockBatchRepository.save(batch);
+                }
+            }
+        }
 
         note.setStatus(IssueStatus.CANCELLED);
         note.setOverrideReason(reason);

@@ -94,4 +94,19 @@ public class IssueNote {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    /**
+     * Tạm giữ chỗ tồn kho khi tạo phiếu xuất (BR-OUT-01).
+     */
+    public void reserveInventory() {
+        this.status = IssueStatus.PENDING_APPROVAL;
+    }
+
+    /**
+     * Xác nhận hoàn tất bốc hàng và bàn giao thực tế khỏi kho (BR-OUT-04).
+     */
+    public void confirmDispatch(Long checkerId) {
+        this.status = IssueStatus.COMPLETED;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

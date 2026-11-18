@@ -50,4 +50,12 @@ public class IssueNoteItem {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    /**
+     * Kiểm tra lô hàng được phân bổ có còn hạn sử dụng hay không (BR-OUT-03).
+     * @return true nếu lô hàng còn hạn hoặc không quản lý hạn, false nếu đã quá hạn.
+     */
+    public Boolean validateLotNotExpired() {
+        return stockBatch == null || !stockBatch.isExpired();
+    }
 }

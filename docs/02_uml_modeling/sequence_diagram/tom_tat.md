@@ -123,7 +123,7 @@ $$\text{Actor} \longrightarrow \text{Boundary (Thymeleaf/Web)} \longrightarrow \
 | **1** | Maker $\rightarrow$ Giao diện | Nhập SKU & số lượng xuất | Nhân viên nhập mã mặt hàng và số lượng cần xuất (`requestedQty`). |
 | **2** | Giao diện $\rightarrow$ IssueController | `POST /api/outbound/issue-notes` | Đóng gói `IssueRequestDTO` gửi yêu cầu tạo lệnh xuất. |
 | **3** | IssueController $\rightarrow$ IssueService | `createIssueNote(dto, userId)` | Chuyển tiếp yêu cầu xuống Service xử lý kiểm tra tồn và cấp phát. |
-| **4** | IssueService $\rightarrow$ StockBatchRepository | `findAvailableBatches(sku, date)` | Truy vấn danh sách các lô hàng còn hạn ($\text{EXP} > \text{Current Date}$). |
+| **4** | IssueService $\rightarrow$ StockBatchRepository | `findAvailableBatches(sku, date)` | Truy vấn danh sách các lô hàng còn hạn ($\text{EXP} \ge \text{Current Date}$). |
 | **5** | StockBatchRepository $\rightarrow$ IssueService | Danh sách lô còn hạn | Trả về các lô khả dụng (tính $\text{Available} = \text{on\_hand} - \text{reserved}$ theo 3NF). |
 | **6** | IssueService $\rightarrow$ IssueController | *Ném `InsufficientStockException`* | **[Nhánh lỗi]** $\text{Requested} > \text{Available}$: Vượt tồn khả dụng (`BR-OUT-01`). |
 | **7** | IssueController $\rightarrow$ Giao diện | `400 Bad Request` | Chặn xuất âm, báo lỗi không đủ tồn kho khả dụng để cấp phát. |

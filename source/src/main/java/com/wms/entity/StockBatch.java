@@ -49,9 +49,20 @@ public class StockBatch {
     public StockBatch() {}
 
     /**
+     * Kiểm tra lô hàng đã hết hạn hay chưa (D3: Hết hạn khi expDate < ngày hiện tại).
+     */
+    public boolean isExpired() {
+        return expDate != null && expDate.isBefore(LocalDate.now());
+    }
+
+    /**
      * Tồn khả dụng (Available Qty) tính toán động = onHandQty - reservedQty
+     * Tuân thủ D2: Chỉ khả dụng khi trạng thái là AVAILABLE và chưa hết hạn.
      */
     public Integer getAvailableQty() {
+        if (!"AVAILABLE".equalsIgnoreCase(status) || isExpired()) {
+            return 0;
+        }
         return Math.max(0, (onHandQty != null ? onHandQty : 0) - (reservedQty != null ? reservedQty : 0));
     }
 
@@ -84,4 +95,29 @@ public class StockBatch {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Integer getOnHandQuantity() { return onHandQty; }
+    public Integer getReservedQuantity() { return reservedQty; }
+    public Integer getAvailableQuantity() { return getAvailableQty(); }
+
+    /**
+     * Tạm giữ chỗ tồn kho (BR-OUT-01).
+     */
+    public void reserve(Integer quantity) {
+        if (quantity != null && quantity > 0) {
+            this.reservedQty = (this.reservedQty != null ? this.reservedQty : 0) + quantity;
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    /**
+     * Trừ tồn kho thực tế và giải phóng giữ chỗ khi xuất kho (BR-OUT-04).
+     */
+    public void deductDispatched(Integer quantity) {
+        if (quantity != null && quantity > 0) {
+            this.onHandQty = Math.max(0, (this.onHandQty != null ? this.onHandQty : 0) - quantity);
+            this.reservedQty = Math.max(0, (this.reservedQty != null ? this.reservedQty : 0) - quantity);
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
 }

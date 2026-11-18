@@ -57,7 +57,7 @@ public class InventoryServiceImpl implements InventoryService {
             List<StockBatch> batches = stockBatchRepository.findByProductId(p.getId());
             int totalOnHand = batches.stream().mapToInt(StockBatch::getOnHandQty).sum();
             int totalReserved = batches.stream().mapToInt(StockBatch::getReservedQty).sum();
-            int available = totalOnHand - totalReserved;
+            int available = batches.stream().mapToInt(StockBatch::getAvailableQty).sum();
             boolean underMin = available < p.getMinStock();
 
             return new AvailableStockDTO(

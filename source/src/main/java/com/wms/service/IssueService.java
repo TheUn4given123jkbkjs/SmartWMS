@@ -12,6 +12,7 @@ public interface IssueService {
     List<PickListProposalDTO> proposeAllocation(Long productId, BigDecimal requestedQty, DispatchStrategy strategy);
     IssueNoteResponseDTO createIssueNote(IssueRequestDTO dto, Long currentUserId);
     IssueNoteResponseDTO approveIssueNote(Long issueId, Long currentUserId);
+    IssueNoteResponseDTO confirmDispatch(Long issueId, Long currentUserId);
     void cancelIssueNote(Long issueId, String reason, Long currentUserId);
     List<IssueNoteResponseDTO> getIssueNotes(String status);
     IssueNoteResponseDTO getIssueNoteById(Long issueId);

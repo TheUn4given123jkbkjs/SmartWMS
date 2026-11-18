@@ -75,4 +75,14 @@ public class IssueController {
         IssueNoteResponseDTO approved = issueService.approveIssueNote(id, currentUserId);
         return ResponseEntity.ok(approved);
     }
+
+    @PostMapping("/api/notes/{id}/dispatch")
+    @ResponseBody
+    public ResponseEntity<IssueNoteResponseDTO> confirmDispatchApi(
+        @PathVariable Long id,
+        @RequestHeader(value = "X-User-Id", defaultValue = "1") Long currentUserId
+    ) {
+        IssueNoteResponseDTO dispatched = issueService.confirmDispatch(id, currentUserId);
+        return ResponseEntity.ok(dispatched);
+    }
 }

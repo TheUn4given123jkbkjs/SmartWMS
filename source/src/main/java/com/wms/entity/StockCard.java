@@ -68,6 +68,12 @@ public class StockCard {
     public Integer getAfterChanged() { return afterChanged; }
     public void setAfterChanged(Integer afterChanged) { this.afterChanged = afterChanged; }
 
+    public Integer getQuantityChanged() { return qtyChanged; }
+    public void setQuantityChanged(Integer quantityChanged) { this.qtyChanged = quantityChanged; }
+
+    public Integer getAfterQuantity() { return afterChanged; }
+    public void setAfterQuantity(Integer afterQuantity) { this.afterChanged = afterQuantity; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
