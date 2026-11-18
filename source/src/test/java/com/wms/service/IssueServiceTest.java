@@ -104,8 +104,8 @@ class IssueServiceTest {
     }
 
     @Test
-    @DisplayName("D4 Test 1: Quản lý duyệt phiếu xuất có lô bị hết hạn -> Chặn duyệt, ném ExpiredLotException")
-    void testApproveIssueNote_WhenLotExpired_ThrowsExpiredLotException() {
+    @DisplayName("TC-FR03.03-N3: Chặn phê duyệt lệnh xuất khi có lô hàng bị hết hạn (BR-OUT-03, BR-OUT-04)")
+    void tc_fr03_03_n3_approveBlockedWhenLotExpired() {
         // Arrange
         IssueNoteItem item = new IssueNoteItem();
         item.setId(1L);
@@ -131,8 +131,8 @@ class IssueServiceTest {
     }
 
     @Test
-    @DisplayName("D4 Test 2: Quản lý duyệt phiếu xuất khi tất cả lô còn hạn -> Duyệt thành công")
-    void testApproveIssueNote_WhenAllBatchesValid_Success() {
+    @DisplayName("TC-FR03.03-P: Phê duyệt lệnh xuất kho thành công khi tất cả lô còn hạn (BR-OUT-02)")
+    void tc_fr03_03_p_approveSuccessWhenBatchesValid() {
         // Arrange
         IssueNoteItem item = new IssueNoteItem();
         item.setId(1L);
@@ -158,8 +158,8 @@ class IssueServiceTest {
     }
 
     @Test
-    @DisplayName("D4 Test 3: Bàn giao hàng xuất kho có lô bị hết hạn -> Chặn giao, ném ExpiredLotException")
-    void testConfirmDispatch_WhenLotExpired_ThrowsExpiredLotException() {
+    @DisplayName("TC-FR03.04-N: Chặn bàn giao hàng xuất kho khi lô hàng bị hết hạn tại thời điểm giao (BR-OUT-03)")
+    void tc_fr03_04_n_confirmDispatchBlockedWhenLotExpired() {
         // Arrange
         issueNote.setStatus(IssueStatus.APPROVED_READY_TO_PICK);
         issueNote.setChecker(checker);
@@ -187,8 +187,8 @@ class IssueServiceTest {
     }
 
     @Test
-    @DisplayName("D4 Test 4: Hủy phiếu xuất kho -> Giải phóng số lượng tạm giữ chỗ (reserved_qty)")
-    void testCancelIssueNote_ReleasesReservedQuantity() {
+    @DisplayName("TC-FR03.01-N2: Tự động giải phóng lượng giữ chỗ khi lệnh xuất bị hủy bỏ (BR-OUT-01)")
+    void tc_fr03_01_n2_cancelIssueReleasesReservedQuantity() {
         // Arrange
         IssueNoteItem item = new IssueNoteItem();
         item.setId(1L);
