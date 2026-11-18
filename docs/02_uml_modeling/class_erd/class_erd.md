@@ -54,6 +54,8 @@
 - **1NF & 2NF:** 100% bảng có Khóa chính đơn nhân tạo (`id bigint(10) PK AUTO_INCREMENT`), thuộc tính nguyên tử, không có thuộc tính đa trị.
 - **3NF:** Không có phụ thuộc bắc cầu; **không lưu cột dư thừa tồn khả dụng** (tính toán thời gian thực: `available = on_hand_qty - reserved_qty`).
 - **Khử quan hệ N-N:** Quan hệ Nhiều - Nhiều giữa `product` và `warehouse_location` được phân rã triệt để qua bảng trung gian **`stock_batch`**.
+- **Phân tách thực thể nghiệp vụ & bảng kỹ thuật:** Mô hình dữ liệu tập trung trọn vẹn vào **12 thực thể nghiệp vụ cốt lõi**. Các bảng hạ tầng như `audit_event` (nhật ký API kỹ thuật) và `warehouse_mutex` (khóa kỹ thuật phân tán chống xung đột ghi) không đưa vào ERD nghiệp vụ.
+- **Phân tách thực thể nghiệp vụ & bảng kỹ thuật:** Mô hình dữ liệu chuẩn hóa 3NF tập trung trọn vẹn vào **12 thực thể nghiệp vụ cốt lõi**. Các bảng hạ tầng như `audit_event` (nhật ký API kỹ thuật) và `warehouse_mutex` (khóa kỹ thuật phân tán chống xung đột ghi) được quản lý ở tầng hạ tầng (infrastructure concern), không đưa vào ERD nghiệp vụ kho để đảm bảo tính toàn vẹn tham chiếu 3NF.
 
 ### 2.2. Danh mục 12 Bảng Cơ sở Dữ liệu
 
@@ -64,10 +66,10 @@
 | **`purchase_order`** | `id bigint(10)` | — | `po_number` UNIQUE (BR-INB-01), `status IN ('APPROVED','PARTIALLY_RECEIVED','CLOSED','CANCELLED')` |
 | **`purchase_order_item`** | `id bigint(10)` | `purchase_order_id`, `product_id` | `UNIQUE(purchase_order_id, product_id)`, `ordered_qty > 0`, `received_qty >= 0` |
 | **`warehouse_location`** | `id bigint(10)` | — | `location_code` UNIQUE (BR-CAT-02), `zone` (DOCK, INSP, RAW, FG, SCRAP) |
-| **`stock_batch`** | `id bigint(10)` | `product_id`, `location_id` | `lot_number`, `exp_date`, `on_hand_qty >= 0`, `reserved_qty >= 0` |
-| **`stock_card`** | `id bigint(10)` | `product_id`, `batch_id` | `qty_changed > 0`, `change_type`, `transaction_date` |
+| **`stock_batch`** | `id bigint(10)` | `product_id`, `location_id` | `lot_number`, `exp_date` (NULL nếu không quản lý hạn), `on_hand_qty >= 0`, `reserved_qty >= 0` |
+| **`stock_card`** | `id bigint(10)` | `product_id`, `batch_id`, `performed_by`, `approved_by` | `qty_changed <> 0`, `change_type`, `transaction_date`, `after_changed >= 0` (BR-SEC-02) |
 | **`receipt_note`** | `id bigint(10)` | `maker_id` $\rightarrow$ `user.id` | `receipt_number` UNIQUE, `po_number`, `checker_id != maker_id` (BR-SEC-03) |
-| **`receipt_note_item`** | `id bigint(10)` | `receipt_id`, `batch_id` | `accepted_qty >= 0`, `damged_qty >= 0`, `exp_date > CURRENT_DATE` |
+| **`receipt_note_item`** | `id bigint(10)` | `receipt_id`, `batch_id` | `accepted_qty >= 0`, `damaged_qty >= 0`, `exp_date` (NULL nếu không quản lý hạn) |
 | **`issue_note`** | `id bigint(10)` | `maker_id` $\rightarrow$ `user.id` | `issue_number` UNIQUE, `dispatch_strategy` (FEFO/FIFO), `checker_id != maker_id` |
 | **`issue_note_item`** | `id bigint(10)` | `issue_id`, `batch_id` | `requested_qty > 0`, `allocated_qty >= 0` |
 | **`user`** | `id bigint(10)` | — | `username` UNIQUE, `passwordhash` NOT NULL, `active bit DEFAULT 1` |
@@ -99,7 +101,7 @@
 | **BR-CAT-03** | Trạng thái ô kệ | `WarehouseLocation.status` / `warehouse_location.status` (EMPTY/OCCUPIED) |
 | **BR-CAT-04** | ĐVT cơ sở duy nhất | `Product.uom` / `product.uom` NOT NULL |
 | **BR-CAT-05** | Định mức Min/Max | `Product.minStock`, `maxStock` / `product.min_stock`, `max_stock` |
-| **BR-LOT-01** | Lô & Hạn sử dụng | `StockBatch.lotNumber`, `expDate` / `stock_batch.lot_number`, `exp_date` |
+| **BR-LOT-01** | Lô & Hạn sử dụng | `StockBatch.lotNumber`, `expDate` / `stock_batch.lot_number`, `exp_date` (cho phép NULL khi `manage_by_lot = FALSE`, xuất theo FIFO) |
 | **BR-INB-01** | Nhập gắn đơn PO & Chặn vượt số | `ReceiptNote.poNumber` đối soát `PurchaseOrder.poNumber`, kiểm soát `remainingQty >= accepted_qty` |
 | **BR-INB-02** | Tăng tồn khi duyệt | `StockBatch.onHandQuantity` tăng khi `ReceiptNote.status = 'COMPLETED'` |
 | **BR-INB-04** | Phân loại hàng hỏng | `ReceiptNoteItem.damagedQuantity` / `receipt_note_item.damged_qty` |

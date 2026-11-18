@@ -639,7 +639,11 @@ class MustHaveIntegrationTest {
   }
 
   @Test
-  void nonLotGoodsUseFifoAndDecimalFractionsAreRetained() throws Exception {
+  @org.junit.jupiter.api.DisplayName(
+    "TC-FR02.02-P2: Nhập kho mặt hàng không quản lý hạn dùng (manage_by_lot = FALSE) với exp_date NULL, tự sinh mã lô và xuất FIFO"
+  )
+  void tc_fr02_02_p2_nonLotGoodsUseFifoAndDecimalFractionsAreRetained()
+    throws Exception {
     var p = productRepository.findById(product).orElseThrow();
     p.setManageByLot(false);
     productRepository.save(p);

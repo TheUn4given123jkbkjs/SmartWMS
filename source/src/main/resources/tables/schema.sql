@@ -136,7 +136,7 @@ CREATE TABLE stock_batch (
     product_id BIGINT NOT NULL,
     location_id BIGINT NOT NULL,
     lot_number VARCHAR(50) NOT NULL,
-    exp_date DATE NOT NULL,
+    exp_date DATE NULL, -- Cho phép NULL đối với hàng không quản lý lô/hạn (Quyết định D5)
     on_hand_qty INT NOT NULL DEFAULT 0,
     reserved_qty INT NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE',
@@ -189,7 +189,7 @@ CREATE TABLE receipt_note_item (
     product_id BIGINT NOT NULL,
     location_id BIGINT NOT NULL,
     lot_number VARCHAR(50) NOT NULL,
-    exp_date DATE NOT NULL,
+    exp_date DATE NULL, -- Cho phép NULL đối với hàng không quản lý lô/hạn (Quyết định D5)
     accepted_qty INT NOT NULL DEFAULT 0,
     damaged_qty INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -263,9 +263,14 @@ CREATE TABLE stock_card (
     change_type VARCHAR(20) NOT NULL,
     qty_changed INT NOT NULL,
     after_changed INT NOT NULL,
+    performed_by BIGINT NULL,
+    approved_by BIGINT NULL,
+    reason VARCHAR(500) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_card_product FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_card_batch FOREIGN KEY (batch_id) REFERENCES stock_batch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_card_performed_by FOREIGN KEY (performed_by) REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_card_approved_by FOREIGN KEY (approved_by) REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT chk_card_change_type CHECK (change_type IN ('NHAP_PO', 'XUAT_KHO', 'KIEM_KE', 'DIEU_CHINH')),
     CONSTRAINT chk_card_qty_changed CHECK (qty_changed <> 0),
     CONSTRAINT chk_card_after_changed CHECK (after_changed >= 0)
@@ -274,3 +279,5 @@ CREATE TABLE stock_card (
 CREATE INDEX idx_card_product_date ON stock_card(product_id, transaction_date);
 CREATE INDEX idx_card_batch ON stock_card(batch_id);
 CREATE INDEX idx_card_ref ON stock_card(reference_code);
+CREATE INDEX idx_card_performed_by ON stock_card(performed_by);
+CREATE INDEX idx_card_approved_by ON stock_card(approved_by);
