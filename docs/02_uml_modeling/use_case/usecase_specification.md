@@ -109,25 +109,40 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 | Bước | Hành động của Tác nhân | Phản hồi của Hệ thống |
 |:---:|:---|:---|
 | 1 | Nhân viên kho chọn chức năng **"Quản lý Nhập kho"** và bấm **"Tạo phiếu nhập từ PO"**. | Hệ thống hiển thị danh sách các PO hợp lệ đang ở trạng thái `APPROVED` kèm công cụ tra cứu theo mã PO, Nhà cung cấp hoặc Ngày giao. |
-| 2 | Nhân viên kho chọn mã PO tương ứng với chuyến hàng đang bàn giao. | Hệ thống trích xuất thông tin PO và hiển thị danh mục các dòng mặt hàng cần giao, bao gồm: Mã SKU, Tên hàng, ĐVT, Số lượng đặt mua, Số lượng đã giao lũy kế, và Số lượng còn lại chưa giao ($\text{Quantity Remaining}$). |
-| 3 | Nhân viên kho tiến hành kiểm đếm số lượng thực tế tại khu vực kiểm tra (`INSP`) và nhập **Số lượng thực nhận đạt chuẩn** (`quantity_received`) cho từng dòng hàng. | Hệ thống kiểm tra: $\text{Quantity Received} \le \text{Quantity Remaining}$ theo quy định từ chối nhận hàng giao thừa (`BR-INB-01`). |
+| 2 | Nhân viên kho chọn mã PO tương ứng với chuyến hàng đang bàn giao. | Hệ thống trích xuất thông tin PO và hiển thị danh mục các dòng mặt hàng cần giao, bao gồm: Mã SKU, Tên hàng, ĐVT, Số lượng đặt mua, Số lượng đã giao lũy kế (`COMPLETED`), Số lượng đang chờ duyệt trên các phiếu khác (`PENDING_APPROVAL`), và Hạn mức còn lại được phép nhận ($\text{Remaining PO Qty} = \text{Ordered} - \text{Received} - \text{Pending}$). |
+| 3 | Nhân viên kho tiến hành kiểm đếm số lượng thực tế tại khu vực kiểm tra (`INSP`) và nhập **Số lượng thực nhận đạt chuẩn** (`quantity_received`) cho từng dòng hàng. | Hệ thống kiểm tra: $\text{Quantity Received} \le \text{Remaining PO Qty}$ theo quy định từ chối nhận hàng giao thừa (`BR-INB-01`). |
 | 4 | Đối với từng dòng hàng có cờ quản lý theo hạn dùng (`manage_by_lot = TRUE`), Nhân viên kho nhập thông tin lô: Số lô (`lot_number`), Ngày sản xuất (`mfg_date` – tùy chọn), Hạn sử dụng (`exp_date`), và chọn một Vị trí cất hàng cụ thể (`location_id` thuộc phân vùng `RAW` hoặc `FG`). Đối với hàng không quản lý hạn dùng (`manage_by_lot = FALSE`), Hạn sử dụng (`exp_date`) được phép để trống (NULL); nếu Nhân viên kho để trống Số lô, hệ thống tự động sinh Số lô theo tiền tố `LOT-` gắn với phiếu nhập. | Hệ thống kiểm tra các ràng buộc logic:<br>1. Nếu `manage_by_lot = TRUE`: Số lô và Hạn dùng không được để trống (`BR-LOT-01`), Hạn dùng phải lớn hơn ngày hiện tại ($\text{EXP} > \text{Current Date}$).<br>2. Nếu `manage_by_lot = FALSE`: Hạn dùng được để trống; tự động sinh mã lô nếu để trống.<br>3. Vị trí cất hàng bắt buộc phải được chỉ định và hợp lệ (`BR-INB-03`). |
 | 5 | Nhân viên kho kiểm tra lại toàn bộ thông tin đối chiếu và bấm **"Gửi phê duyệt phiếu nhập"**. | Hệ thống khởi tạo một giao dịch CSDL:<br>1. Lưu bản ghi Phiếu nhập kho (`ReceiptNote`) với trạng thái ban đầu là `PENDING_APPROVAL`.<br>2. Lưu chi tiết các dòng nhập vào `ReceiptNoteItem` kèm thông tin Lô và Vị trí tạm gán.<br>3. Ghi nhận `maker_id` là ID của Nhân viên kho đang đăng nhập và ghi nhận thời điểm tạo (`BR-SEC-02`).<br>4. Tuyệt đối **không** làm thay đổi số dư tồn kho thực tế (*On-hand*) của bất kỳ mặt hàng nào (`BR-INB-02`). |
 | 6 | | Hệ thống phản hồi mã `201 Created`, cấp Mã số phiếu nhập kho (VD: `RN-20261104-001`), hiển thị thông báo lập phiếu thành công và đẩy thông báo chờ duyệt đến tài khoản Quản lý kho. |
 
 #### 3. Luồng phụ / Rẽ nhánh (Alternative Flows)
-* **Luồng 3a – Phát hiện hàng hư hỏng, rách bao bì, lỗi quy cách tại khu vực kiểm tra (Seiri):**
-  * Tại bước 3, Nhân viên kho phát hiện một phần hàng hóa bị vỡ hỏng hoặc không đạt tiêu chuẩn tiếp nhận tại khu vực `INSP`.
-  * Nhân viên kho nhập số lượng hàng hỏng vào ô **"Số lượng từ chối"** (`rejected_quantity`) và bắt buộc nhập **"Lý do từ chối"** (`rejection_reason` – VD: rách bao bì, cận hạn sử dụng, sai tem nhãn).
-  * Hệ thống chỉ đưa phần số lượng đạt chuẩn (`quantity_received`) vào danh sách nhập kho. Phần hàng hỏng bị loại bỏ hoàn toàn khỏi phiếu nhập kho, hệ thống xuất Biên bản sự cố bàn giao giao nhận (`Rejection Report`) để bên giao vận nhận lại hàng lỗi (`BR-INB-04`). Lượng hàng này tuyệt đối không được ghi nhận vào kho.
+* **Luồng 3a – Phát hiện hàng hư hỏng, rách bao bì, lỗi quy cách tại khu vực kiểm định (`INSP` - Seiri):**
+  * Tại bước 3, Nhân viên kho phát hiện một phần hàng hóa bị móp méo, vỡ hỏng, rách bao bì, cận hạn hoặc sai quy cách tại khu vực kiểm tra `INSP`.
+  * Nhân viên kho nhập số lượng hàng không đạt vào ô **"Số lượng từ chối"** (`rejected_quantity`) và bắt buộc nhập **"Lý do từ chối"** (`rejection_reason` từ 10 đến 255 ký tự – VD: rách bao bì, móp méo chai nhớt, rò rỉ seal nắp, sai tem nhãn, hạn dùng không đủ 30 ngày).
+  * Hệ thống lưu vết cả số lượng đạt chuẩn (`quantity_received` / `accepted_qty`), số lượng từ chối (`rejected_quantity` / `damaged_qty`) và lý do từ chối trên từng dòng chi tiết của phiếu nhập kho (`ReceiptNoteItem`).
+  * Hệ thống hỗ trợ in/xuất **Biên bản sự cố bàn giao giao nhận & Kiểm hàng** (có đủ chữ ký xác nhận của tài xế và Thủ kho) để tài xế chở số hàng lỗi này về lại nhà cung cấp ngay tại hiện trường (`BR-INB-04`).
+  * **Ràng buộc hệ thống:** Phần số lượng từ chối này tuyệt đối không được cộng vào tồn kho thực tế (On-hand), tồn khả dụng (Available) và **không** tính vào số lượng đã hoàn thành của PO (nhà cung cấp có trách nhiệm giao bù đủ hàng đạt chuẩn trong các chuyến xe tiếp theo).
 * **Luồng 3b – Nhà cung cấp giao hàng làm nhiều đợt (Partial Delivery):**
   * Tại bước 3, số lượng giao đợt này nhỏ hơn số lượng còn lại của PO.
   * Nhân viên kho nhập đúng số lượng thực giao. Hệ thống ghi nhận số lượng này vào phiếu nhập, cập nhật số dư lũy kế đã giao của PO và giữ trạng thái PO là `PARTIALLY_RECEIVED` để tiếp tục đối chiếu cho các đợt giao tiếp theo (`BR-INB-01`).
+* **Luồng 3c – Người lập (Maker) hoặc Quản lý kho Hủy phiếu nhập kho đang chờ duyệt (Cancel Receipt Note):**
+  * Khi phiếu nhập đang ở trạng thái `PENDING_APPROVAL`, nếu Người lập (Maker) phát hiện sai sót dữ liệu (nhầm số lô, hạn dùng, vị trí cất hàng) hoặc Quản lý kho nhận được yêu cầu hủy giao hàng từ nhà cung cấp, tác nhân nhấn nút **"Hủy phiếu nhập"** (Cancel).
+  * Hệ thống hiển thị hộp thoại bắt buộc nhập **"Lý do hủy chứng từ"** (`cancel_reason`, từ 10 đến 255 ký tự).
+  * Tác nhân nhập lý do và bấm xác nhận hủy.
+  * Hệ thống thực thi giao dịch nguyên tử:
+    1. Cập nhật trạng thái phiếu nhập sang `CANCELLED`.
+    2. Tự động giải phóng số lượng đang chờ duyệt (`pending_qty`) của Đơn mua hàng PO liên quan, trả lại hạn mức nhận hàng cho PO.
+    3. Ghi nhận Audit Log: danh tính người hủy (Maker hoặc Manager), thời điểm hủy và lý do hủy (`BR-SEC-02`).
+    4. Bảo toàn chứng từ vĩnh viễn trong CSDL (No Hard Delete), tuyệt đối không làm thay đổi số dư tồn kho On-hand hay Thẻ kho.
+  * Hệ thống phản hồi mã `200 OK` và hiển thị thông báo "Hủy phiếu nhập kho thành công. Hạn mức đơn mua hàng PO đã được giải phóng".
 
 #### 4. Luồng ngoại lệ (Exception Flows)
-* **Luồng 3e1 – Số lượng thực nhận vượt quá số lượng còn lại trên PO (`400 Bad Request`):**
-  * Tại bước 3, Nhân viên kho nhập số lượng nhận lớn hơn $\text{Quantity Remaining}$ của PO.
-  * Hệ thống phát hiện vi phạm nguyên tắc từ chối hàng giao thừa (`BR-INB-01`), chặn lưu dữ liệu và trả về mã lỗi `400 Bad Request`: *"Số lượng thực nhận vượt quá số lượng còn lại trên Đơn mua hàng PO. Doanh nghiệp từ chối tiếp nhận phần giao thừa theo BR-INB-01."*
+* **Luồng 3e1 – Số lượng thực nhận vượt quá số lượng còn lại trên PO tính cả các phiếu chờ duyệt (`400 Bad Request`):**
+  * Tại bước 3, Nhân viên kho nhập số lượng nhận lớn hơn $\text{Remaining PO Qty}$ của PO (đã trừ đi lượng nhận của các phiếu `COMPLETED` và các phiếu đang `PENDING_APPROVAL`).
+  * Hệ thống phát hiện vi phạm nguyên tắc từ chối hàng giao thừa (`BR-INB-01`), chặn lưu dữ liệu và trả về mã lỗi `400 Bad Request`: *"Thực nhận vượt số lượng PO còn được nhận: [Remaining]"*.
+* **Luồng 3e2 – Có hàng bị từ chối tiếp nhận nhưng để trống lý do từ chối (`400 Bad Request`):**
+  * Tại bước 3 (hoặc Luồng phụ 3a), Nhân viên kho nhập `rejected_quantity > 0` nhưng để trống trường 'Lý do từ chối' (`rejection_reason`).
+  * Hệ thống phát hiện vi phạm quy tắc lưu vết hàng không đạt (`BR-INB-04`), chặn lưu và thông báo lỗi `400 Bad Request`: *"Phải nhập lý do hàng bị từ chối."*
 * **Luồng 4e1 – Hạn sử dụng của lô hàng không hợp lệ (`400 Bad Request`):**
   * Tại bước 4, Nhân viên kho nhập $\text{EXP Date} \le \text{Current Date}$.
   * Hệ thống phát hiện vi phạm `BR-LOT-01`, chặn lập phiếu và báo lỗi: *"Hạn sử dụng của lô hàng phải lớn hơn ngày hiện tại. Hệ thống từ chối tiếp nhận hàng hết hạn vào kho."*
@@ -166,7 +181,7 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
   * Tại bước 3, Quản lý kho phát hiện sai lệch nghiêm trọng (sai quy cách, vị trí lưu kho không phù hợp hoặc nghi vấn chứng từ), nhấn nút **"Từ chối"** (Reject).
   * Hệ thống hiển thị hộp thoại bắt buộc nhập **"Lý do từ chối phê duyệt"** (`rejection_note`, tối thiểu 10 ký tự).
   * Quản lý kho nhập lý do và bấm xác nhận từ chối.
-  * Hệ thống chuyển trạng thái phiếu nhập sang `REJECTED`, ghi log Checker và thời điểm từ chối. Số dư tồn kho On-hand tuyệt đối không thay đổi. Hệ thống gửi thông báo kèm lý do về tài khoản Nhân viên kho (Maker) để kiểm tra hiện trường hoặc hủy phiếu lập lại.
+  * Hệ thống chuyển trạng thái phiếu nhập sang `REJECTED`, ghi log Checker và thời điểm từ chối. Hệ thống tự động giải phóng toàn bộ số lượng đang chờ duyệt (`pending_qty`) của Đơn mua hàng PO để hoàn trả lại hạn mức nhận hàng cho PO. Số dư tồn kho On-hand tuyệt đối không thay đổi. Phiếu nhập bị từ chối sẽ bị **đóng vĩnh viễn** (Terminal State - [`BR-SEC-01`](../../01_srs/business_rules.md)), nghiêm cấm chỉnh sửa hay mở lại phiếu cũ. Hệ thống gửi thông báo kèm lý do về tài khoản Nhân viên kho (Maker); nếu muốn tiếp tục nhập hàng, Nhân viên kho bắt buộc phải khởi tạo một phiếu nhập mới hoàn toàn.
 
 #### 4. Luồng ngoại lệ (Exception Flows)
 * **Luồng 3e1 – Vi phạm nguyên tắc Maker-Checker / Tự phê duyệt chứng từ (`403 Forbidden`):**
@@ -249,10 +264,9 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 | 8 | | Hệ thống phản hồi mã `200 OK`, hiển thị thông báo "Xuất kho hoàn tất thành công. Số dư tồn kho thực tế đã được cập nhật giảm", và hoàn thành ca sử dụng. |
 
 #### 3. Luồng phụ / Rẽ nhánh (Alternative Flows)
-* **Luồng 3a – Quản lý kho Từ chối phê duyệt (Reject) hoặc Người lập Hủy phiếu (Cancel):**
-  * Tại bước 3, Quản lý kho bấm **"Từ chối"** kèm lý do, hoặc tại bước trước khi duyệt, người lập bấm **"Hủy yêu cầu xuất"**.
-  * Hệ thống tự động kích hoạt cơ chế Giải phóng Tạm giữ chỗ: trừ số lượng yêu cầu ra khỏi `reserved_quantity` và cộng trả lại vào `available_quantity` của mặt hàng (`BR-OUT-01`).
-  * Trạng thái phiếu chuyển thành `REJECTED` hoặc `CANCELLED`. Số dư tồn kho thực tế On-hand hoàn toàn không bị ảnh hưởng.
+* **Luồng 3a – Quản lý kho Từ chối phê duyệt (Reject) hoặc Người lập/Quản lý Hủy phiếu (Cancel):**
+  * **Trường hợp 1 (Phiếu đang Chờ duyệt `PENDING_APPROVAL`):** Quản lý kho bấm **"Từ chối"** kèm lý do (`rejection_note`), hoặc Người lập (Maker) / Quản lý bấm **"Hủy yêu cầu xuất"** kèm lý do (`cancel_reason`). Hệ thống tự động kích hoạt cơ chế Giải phóng Tạm giữ chỗ: trừ số lượng yêu cầu ra khỏi `reserved_quantity` và cộng trả lại vào `available_quantity` của mặt hàng (`BR-OUT-01`). Trạng thái phiếu chuyển thành `REJECTED` hoặc `CANCELLED`. Phiếu bị `REJECTED` đóng vĩnh viễn (Terminal State), muốn tiếp tục phải lập phiếu mới.
+  * **Trường hợp 2 (Phiếu đã duyệt `APPROVED_READY_TO_PICK`):** Nếu khách hàng hủy đơn hoặc hoãn ca sản xuất, chỉ duy nhất Quản lý kho (Manager) có quyền bấm **"Hủy lệnh xuất kho"** kèm lý do hủy (`cancel_reason`). Hệ thống chuyển phiếu sang `CANCELLED`, tự động giải phóng toàn bộ `reserved_quantity` trả lại tồn khả dụng `available_quantity`, ghi nhận Audit Log. Số dư On-hand tuyệt đối không bị ảnh hưởng.
 
 #### 4. Luồng ngoại lệ (Exception Flows)
 * **Luồng 3e1 – Vi phạm nguyên tắc Maker-Checker / Tự duyệt phiếu xuất (`403 Forbidden`):**
@@ -267,6 +281,16 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
   * Hệ thống rollback toàn bộ giao dịch, trả về mã lỗi `409 Conflict` và yêu cầu người dùng thử lại sau vài giây.
 * **Luồng 7e2 – Phát hiện lô hàng quá hạn tại thời điểm bốc hàng bàn giao (`409 Conflict`):**
   * Tại bước 7, khi Nhân viên kho bấm "Xác nhận hoàn tất giao hàng", hệ thống kiểm tra lại hạn sử dụng. Nếu phát hiện lô hàng bị quá hạn trong thời gian từ lúc duyệt đến lúc bốc hàng, hệ thống chặn xuất kho, rollback giao dịch và trả về mã lỗi `409 Conflict` (`ExpiredLotException`), yêu cầu chuyển lô hàng vào khu cách ly và xử lý theo quy định `BR-OUT-05`.
+* **Luồng 7e3 – Phát hiện thiếu hàng thực tế khi lấy hàng tại kệ (Short-Pick):**
+  * Tại bước 6, khi Nhân viên kho đến vị trí ô kệ bốc hàng theo Pick list, phát hiện số lượng thực tế tại ô kệ nhỏ hơn số lượng chỉ định phân bổ (thiếu hàng vật lý do hư hao, rơi vỡ hoặc sai lệch tồn kho chưa kiểm kê).
+  * Nhân viên kho dừng bốc dỡ, lập biên bản sự cố hiện trường và báo cáo Quản lý kho.
+  * Quản lý kho truy cập phiếu xuất đang ở trạng thái `APPROVED_READY_TO_PICK`, thực hiện thao tác **"Hủy phiếu do Short-pick"** kèm lý do chi tiết (ghi rõ vị trí ô kệ, số lượng thiếu, mã lô).
+  * Hệ thống thực thi giao dịch nguyên tử:
+    1. Chuyển trạng thái phiếu xuất sang `CANCELLED`.
+    2. Giải phóng toàn bộ số lượng giữ chỗ `reserved_quantity` của các mặt hàng trên phiếu xuất đó, trả lại `available_quantity`.
+    3. Tự động chuyển trạng thái của Lô hàng bị sai lệch (`StockBatch`) sang **`BLOCKED` (Khóa lô / Cách ly)**. Khi ở trạng thái `BLOCKED`, lô hàng này ngay lập tức bị loại bỏ khỏi công thức tính Tồn khả dụng Available (`BR-OUT-01`) để ngăn các đơn hàng khác tiếp tục chọn vào.
+    4. Kích hoạt cảnh báo kiểm kê đột xuất đối với vị trí ô kệ liên quan để điều chỉnh số dư On-hand khớp thực tế.
+  * Nhân viên kho khởi tạo phiếu xuất mới, hệ thống tự động chạy thuật toán phân bổ từ các lô khả dụng khác trong kho để hoàn tất đơn hàng.
 
 ---
 
