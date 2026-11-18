@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * Phục vụ đối soát số lượng và kiểm soát dòng hàng nhập (FR02, BR-INB-01).
  */
 @RestController
-@RequestMapping("/receipt/api/purchase-orders")
+@RequestMapping("/api/v1/purchase-orders")
 public class PurchaseOrderController {
 
   private final PurchaseOrderService purchaseOrderService;

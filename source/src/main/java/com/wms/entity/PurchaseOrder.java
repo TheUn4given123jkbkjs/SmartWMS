@@ -22,7 +22,7 @@ public class PurchaseOrder {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "po_number", nullable = false, length = 50)
+  @Column(name = "po_number", nullable = false, length = 50, unique = true)
   private String poNumber;
 
   @Column(name = "supplier_name", nullable = false)
@@ -98,6 +98,10 @@ public class PurchaseOrder {
     }
     this.items.add(item);
     item.setPurchaseOrder(this);
+  }
+
+  public boolean isDeliverable() {
+    return "APPROVED".equalsIgnoreCase(status);
   }
 
   public LocalDateTime getCreatedAt() {

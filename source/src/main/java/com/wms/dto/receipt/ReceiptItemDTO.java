@@ -9,62 +9,138 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class ReceiptItemDTO {
-    @NotNull(message = "Mã sản phẩm bắt buộc")
-    private Long productId;
 
-    @NotNull(message = "Vị trí ô kệ lưu trữ bắt buộc")
-    private Long locationId;
+  @NotNull(message = "Mã sản phẩm bắt buộc")
+  private Long productId;
 
-    @NotBlank(message = "Số lô bắt buộc")
-    private String batchCode;
+  @NotNull(message = "Vị trí ô kệ lưu trữ bắt buộc")
+  private Long locationId;
 
-    @PastOrPresent(message = "Ngày sản xuất không thể ở tương lai")
-    private LocalDate manufactureDate;
+  private String batchCode;
 
-    @Future(message = "Hạn sử dụng phải ở tương lai")
-    private LocalDate expiryDate;
+  @PastOrPresent(message = "Ngày sản xuất không thể ở tương lai")
+  private LocalDate manufactureDate;
 
-    @NotNull(message = "Số lượng đặt hàng PO bắt buộc")
-    @Min(value = 1, message = "Số lượng kế hoạch phải lớn hơn 0")
-    private BigDecimal plannedQty;
+  @Future(message = "Hạn sử dụng phải ở tương lai")
+  private LocalDate expiryDate;
 
-    @NotNull(message = "Số lượng thực tế bắt buộc")
-    @Min(value = 1, message = "Số lượng thực nhập phải lớn hơn 0")
-    private BigDecimal actualQty;
+  @jakarta.validation.constraints.DecimalMin(
+    value = "0",
+    inclusive = false,
+    message = "Số lượng phải lớn hơn 0"
+  )
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal plannedQty;
 
-    @NotNull(message = "Đơn giá bắt buộc")
-    @Min(value = 0, message = "Đơn giá không được âm")
-    private BigDecimal unitPrice;
+  @NotNull(message = "Số lượng thực tế bắt buộc")
+  @jakarta.validation.constraints.DecimalMin(
+    value = "0",
+    inclusive = false,
+    message = "Số lượng phải lớn hơn 0"
+  )
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal actualQty;
 
-    private String note;
+  @Min(value = 0, message = "Đơn giá không được âm")
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal unitPrice;
 
-    public ReceiptItemDTO() {}
+  private String note;
 
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
+  @jakarta.validation.constraints.DecimalMin("0")
+  @jakarta.validation.constraints.Digits(integer = 10, fraction = 2)
+  private BigDecimal rejectedQty = BigDecimal.ZERO;
 
-    public Long getLocationId() { return locationId; }
-    public void setLocationId(Long locationId) { this.locationId = locationId; }
+  public BigDecimal getRejectedQty() {
+    return rejectedQty;
+  }
 
-    public String getBatchCode() { return batchCode; }
-    public void setBatchCode(String batchCode) { this.batchCode = batchCode; }
+  public void setRejectedQty(BigDecimal value) {
+    rejectedQty = value;
+  }
 
-    public LocalDate getManufactureDate() { return manufactureDate; }
-    public void setManufactureDate(LocalDate manufactureDate) { this.manufactureDate = manufactureDate; }
+  @jakarta.validation.constraints.Size(max = 255)
+  private String rejectionReason;
 
-    public LocalDate getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
+  public String getRejectionReason() {
+    return rejectionReason;
+  }
 
-    public BigDecimal getPlannedQty() { return plannedQty; }
-    public void setPlannedQty(BigDecimal plannedQty) { this.plannedQty = plannedQty; }
+  public void setRejectionReason(String value) {
+    rejectionReason = value;
+  }
 
-    public BigDecimal getActualQty() { return actualQty; }
-    public void setActualQty(BigDecimal actualQty) { this.actualQty = actualQty; }
+  public ReceiptItemDTO() {}
 
-    public BigDecimal getUnitPrice() { return unitPrice; }
-    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+  public Long getProductId() {
+    return productId;
+  }
 
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
+  public void setProductId(Long productId) {
+    this.productId = productId;
+  }
+
+  public Long getLocationId() {
+    return locationId;
+  }
+
+  public void setLocationId(Long locationId) {
+    this.locationId = locationId;
+  }
+
+  public String getBatchCode() {
+    return batchCode;
+  }
+
+  public void setBatchCode(String batchCode) {
+    this.batchCode = batchCode;
+  }
+
+  public LocalDate getManufactureDate() {
+    return manufactureDate;
+  }
+
+  public void setManufactureDate(LocalDate manufactureDate) {
+    this.manufactureDate = manufactureDate;
+  }
+
+  public LocalDate getExpiryDate() {
+    return expiryDate;
+  }
+
+  public void setExpiryDate(LocalDate expiryDate) {
+    this.expiryDate = expiryDate;
+  }
+
+  public BigDecimal getPlannedQty() {
+    return plannedQty;
+  }
+
+  public void setPlannedQty(BigDecimal plannedQty) {
+    this.plannedQty = plannedQty;
+  }
+
+  public BigDecimal getActualQty() {
+    return actualQty;
+  }
+
+  public void setActualQty(BigDecimal actualQty) {
+    this.actualQty = actualQty;
+  }
+
+  public BigDecimal getUnitPrice() {
+    return unitPrice;
+  }
+
+  public void setUnitPrice(BigDecimal unitPrice) {
+    this.unitPrice = unitPrice;
+  }
+
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
+  }
 }
-

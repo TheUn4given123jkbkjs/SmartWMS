@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class ConflictException extends BusinessException {
 
   public ConflictException(String message) {
-    super("ERR_CONFLICT", message);
+    super("CONFLICT", message);
+  }
+
+  public ConflictException(String errorCode, String message) {
+    super(errorCode, message);
   }
 }

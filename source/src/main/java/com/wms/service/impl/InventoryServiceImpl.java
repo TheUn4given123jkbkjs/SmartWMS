@@ -1,126 +1,184 @@
 package com.wms.service.impl;
 
-import com.wms.dto.inventory.AvailableStockDTO;
-import com.wms.dto.inventory.NearExpiryAlertDTO;
-import com.wms.dto.inventory.StockCardDTO;
-import com.wms.entity.Product;
-import com.wms.entity.StockBatch;
-import com.wms.entity.StockCard;
-import com.wms.repository.ProductRepository;
-import com.wms.repository.StockBatchRepository;
-import com.wms.repository.StockCardRepository;
+import com.wms.dto.inventory.*;
+import com.wms.entity.*;
+import com.wms.exception.*;
+import com.wms.repository.*;
 import com.wms.service.InventoryService;
+import java.math.BigDecimal;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * Hiện thực Service Quản lý Tồn kho, Sổ thẻ kho & Cảnh báo tồn min / cận hạn.
- */
 @Service
 @Transactional(readOnly = true)
 public class InventoryServiceImpl implements InventoryService {
 
-    private final ProductRepository productRepository;
-    private final StockBatchRepository stockBatchRepository;
-    private final StockCardRepository stockCardRepository;
+  private final ProductRepository products;
+  private final StockBatchRepository batches;
+  private final StockCardRepository cards;
+  private final PurchaseOrderRepository orders;
 
-    public InventoryServiceImpl(ProductRepository productRepository,
-                                StockBatchRepository stockBatchRepository,
-                                StockCardRepository stockCardRepository) {
-        this.productRepository = productRepository;
-        this.stockBatchRepository = stockBatchRepository;
-        this.stockCardRepository = stockCardRepository;
-    }
+  public InventoryServiceImpl(
+    ProductRepository p,
+    StockBatchRepository b,
+    StockCardRepository c,
+    PurchaseOrderRepository o
+  ) {
+    products = p;
+    batches = b;
+    cards = c;
+    orders = o;
+  }
 
-    @Override
-    public BigDecimal calculateAvailableQuantity(Long productId) {
-        List<StockBatch> batches = stockBatchRepository.findByProductId(productId);
-        int totalAvailable = batches.stream()
-            .mapToInt(StockBatch::getAvailableQty)
-            .sum();
-        return BigDecimal.valueOf(totalAvailable);
-    }
+  public BigDecimal calculateAvailableQuantity(Long id) {
+    require(id);
+    return batches
+      .findByProductId(id)
+      .stream()
+      .filter(StockBatch::isEligible)
+      .map(StockBatch::getAvailableQty)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
 
-    @Override
-    public List<AvailableStockDTO> getAllAvailableStock() {
-        List<Product> products = productRepository.findAll();
-        return products.stream().map(p -> {
-            List<StockBatch> batches = stockBatchRepository.findByProductId(p.getId());
-            int totalOnHand = batches.stream().mapToInt(StockBatch::getOnHandQty).sum();
-            int totalReserved = batches.stream().mapToInt(StockBatch::getReservedQty).sum();
-            int available = batches.stream().mapToInt(StockBatch::getAvailableQty).sum();
-            boolean underMin = available < p.getMinStock();
+  private Product require(Long id) {
+    return products
+      .findById(id)
+      .orElseThrow(() ->
+        new ResourceNotFoundException("Không tìm thấy mặt hàng.")
+      );
+  }
 
-            return new AvailableStockDTO(
-                p.getId(), p.getSkuCode(), p.getName(), p.getUom(),
-                BigDecimal.valueOf(totalOnHand),
-                BigDecimal.valueOf(totalReserved),
-                BigDecimal.valueOf(available),
-                BigDecimal.valueOf(p.getMinStock()),
-                underMin
-            );
-        }).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<StockCardDTO> getStockCardHistory(Long productId, LocalDate fromDate, LocalDate toDate) {
-        LocalDateTime start = fromDate != null ? fromDate.atStartOfDay() : LocalDateTime.now().minusMonths(1);
-        LocalDateTime end = toDate != null ? toDate.atTime(LocalTime.MAX) : LocalDateTime.now();
-
-        List<StockCard> cards = stockCardRepository.findByProductIdAndTransactionDateBetweenOrderByTransactionDateAsc(
-            productId, start, end
+  public List<AvailableStockDTO> getAllAvailableStock() {
+    return products
+      .findAll()
+      .stream()
+      .map(p -> {
+        var list = batches.findByProductId(p.getId());
+        BigDecimal hand = list
+          .stream()
+          .map(StockBatch::getOnHandQty)
+          .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal reserved = list
+          .stream()
+          .map(StockBatch::getReservedQty)
+          .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal available = calculateAvailableQuantity(p.getId());
+        BigDecimal onOrder = orders
+          .findAll()
+          .stream()
+          .filter(o -> "APPROVED".equals(o.getStatus()))
+          .flatMap(o -> o.getItems().stream())
+          .filter(i -> i.getProduct().getId().equals(p.getId()))
+          .map(i -> i.getOrderedQty().subtract(i.getReceivedQty()))
+          .reduce(BigDecimal.ZERO, BigDecimal::add);
+        AvailableStockDTO dto = new AvailableStockDTO(
+          p.getId(),
+          p.getSkuCode(),
+          p.getName(),
+          p.getUom(),
+          hand,
+          reserved,
+          available,
+          p.getMinStock(),
+          available.compareTo(p.getMinStock()) <= 0
         );
+        dto.setMaxStock(p.getMaxStock());
+        dto.setOnOrder(onOrder);
+        dto.setSuggestedOrderQty(
+          available.add(onOrder).compareTo(p.getMinStock()) <= 0
+            ? p
+              .getMaxStock()
+              .subtract(available.add(onOrder))
+              .max(BigDecimal.ZERO)
+            : BigDecimal.ZERO
+        );
+        return dto;
+      })
+      .toList();
+  }
 
-        return cards.stream().map(c -> {
-            StockCardDTO dto = new StockCardDTO();
-            dto.setId(c.getId());
-            dto.setTransactionTime(c.getTransactionDate());
-            dto.setChangeType(c.getChangeType());
-            dto.setReferenceCode(c.getReferenceCode());
-            dto.setSkuCode(c.getProduct().getSkuCode());
-            dto.setProductName(c.getProduct().getName());
-            dto.setBatchCode(c.getStockBatch() != null ? c.getStockBatch().getLotNumber() : null);
-            dto.setLocationCode(c.getStockBatch() != null && c.getStockBatch().getLocation() != null ? c.getStockBatch().getLocation().getLocationCode() : null);
-            dto.setChangeQty(BigDecimal.valueOf(c.getQtyChanged()));
-            dto.setAfterQty(BigDecimal.valueOf(c.getAfterChanged()));
-            dto.setBeforeQty(BigDecimal.valueOf(c.getAfterChanged() - c.getQtyChanged()));
-            return dto;
-        }).collect(Collectors.toList());
-    }
+  public List<StockCardDTO> getStockCardHistory(
+    Long id,
+    LocalDate from,
+    LocalDate to
+  ) {
+    require(id);
+    LocalDate start = from == null ? LocalDate.now().minusMonths(1) : from;
+    LocalDate end = to == null ? LocalDate.now() : to;
+    if (end.isBefore(start)) throw new InvalidQuantityException(
+      "Đến ngày phải sau hoặc bằng từ ngày."
+    );
+    return cards
+      .findByProductIdAndTransactionDateBetweenOrderByTransactionDateAsc(
+        id,
+        start.atStartOfDay(),
+        end.atTime(LocalTime.MAX)
+      )
+      .stream()
+      .sorted(
+        Comparator.comparing(StockCard::getTransactionDate).thenComparing(
+          StockCard::getId
+        )
+      )
+      .map(c -> {
+        StockCardDTO d = new StockCardDTO();
+        d.setId(c.getId());
+        d.setTransactionTime(c.getTransactionDate());
+        d.setChangeType(c.getChangeType());
+        d.setReferenceCode(c.getReferenceCode());
+        d.setSkuCode(c.getProduct().getSkuCode());
+        d.setProductName(c.getProduct().getName());
+        d.setBatchCode(c.getStockBatch().getLotNumber());
+        d.setLocationCode(c.getStockBatch().getLocation().getLocationCode());
+        d.setChangeQty(c.getQtyChanged());
+        d.setAfterQty(c.getAfterChanged());
+        d.setBeforeQty(c.getAfterChanged().subtract(c.getQtyChanged()));
+        d.setPerformedByName(
+          c.getPerformedBy() == null ? null : c.getPerformedBy().getFullName()
+        );
+        d.setApprovedByName(
+          c.getApprovedBy() == null ? null : c.getApprovedBy().getFullName()
+        );
+        d.setReason(c.getReason());
+        return d;
+      })
+      .toList();
+  }
 
-    @Override
-    public List<AvailableStockDTO> getLowStockAlerts() {
-        return getAllAvailableStock().stream()
-            .filter(AvailableStockDTO::getUnderMin)
-            .collect(Collectors.toList());
-    }
+  public List<AvailableStockDTO> getLowStockAlerts() {
+    return getAllAvailableStock()
+      .stream()
+      .filter(AvailableStockDTO::getUnderMin)
+      .toList();
+  }
 
-    @Override
-    public List<NearExpiryAlertDTO> getNearExpiryAlerts(int thresholdDays) {
-        LocalDate threshold = LocalDate.now().plusDays(thresholdDays);
-        List<StockBatch> batches = stockBatchRepository.findNearExpiryBatches(threshold);
-
-        return batches.stream().map(b -> {
-            long days = ChronoUnit.DAYS.between(LocalDate.now(), b.getExpDate());
-            String level = days <= 0 ? "EXPIRED" : (days <= 15 ? "CRITICAL" : "WARNING");
-
-            return new NearExpiryAlertDTO(
-                b.getId(), b.getLotNumber(),
-                b.getProduct().getSkuCode(), b.getProduct().getName(),
-                b.getLocation().getLocationCode(),
-                b.getExpDate(), days,
-                BigDecimal.valueOf(b.getOnHandQty()),
-                level
-            );
-        }).collect(Collectors.toList());
-    }
+  public List<NearExpiryAlertDTO> getNearExpiryAlerts(int days) {
+    if (days < 1 || days > 365) throw new InvalidQuantityException(
+      "Ngưỡng cận hạn phải từ 1 đến 365 ngày."
+    );
+    return batches
+      .findNearExpiryBatches(LocalDate.now().plusDays(days))
+      .stream()
+      .map(b -> {
+        long remaining = ChronoUnit.DAYS.between(
+          LocalDate.now(),
+          b.getExpDate()
+        );
+        return new NearExpiryAlertDTO(
+          b.getId(),
+          b.getLotNumber(),
+          b.getProduct().getSkuCode(),
+          b.getProduct().getName(),
+          b.getLocation().getLocationCode(),
+          b.getExpDate(),
+          remaining,
+          b.getOnHandQty(),
+          remaining < 0 ? "EXPIRED" : remaining <= 7 ? "CRITICAL" : "WARNING"
+        );
+      })
+      .toList();
+  }
 }

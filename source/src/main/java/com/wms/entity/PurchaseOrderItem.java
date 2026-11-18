@@ -91,6 +91,15 @@ public class PurchaseOrderItem {
     this.receivedQty = receivedQty;
   }
 
+  public BigDecimal calculateRemainingQty() {
+    return (orderedQty != null ? orderedQty : BigDecimal.ZERO)
+        .subtract(receivedQty != null ? receivedQty : BigDecimal.ZERO);
+  }
+
+  public boolean isFulfilled() {
+    return calculateRemainingQty().compareTo(BigDecimal.ZERO) <= 0;
+  }
+
   public LocalDateTime getCreatedAt() {
     return createdAt;
   }

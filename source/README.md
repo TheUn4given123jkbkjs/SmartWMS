@@ -1,3 +1,5 @@
+> **Chạy/demo Must-have FR01–FR04:** Trong thư mục `source`, chạy `mvn spring-boot:run`, mở http://localhost:8088/auth/login. Maker `staff_thien`, Checker `manager_trung`, cùng mật khẩu demo `123456`. Chạy kiểm thử bằng `mvn test`. Xem [kịch bản demo](../deliverables/Demo_Script.md) và [báo cáo hiện thực](../docs/04_ui_ux_design/ui_implementation_report.md). H2 in-memory; dữ liệu mất khi dừng.
+
 # HƯỚNG DẪN KIẾN TRÚC MÃ NGUỒN SPRING BOOT (SOURCE CODE ARCHITECTURE)
 **Học phần:** Phân tích và Thiết kế Yêu cầu (Mã môn: 502050 - ĐH Tôn Đức Thắng)  
 **Đề tài:** Hệ thống Quản lý Kho hàng (Warehouse Management System - WMS)  

@@ -1,242 +1,362 @@
 package com.wms.service.impl;
 
-import com.wms.dto.issue.IssueNoteResponseDTO;
-import com.wms.dto.issue.IssueRequestDTO;
-import com.wms.dto.issue.PickListProposalDTO;
+import com.wms.dto.issue.*;
 import com.wms.entity.*;
-import com.wms.exception.ConflictException;
-import com.wms.exception.ExpiredLotException;
-import com.wms.exception.InsufficientStockException;
-import com.wms.exception.ResourceNotFoundException;
-import com.wms.exception.SecurityViolationException;
+import com.wms.exception.*;
 import com.wms.repository.*;
-import com.wms.service.IssueService;
-import com.wms.util.ChangeType;
-import com.wms.util.DispatchStrategy;
-import com.wms.util.IssueStatus;
+import com.wms.service.*;
+import com.wms.util.*;
+import java.math.BigDecimal;
+import java.time.*;
+import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * Hiện thực Service Quản lý Xuất kho & Thuật toán Phân bổ FEFO/FIFO (ACID Transaction).
- */
 @Service
 @Transactional
 public class IssueServiceImpl implements IssueService {
 
-    private final IssueNoteRepository issueNoteRepository;
-    private final IssueNoteItemRepository issueNoteItemRepository;
-    private final ProductRepository productRepository;
-    private final StockBatchRepository stockBatchRepository;
-    private final StockCardRepository stockCardRepository;
-    private final UserRepository userRepository;
+  private final IssueNoteRepository notes;
+  private final ProductRepository products;
+  private final StockBatchRepository batches;
+  private final WarehouseOperations ops;
 
-    public IssueServiceImpl(IssueNoteRepository issueNoteRepository,
-                            IssueNoteItemRepository issueNoteItemRepository,
-                            ProductRepository productRepository,
-                            StockBatchRepository stockBatchRepository,
-                            StockCardRepository stockCardRepository,
-                            UserRepository userRepository) {
-        this.issueNoteRepository = issueNoteRepository;
-        this.issueNoteItemRepository = issueNoteItemRepository;
-        this.productRepository = productRepository;
-        this.stockBatchRepository = stockBatchRepository;
-        this.stockCardRepository = stockCardRepository;
-        this.userRepository = userRepository;
+  public IssueServiceImpl(
+    IssueNoteRepository n,
+    ProductRepository p,
+    StockBatchRepository b,
+    WarehouseOperations o
+  ) {
+    notes = n;
+    products = p;
+    batches = b;
+    ops = o;
+  }
+
+  private Product product(Long id) {
+    return products
+      .findById(id)
+      .orElseThrow(() ->
+        new ResourceNotFoundException("Không tìm thấy sản phẩm.")
+      );
+  }
+
+  private List<StockBatch> ordered(Product p, DispatchStrategy strategy) {
+    Comparator<StockBatch> age = Comparator.comparing(
+      StockBatch::getCreatedAt
+    ).thenComparing(StockBatch::getId);
+    Comparator<StockBatch> sort = Boolean.TRUE.equals(p.getManageByLot()) &&
+      strategy != DispatchStrategy.FIFO
+      ? Comparator.comparing(
+        StockBatch::getExpDate,
+        Comparator.nullsLast(Comparator.naturalOrder())
+      ).thenComparing(age)
+      : age;
+    return batches
+      .findByProductId(p.getId())
+      .stream()
+      .filter(b -> b.isEligible() && b.getAvailableQty().signum() > 0)
+      .sorted(sort)
+      .toList();
+  }
+
+  private PickListProposalDTO pick(StockBatch b, BigDecimal q) {
+    return new PickListProposalDTO(
+      b.getProduct().getId(),
+      b.getProduct().getSkuCode(),
+      b.getProduct().getName(),
+      b.getId(),
+      b.getLotNumber(),
+      b.getLocation().getLocationCode(),
+      b.getExpDate(),
+      q
+    );
+  }
+
+  @Transactional(readOnly = true)
+  public List<PickListProposalDTO> proposeAllocation(
+    Long id,
+    BigDecimal qty,
+    DispatchStrategy strategy
+  ) {
+    ops.qty(qty, true);
+    Product p = product(id);
+    List<PickListProposalDTO> result = new ArrayList<>();
+    BigDecimal remaining = qty;
+    for (StockBatch b : ordered(p, strategy)) {
+      BigDecimal q = remaining.min(b.getAvailableQty());
+      result.add(pick(b, q));
+      remaining = remaining.subtract(q);
+      if (remaining.signum() == 0) break;
     }
+    if (remaining.signum() > 0) throw new InsufficientStockException(
+      "Không đủ tồn khả dụng. Còn thiếu: " + remaining
+    );
+    return result;
+  }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<PickListProposalDTO> proposeAllocation(Long productId, BigDecimal requestedQty, DispatchStrategy strategy) {
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm ID: " + productId));
-
-        List<StockBatch> batches = stockBatchRepository.findAvailableBatchesOrderByFefo(productId, LocalDate.now());
-        List<PickListProposalDTO> proposals = new ArrayList<>();
-        BigDecimal remaining = requestedQty;
-
-        for (StockBatch batch : batches) {
-            if (remaining.compareTo(BigDecimal.ZERO) <= 0) break;
-            BigDecimal available = BigDecimal.valueOf(batch.getAvailableQty());
-            BigDecimal pick = remaining.min(available);
-
-            proposals.add(new PickListProposalDTO(
-                product.getId(), product.getSkuCode(), product.getName(),
-                batch.getId(), batch.getLotNumber(), batch.getLocation().getLocationCode(),
-                batch.getExpDate(), pick
-            ));
-            remaining = remaining.subtract(pick);
-        }
-
-        if (remaining.compareTo(BigDecimal.ZERO) > 0) {
-            throw new InsufficientStockException("Tồn kho khả dụng không đủ để xuất số lượng yêu cầu. Còn thiếu: " + remaining);
-        }
-
-        return proposals;
+  public IssueNoteResponseDTO createIssueNote(
+    IssueRequestDTO dto,
+    Long userId
+  ) {
+    ops.lock();
+    User maker = ops.actor(userId, UserRole.ROLE_STAFF);
+    IssueNote n = new IssueNote();
+    n.setIssueNumber(ops.code("IN"));
+    n.setOrderNumber(dto.getOrderNumber());
+    n.setCustomerName(dto.getCustomerName());
+    n.setNote(dto.getNote());
+    n.setExportType(dto.getExportType());
+    n.setDispatchStrategy(dto.getStrategy());
+    n.setMaker(maker);
+    for (IssueItemRequestDTO d : dto.getItems()) {
+      Product p = product(d.getProductId());
+      if (
+        !Boolean.TRUE.equals(p.getActive())
+      ) throw new InvalidQuantityException("Sản phẩm đã ngừng hoạt động.");
+      BigDecimal remaining = ops.qty(d.getRequestedQty(), true);
+      List<StockBatch> order = ordered(p, dto.getStrategy());
+      boolean overridden =
+        Boolean.TRUE.equals(p.getManageByLot()) &&
+        dto.getStrategy() == DispatchStrategy.FIFO;
+      if (d.getSelectedBatchId() != null) {
+        StockBatch selected = batches
+          .findById(d.getSelectedBatchId())
+          .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lô.")
+          );
+        if (
+          !selected.getProduct().getId().equals(p.getId()) ||
+          !selected.isEligible()
+        ) throw new ExpiredLotException(
+          "Lô không thuộc mặt hàng hoặc không đủ điều kiện xuất."
+        );
+        overridden =
+          overridden ||
+          order.isEmpty() ||
+          !order.get(0).getId().equals(selected.getId());
+        order = List.of(selected);
+      }
+      if (overridden) {
+        if (
+          dto.getOverrideReason() == null || dto.getOverrideReason().isBlank()
+        ) throw new InvalidQuantityException(
+          "Đổi thứ tự ưu tiên phải nhập lý do ngoại lệ."
+        );
+        n.setIsOverridden(true);
+        n.setOverrideReason(dto.getOverrideReason());
+      }
+      for (StockBatch batch : order) {
+        BigDecimal q = remaining.min(batch.getAvailableQty());
+        if (q.signum() <= 0) continue;
+        batch.setReservedQty(batch.getReservedQty().add(q));
+        batch.setUpdatedAt(LocalDateTime.now());
+        IssueNoteItem item = new IssueNoteItem();
+        item.setIssueNote(n);
+        item.setStockBatch(batch);
+        item.setRequestedQty(q);
+        item.setAllocatedQty(q);
+        n.getItems().add(item);
+        remaining = remaining.subtract(q);
+        if (remaining.signum() == 0) break;
+      }
+      if (remaining.signum() > 0) throw new InsufficientStockException(
+        "Không đủ tồn khả dụng. Còn thiếu: " + remaining
+      );
     }
+    notes.save(n);
+    ops.audit(n.getIssueNumber(), "RESERVE_ISSUE", maker);
+    return map(n);
+  }
 
-    @Override
-    public IssueNoteResponseDTO createIssueNote(IssueRequestDTO dto, Long currentUserId) {
-        User maker = userRepository.findById(currentUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người lập phiếu ID: " + currentUserId));
+  private IssueNote require(Long id) {
+    return notes
+      .findById(id)
+      .orElseThrow(() ->
+        new ResourceNotFoundException("Không tìm thấy phiếu xuất.")
+      );
+  }
 
-        IssueNote note = new IssueNote();
-        note.setIssueNumber("IN-" + System.currentTimeMillis());
-        note.setDispatchStrategy(dto.getStrategy() != null ? dto.getStrategy() : DispatchStrategy.FEFO);
-        note.setMaker(maker);
-        note.setStatus(IssueStatus.PENDING_APPROVAL);
+  private void pending(IssueNote n) {
+    if (
+      n.getStatus() != IssueStatus.PENDING_APPROVAL
+    ) throw new ConflictException("Phiếu không còn chờ duyệt.");
+  }
 
-        IssueNote saved = issueNoteRepository.save(note);
-        return mapToResponseDTO(saved);
+  public IssueNoteResponseDTO approveIssueNote(Long id, Long userId) {
+    ops.lock();
+    User checker = ops.actor(userId, UserRole.ROLE_MANAGER);
+    IssueNote n = require(id);
+    ops.checker(n.getMaker(), checker);
+    pending(n);
+    for (IssueNoteItem i : n.getItems()) {
+      if (i.getStockBatch() != null && (!i.getStockBatch().isEligible() || i.getStockBatch().isExpired())) {
+        throw new ExpiredLotException(
+          "Phiếu có lô " + i.getStockBatch().getLotNumber() + " đã quá hạn hoặc bị cách ly. Hãy từ chối/hủy để giải phóng giữ chỗ."
+        );
+      }
     }
+    n.setChecker(checker);
+    n.setApprovedAt(LocalDateTime.now());
+    n.setUpdatedAt(LocalDateTime.now());
+    n.setStatus(IssueStatus.APPROVED_READY_TO_PICK);
+    ops.audit(n.getIssueNumber(), "APPROVE_ISSUE", checker);
+    return map(n);
+  }
 
-    @Override
-    public IssueNoteResponseDTO approveIssueNote(Long issueId, Long currentUserId) {
-        IssueNote note = issueNoteRepository.findById(issueId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu xuất kho ID: " + issueId));
-
-        if (note.getMaker().getId().equals(currentUserId)) {
-            throw new SecurityViolationException("Người lập phiếu không được phép tự phê duyệt phiếu xuất kho.");
-        }
-
-        // Quyết định D4 (Chốt chặn 1 - Phê duyệt): Kiểm tra hạn dùng lô hàng tại thời điểm Quản lý phê duyệt (BR-OUT-03)
-        if (note.getItems() != null) {
-            for (IssueNoteItem item : note.getItems()) {
-                if (item.getStockBatch() != null && item.getStockBatch().isExpired()) {
-                    throw new ExpiredLotException("Lô hàng " + item.getStockBatch().getLotNumber()
-                        + " đã quá hạn sử dụng (EXP: " + item.getStockBatch().getExpDate()
-                        + ") trong thời gian chờ duyệt. Không thể phê duyệt xuất hàng.");
-                }
-            }
-        }
-
-        User checker = userRepository.findById(currentUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người phê duyệt ID: " + currentUserId));
-
-        note.setChecker(checker);
-        note.setStatus(IssueStatus.APPROVED_READY_TO_PICK);
-        note.setUpdatedAt(LocalDateTime.now());
-
-        IssueNote approved = issueNoteRepository.save(note);
-        return mapToResponseDTO(approved);
+  public IssueNoteResponseDTO completeIssueNote(Long id, Long userId) {
+    ops.lock();
+    User actor = ops.actor(userId, UserRole.ROLE_STAFF);
+    IssueNote n = require(id);
+    if (
+      n.getStatus() != IssueStatus.APPROVED_READY_TO_PICK
+    ) throw new ConflictException(
+      "Phiếu phải được quản lý duyệt trước khi bàn giao."
+    );
+    for (IssueNoteItem i : n.getItems()) {
+      StockBatch b = i.getStockBatch();
+      BigDecimal q = i.getAllocatedQty();
+      if (b == null || !b.isEligible() || b.isExpired()) {
+        throw new ExpiredLotException(
+          "Lô đã hết hạn hoặc không đủ điều kiện xuất."
+        );
+      }
+      if (
+        b.getReservedQty().compareTo(q) < 0 || b.getOnHandQty().compareTo(q) < 0
+      ) throw new ConflictException("Số dư tồn kho/giữ chỗ không hợp lệ.");
+      b.setOnHandQty(b.getOnHandQty().subtract(q));
+      b.setReservedQty(b.getReservedQty().subtract(q));
+      b.setUpdatedAt(LocalDateTime.now());
+      ops.location(b.getLocation());
+      ops.card(
+        b,
+        q.negate(),
+        n.getIssueNumber(),
+        actor,
+        n.getChecker(),
+        n.getNote()
+      );
     }
+    n.setStatus(IssueStatus.COMPLETED);
+    n.setConfirmedBy(actor);
+    n.setCompletedAt(LocalDateTime.now());
+    n.setUpdatedAt(LocalDateTime.now());
+    ops.audit(n.getIssueNumber(), "COMPLETE_ISSUE", actor);
+    return map(n);
+  }
 
-    @Override
-    public IssueNoteResponseDTO confirmDispatch(Long issueId, Long currentUserId) {
-        IssueNote note = issueNoteRepository.findById(issueId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu xuất kho ID: " + issueId));
+  @Override
+  public IssueNoteResponseDTO confirmDispatch(Long issueId, Long currentUserId) {
+    return completeIssueNote(issueId, currentUserId);
+  }
 
-        if (note.getStatus() != IssueStatus.APPROVED_READY_TO_PICK && note.getStatus() != IssueStatus.APPROVED) {
-            throw new ConflictException("Phiếu xuất kho chưa được phê duyệt hoặc đã hoàn tất/hủy bỏ. Trạng thái hiện tại: " + note.getStatus());
-        }
+  public IssueNoteResponseDTO rejectIssueNote(
+    Long id,
+    String reason,
+    Long userId
+  ) {
+    ops.lock();
+    User actor = ops.actor(userId, UserRole.ROLE_MANAGER);
+    IssueNote n = require(id);
+    ops.checker(n.getMaker(), actor);
+    pending(n);
+    release(n, reason, actor, IssueStatus.REJECTED);
+    n.setChecker(actor);
+    return map(n);
+  }
 
-        // Quyết định D4 (Chốt chặn 2 - Bàn giao thực tế): Kiểm tra hạn sử dụng của từng lô hàng trước khi bốc hàng
-        if (note.getItems() != null) {
-            for (IssueNoteItem item : note.getItems()) {
-                if (item.getStockBatch() != null && item.getStockBatch().isExpired()) {
-                    throw new ExpiredLotException("Lô hàng " + item.getStockBatch().getLotNumber()
-                        + " đã quá hạn sử dụng tại thời điểm bốc hàng xuất kho (EXP: " + item.getStockBatch().getExpDate()
-                        + "). Không thể hoàn tất xuất kho.");
-                }
-            }
+  public void cancelIssueNote(Long id, String reason, Long userId) {
+    ops.lock();
+    IssueNote n = require(id);
+    User actor;
+    if (n.getMaker().getId().equals(userId)) actor = ops.actor(
+      userId,
+      UserRole.ROLE_STAFF
+    );
+    else actor = ops.actor(userId, UserRole.ROLE_MANAGER);
+    if (
+      n.getStatus() != IssueStatus.PENDING_APPROVAL &&
+      n.getStatus() != IssueStatus.APPROVED_READY_TO_PICK
+    ) throw new ConflictException(
+      "Không thể hủy phiếu đã hoàn tất hoặc đã hủy/từ chối."
+    );
+    release(n, reason, actor, IssueStatus.CANCELLED);
+  }
 
-            // Trừ tồn kho On-hand, giải phóng Reserved và ghi thẻ kho StockCard (BR-OUT-04, BR-SEC-02)
-            for (IssueNoteItem item : note.getItems()) {
-                StockBatch batch = item.getStockBatch();
-                if (batch != null) {
-                    int qty = item.getAllocatedQty() != null && item.getAllocatedQty() > 0
-                        ? item.getAllocatedQty()
-                        : (item.getRequestedQty() != null ? item.getRequestedQty() : 0);
-
-                    batch.deductDispatched(qty);
-                    stockBatchRepository.save(batch);
-
-                    StockCard card = new StockCard();
-                    card.setProduct(batch.getProduct());
-                    card.setStockBatch(batch);
-                    card.setTransactionDate(LocalDateTime.now());
-                    card.setReferenceCode(note.getIssueNumber());
-                    card.setChangeType(ChangeType.XUAT_KHO);
-                    card.setQuantityChanged(-qty);
-                    card.setAfterQuantity(batch.getOnHandQuantity());
-                    stockCardRepository.save(card);
-                }
-            }
-        }
-
-        User dispatcher = userRepository.findById(currentUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân viên giao hàng ID: " + currentUserId));
-
-        note.confirmDispatch(currentUserId);
-        note.setChecker(dispatcher);
-        note.setUpdatedAt(LocalDateTime.now());
-
-        IssueNote completed = issueNoteRepository.save(note);
-        return mapToResponseDTO(completed);
+  private void release(
+    IssueNote n,
+    String reason,
+    User actor,
+    IssueStatus status
+  ) {
+    if (
+      reason == null || reason.isBlank() || reason.length() > 255
+    ) throw new InvalidQuantityException("Phải nhập lý do (tối đa 255 ký tự).");
+    for (IssueNoteItem i : n.getItems()) {
+      StockBatch b = i.getStockBatch();
+      if (b != null) {
+        if (
+          b.getReservedQty().compareTo(i.getAllocatedQty()) < 0
+        ) throw new ConflictException("Số giữ chỗ không hợp lệ.");
+        b.setReservedQty(b.getReservedQty().subtract(i.getAllocatedQty()));
+        b.setUpdatedAt(LocalDateTime.now());
+      }
     }
+    n.setStatus(status);
+    n.setDecisionReason(reason);
+    n.setUpdatedAt(LocalDateTime.now());
+    ops.audit(n.getIssueNumber(), status.name(), actor);
+  }
 
-    @Override
-    public void cancelIssueNote(Long issueId, String reason, Long currentUserId) {
-        IssueNote note = issueNoteRepository.findById(issueId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu xuất kho ID: " + issueId));
+  @Transactional(readOnly = true)
+  public List<IssueNoteResponseDTO> getIssueNotes(String status) {
+    return notes
+      .findAll()
+      .stream()
+      .filter(
+        n ->
+          status == null ||
+          status.isBlank() ||
+          n.getStatus().name().equals(status)
+      )
+      .map(this::map)
+      .toList();
+  }
 
-        // Giải phóng tạm giữ chỗ reserved_qty nếu phiếu đang chờ duyệt hoặc đã duyệt
-        if (note.getItems() != null && (note.getStatus() == IssueStatus.PENDING_APPROVAL || note.getStatus() == IssueStatus.APPROVED_READY_TO_PICK)) {
-            for (IssueNoteItem item : note.getItems()) {
-                StockBatch batch = item.getStockBatch();
-                if (batch != null) {
-                    int qty = item.getAllocatedQty() != null && item.getAllocatedQty() > 0
-                        ? item.getAllocatedQty()
-                        : (item.getRequestedQty() != null ? item.getRequestedQty() : 0);
-                    batch.setReservedQty(Math.max(0, (batch.getReservedQty() != null ? batch.getReservedQty() : 0) - qty));
-                    stockBatchRepository.save(batch);
-                }
-            }
-        }
+  @Transactional(readOnly = true)
+  public IssueNoteResponseDTO getIssueNoteById(Long id) {
+    return map(require(id));
+  }
 
-        note.setStatus(IssueStatus.CANCELLED);
-        note.setOverrideReason(reason);
-        note.setUpdatedAt(LocalDateTime.now());
-        issueNoteRepository.save(note);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<IssueNoteResponseDTO> getIssueNotes(String status) {
-        List<IssueNote> notes;
-        if (status != null && !status.isBlank()) {
-            notes = issueNoteRepository.findByStatus(IssueStatus.valueOf(status));
-        } else {
-            notes = issueNoteRepository.findAll();
-        }
-        return notes.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public IssueNoteResponseDTO getIssueNoteById(Long issueId) {
-        IssueNote note = issueNoteRepository.findById(issueId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu xuất kho ID: " + issueId));
-        return mapToResponseDTO(note);
-    }
-
-    private IssueNoteResponseDTO mapToResponseDTO(IssueNote note) {
-        IssueNoteResponseDTO dto = new IssueNoteResponseDTO();
-        dto.setId(note.getId());
-        dto.setIssueCode(note.getIssueNumber());
-        dto.setStrategy(note.getDispatchStrategy());
-        dto.setMakerName(note.getMaker() != null ? note.getMaker().getFullName() : null);
-        dto.setCheckerName(note.getChecker() != null ? note.getChecker().getFullName() : null);
-        dto.setStatus(note.getStatus());
-        dto.setCreatedAt(note.getCreatedAt());
-        dto.setPickList(new ArrayList<>());
-        return dto;
-    }
+  private IssueNoteResponseDTO map(IssueNote n) {
+    IssueNoteResponseDTO d = new IssueNoteResponseDTO();
+    d.setId(n.getId());
+    d.setMakerId(n.getMaker().getId());
+    d.setIssueCode(n.getIssueNumber());
+    d.setOrderNumber(n.getOrderNumber());
+    d.setCustomerName(n.getCustomerName());
+    d.setStrategy(n.getDispatchStrategy());
+    d.setNote(n.getNote());
+    d.setMakerName(n.getMaker().getFullName());
+    d.setCheckerName(
+      n.getChecker() == null ? null : n.getChecker().getFullName()
+    );
+    d.setCreatedAt(n.getCreatedAt());
+    d.setApprovedAt(n.getApprovedAt());
+    d.setStatus(n.getStatus());
+    d.setPickList(
+      n
+        .getItems()
+        .stream()
+        .map(i -> pick(i.getStockBatch(), i.getAllocatedQty()))
+        .toList()
+    );
+    d.setOverrideReason(n.getOverrideReason());
+    d.setDecisionReason(n.getDecisionReason());
+    d.setCompletedAt(n.getCompletedAt());
+    d.setConfirmedByName(
+      n.getConfirmedBy() == null ? null : n.getConfirmedBy().getFullName()
+    );
+    d.setExportType(n.getExportType());
+    return d;
+  }
 }

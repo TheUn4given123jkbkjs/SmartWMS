@@ -3,6 +3,8 @@ package com.wms.service;
 import com.wms.dto.purchase.PurchaseOrderImportDTO;
 import com.wms.dto.purchase.PurchaseOrderResponseDTO;
 import com.wms.entity.PurchaseOrder;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -10,6 +12,35 @@ import java.util.List;
  * Service Interface quản lý dữ liệu Đơn mua hàng PO (FR02, BR-INB-01).
  */
 public interface PurchaseOrderService {
+
+  record Line(
+    Long productId,
+    String skuCode,
+    String productName,
+    BigDecimal orderedQty,
+    BigDecimal receivedQty,
+    BigDecimal pendingQty,
+    BigDecimal remainingQty
+  ) {}
+
+  record View(
+    Long id,
+    String poNumber,
+    String supplierName,
+    String status,
+    List<Line> items
+  ) {}
+
+  record ImportLine(
+    @NotNull Long productId,
+    @NotNull @DecimalMin(value = "0", inclusive = false) BigDecimal orderedQty
+  ) {}
+
+  record ImportRequest(
+    @NotBlank @Size(max = 50) String poNumber,
+    @NotBlank @Size(max = 255) String supplierName,
+    @NotEmpty List<@Valid ImportLine> items
+  ) {}
 
   /** Lấy danh sách tất cả các đơn mua hàng kèm tiến độ giao hàng chi tiết */
   List<PurchaseOrderResponseDTO> getAllPurchaseOrders();
@@ -25,4 +56,10 @@ public interface PurchaseOrderService {
 
   /** Tính tổng số lượng hàng đang nằm trên các phiếu nhập chờ duyệt (Pending) */
   BigDecimal getPendingQty(String poNumber, Long productId, Long excludeReceiptId);
+
+  // --- Các method phục vụ CoreController & tích hợp sơ đồ kho ---
+  List<View> list();
+  View importApproved(ImportRequest request, Long actor);
+  BigDecimal pending(String number, Long productId, Long excludeReceipt);
+  View view(PurchaseOrder po);
 }
