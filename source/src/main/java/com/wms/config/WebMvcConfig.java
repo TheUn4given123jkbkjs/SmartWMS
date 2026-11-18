@@ -27,6 +27,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         "/inventory/**",
         "/auth/api/me"
       );
+    // Require a session for PO writes while preserving the existing read API.
+    registry
+      .addInterceptor(new SessionInterceptor(true))
+      .addPathPatterns("/api/v1/purchase-orders", "/api/v1/purchase-orders/**");
   }
 
   @Override

@@ -348,7 +348,13 @@ function renderAlerts() {
     ["Min", (r) => num(r.minStockAlert)],
     ["Max", (r) => num(r.maxStock)],
     ["Đang về", (r) => num(r.onOrder)],
-    ["Gợi ý đặt", (r) => num(r.suggestedOrderQty)],
+    [
+      "Gợi ý đặt",
+      (r) =>
+        Number(r.suggestedOrderQty) === 0 && Number(r.onOrder) > 0
+          ? `${num(r.suggestedOrderQty)}<br><small class="muted">Đã có hàng đang về</small>`
+          : num(r.suggestedOrderQty),
+    ],
     [
       "Thao tác",
       (r) =>
@@ -377,7 +383,7 @@ function renderNotes() {
       [
         page === "approve" ? "Phiếu nhập" : "Lệnh xuất",
         (r) =>
-          `<button class="btn btn-sm btn-link" data-note="${r.id}">${escapeHtml(r.receiptCode || r.issueCode)}</button>`,
+          `<button class="btn btn-sm btn-link" data-note="${r.id}">${escapeHtml(r.receiptCode || r.issueCode)}</button>${r.isOverridden ? ' <span class="badge-state warning">Ngoại lệ FEFO/FIFO</span>' : ""}`,
       ],
       ["PO / Đơn hàng", (r) => escapeHtml(r.poNumber || r.orderNumber)],
       ["Đối tác", (r) => escapeHtml(r.supplierName || r.customerName)],
@@ -479,7 +485,9 @@ function addLine() {
         input("manufactureDate", "Ngày sản xuất", "date") +
         input("expiryDate", "Hạn dùng", "date") +
         `<div class="field"><label for="location${index}">Vị trí *</label><select id="location${index}" data-field="locationId" class="form-select" required>${options(
-          locations.filter((l) => ["RAW", "FG"].includes(l.zone)),
+          locations.filter(
+            (l) => ["RAW", "FG"].includes(l.zone) && l.status !== "MAINTENANCE",
+          ),
           "id",
           "locationCode",
         )}</select></div>` +
@@ -933,7 +941,7 @@ async function openNote(id) {
     (r.makerId === user.id || user.role === "ROLE_MANAGER");
   showDetail(
     r.receiptCode || r.issueCode,
-    `<p>${badge(r.status)}</p><p>Người lập: ${escapeHtml(r.makerName)} · Người duyệt: ${escapeHtml(r.checkerName)}</p><p>Ghi chú: ${escapeHtml(r.note || "")}</p><p>Lý do ngoại lệ / quyết định: ${escapeHtml(r.overrideReason || r.decisionReason || "—")}</p><p>Xác nhận bàn giao: ${escapeHtml(r.confirmedByName || "—")} · ${date(r.completedAt)}</p><div id="detailTable"></div><label for="decisionReason">Ý kiến / lý do từ chối hoặc hủy</label><input id="decisionReason" class="form-control" maxlength="255"><p class="muted mt-3">${r.makerId === user.id ? "Người lập không được tự duyệt. " : ""}${inbound ? "Chấp thuận sẽ ghi tăng tồn." : "Duyệt giữ nguyên tồn; xác nhận bàn giao mới trừ tồn và giải phóng giữ chỗ."}</p><div class="quick-actions"><button class="btn btn-success" data-note-action="approve" data-id="${id}" ${canApprove ? "" : "disabled"}>Chấp thuận</button><button class="btn btn-outline-danger" data-note-action="reject" data-id="${id}" ${canApprove ? "" : "disabled"}>Từ chối</button>${!inbound ? `<button class="btn btn-outline-danger" data-note-action="cancel" data-id="${id}" ${canCancel ? "" : "disabled"}>Hủy phiếu</button><button class="btn btn-orange-primary" data-note-action="complete" data-id="${id}" ${canComplete ? "" : "disabled"}>Xác nhận bàn giao</button><button class="btn btn-light" data-print>In Pick List</button>` : ""}</div><p id="decisionError" class="text-danger" role="alert"></p>`,
+    `<p>${badge(r.status)}</p><p>Người lập: ${escapeHtml(r.makerName)} · Người duyệt: ${escapeHtml(r.checkerName)}</p><p>Ghi chú: ${escapeHtml(r.note || "")}</p>${r.isOverridden ? `<p><span class="badge-state warning">Ngoại lệ FEFO/FIFO</span> ${escapeHtml(r.overrideReason || "—")}</p>` : ""}<p>Lý do quyết định: ${escapeHtml(r.decisionReason || "—")}</p><p>Xác nhận bàn giao: ${escapeHtml(r.confirmedByName || "—")} · ${date(r.completedAt)}</p><div id="detailTable"></div><label for="decisionReason">Ý kiến / lý do từ chối hoặc hủy</label><input id="decisionReason" class="form-control" maxlength="255"><p class="muted mt-3">${r.makerId === user.id ? "Người lập không được tự duyệt. " : ""}${inbound ? "Chấp thuận sẽ ghi tăng tồn." : "Duyệt giữ nguyên tồn; xác nhận bàn giao mới trừ tồn và giải phóng giữ chỗ."}</p><div class="quick-actions"><button class="btn btn-success" data-note-action="approve" data-id="${id}" ${canApprove ? "" : "disabled"}>Chấp thuận</button><button class="btn btn-outline-danger" data-note-action="reject" data-id="${id}" ${canApprove ? "" : "disabled"}>Từ chối</button>${!inbound ? `<button class="btn btn-outline-danger" data-note-action="cancel" data-id="${id}" ${canCancel ? "" : "disabled"}>Hủy phiếu</button><button class="btn btn-orange-primary" data-note-action="complete" data-id="${id}" ${canComplete ? "" : "disabled"}>Xác nhận bàn giao</button><button class="btn btn-light" data-print>In Pick List</button>` : ""}</div><p id="decisionError" class="text-danger" role="alert"></p>`,
   );
   table(
     "#detailTable",

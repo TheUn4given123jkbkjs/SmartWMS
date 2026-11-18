@@ -129,13 +129,15 @@
 
 | Tên DTO | Tên thuộc tính | Kiểu dữ liệu | Ràng buộc Validation | Ý nghĩa nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
-| **`IssueRequestDTO`** | `orderNumber` | `String` | `@NotBlank(message = "Mã lệnh xuất bắt buộc")` | Mã đơn hàng bán hoặc cấp phát sản xuất |
-| `IssueRequestDTO` | `customerName` | `String` | `@NotBlank(message = "Tên khách hàng bắt buộc")`| Tên khách hàng / bộ phận nhận hàng |
+| **`IssueRequestDTO`** | `orderNumber` | `String` | `@NotBlank`, `@Size(max = 50)` | Mã đơn hàng bán hoặc cấp phát sản xuất |
+| `IssueRequestDTO` | `customerName` | `String` | `@NotBlank`, `@Size(max = 255)` | Tên khách hàng hoặc bộ phận nhận hàng |
+| `IssueRequestDTO` | `exportType` | `String` | `PRODUCTION` hoặc `SALE`, mặc định `SALE` | Loại xuất |
+| `IssueRequestDTO` | `overrideReason` | `String` | Tối đa 255 ký tự. Khi có ngoại lệ, tối thiểu 10 ký tự sau khi bỏ khoảng trắng đầu/cuối | Lý do đổi lô hoặc thứ tự ưu tiên |
 | `IssueRequestDTO` | `strategy` | `DispatchStrategy`| `@NotNull(message = "Chiến lược bắt buộc")` | Chiến lược xuất (`FEFO` hoặc `FIFO`) |
 | `IssueRequestDTO` | `note` | `String` | `@Size(max = 500)` | Ghi chú xuất kho |
 | `IssueRequestDTO` | `items` | `List<IssueItemRequestDTO>`| `@NotEmpty(message = "Phải có ít nhất 1 dòng")`| Danh sách mặt hàng yêu cầu xuất |
 | **`IssueItemRequestDTO`** | `productId` | `Long` | `@NotNull(message = "Mã sản phẩm bắt buộc")` | ID sản phẩm cần xuất |
-| `IssueItemRequestDTO` | `requestedQty` | `BigDecimal` | `@NotNull`, `@Min(1)` | Số lượng yêu cầu xuất (`BR-OUT-01`) |
+| `IssueItemRequestDTO` | `requestedQty` | `BigDecimal` | Lớn hơn 0, tối đa 10 chữ số nguyên và 2 chữ số thập phân | Số lượng yêu cầu xuất (`BR-OUT-01`) |
 | `IssueItemRequestDTO` | `selectedBatchId`| `Long` | Tùy chọn | ID lô chọn thủ công (nếu có ngoại lệ) |
 | **`PickListProposalDTO`** | `productId` | `Long` | Không rỗng | ID sản phẩm SKU |
 | `PickListProposalDTO` | `skuCode` | `String` | Không rỗng | Mã SKU sản phẩm |
@@ -153,6 +155,9 @@
 | `IssueNoteResponseDTO` | `makerName` | `String` | Không rỗng | Họ tên người lập phiếu xuất |
 | `IssueNoteResponseDTO` | `checkerName` | `String` | Tùy chọn | Họ tên người duyệt phiếu xuất |
 | `IssueNoteResponseDTO` | `status` | `IssueStatus` | Không rỗng | Trạng thái phiếu xuất |
+| `IssueNoteResponseDTO` | `exportType` | `String` | Có thể rỗng với dữ liệu cũ | Loại xuất |
+| `IssueNoteResponseDTO` | `isOverridden` | `boolean` | Không rỗng | Phiếu có phân bổ ngoại lệ |
+| `IssueNoteResponseDTO` | `overrideReason` | `String` | Tùy chọn | Lý do ngoại lệ |
 | `IssueNoteResponseDTO` | `note` | `String` | Tùy chọn | Ghi chú phiếu |
 | `IssueNoteResponseDTO` | `createdAt` | `LocalDateTime` | Không rỗng | Thời điểm lập phiếu xuất |
 | `IssueNoteResponseDTO` | `approvedAt` | `LocalDateTime` | Tùy chọn | Thời điểm duyệt hoàn tất |
@@ -194,7 +199,7 @@
 | `NearExpiryAlertDTO` | `expiryDate` | `LocalDate` | Không rỗng | Ngày hết hạn của lô hàng |
 | `NearExpiryAlertDTO` | `daysRemaining` | `Long` | Không rỗng | Số ngày còn lại đến thời điểm hết hạn |
 | `NearExpiryAlertDTO` | `currentQty` | `BigDecimal` | Không rỗng | Số lượng tồn kho hiện tại của lô cận hạn |
-| `NearExpiryAlertDTO` | `alertLevel` | `String` | Không rỗng | Mức cảnh báo: `WARNING` (<=30 ngày), `CRITICAL` (<=7 ngày), `EXPIRED` (<=0 ngày) |
+| `NearExpiryAlertDTO` | `alertLevel` | `String` | Không rỗng | Mức cảnh báo: `EXPIRED` (<0 ngày), `CRITICAL` (0–7 ngày), `WARNING` (8 ngày đến ngưỡng đang dùng) |
 
 ---
 
@@ -239,19 +244,21 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
     * Lưu thực thể `WarehouseLocation` với `current_weight = 0`, `status = 'EMPTY'`, `active = true`.
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
 * **`getAvailableLocationsByZone(ZoneType zone)`:**
-  * **Mục đích:** Lọc danh sách ô kệ còn chỗ (`status == 'EMPTY'` hoặc `current_weight < max_weight_capacity`) thuộc phân khu chức năng quy định (`RAW`, `FG`, `DOCK`...) để gợi ý xếp hàng.
+  * **Mục đích.** Trả danh sách ô `EMPTY` trong vùng được yêu cầu. Danh sách chọn ô trên phiếu nhập lấy từ danh mục vị trí và lọc các ô `RAW` hoặc `FG` đang không bảo trì.
 
 ---
 
 ### 3.3. ReceiptService
 *File nguồn:* [`source/src/main/java/com/wms/service/ReceiptService.java`](../../source/src/main/java/com/wms/service/ReceiptService.java)
 
+**Tiếp nhận PO đã duyệt (D21).** Cả hai API nhập PO lấy định danh từ phiên đăng nhập. `PurchaseOrderService` kiểm tra tài khoản còn hoạt động và có `ROLE_MANAGER` trước khi lưu PO ở trạng thái `APPROVED` và ghi vết người nhập. Các thao tác ghi phiếu nhập và phiếu xuất dùng quyền Thủ kho hoặc Quản lý kho theo BR-SEC-03. Phiên bản này chưa có chức năng thay đổi role tài khoản.
+
 * **`createReceiptNote(ReceiptNoteCreateDTO dto, Long currentUserId)`:**
   * **Mục đích:** Tiếp nhận hàng hóa và lập Phiếu nhập kho ở trạng thái chờ duyệt (`UC02`).
   * **Quy tắc & Logic xử lý:**
     * **Kiểm tra PO (`BR-INB-01`):** Đối soát `actualQty <= plannedQty`. Nếu số lượng nhập thực tế vượt quá hợp đồng PO, ném `InvalidQuantityException`.
-    * **Kiểm tra hạn sử dụng (`BR-LOT-01`):** `expiryDate > CURRENT_DATE`. Nếu hàng đã hết hạn hoặc cận hạn dưới ngưỡng quy định, ném `ExpiredLotException`.
-    * **Kiểm tra vị trí kệ (`BR-INB-03`):** Vị trí chọn phải thuộc phân khu phù hợp với ngành hàng và không bị vượt tải trọng thiết kế `max_weight_capacity`. Nếu vi phạm, ném `InvalidLocationException`.
+    * **Kiểm tra hạn sử dụng (`BR-LOT-01`):** `expiryDate > CURRENT_DATE`. API lập phiếu từ chối EXP bằng hoặc trước hôm nay với `400 Bad Request`. Khi duyệt, service kiểm tra lại và trả `409 Conflict` nếu EXP bằng hoặc trước ngày duyệt. Hàng không quản lý hạn được để EXP trống.
+    * **Kiểm tra vị trí kệ (BR-INB-03).** Chỉ cất hàng vào ô `RAW` hoặc `FG` đang không bảo trì. Ô đang chứa SKU khác cũng bị từ chối. Vi phạm trả `400 Bad Request`. `max_capacity` là thông tin sức chứa thiết kế được lưu khi tạo ô. Luồng nhập hiện chưa đối chiếu tải với giá trị này.
     * **Ghi dữ liệu:** Tự động sinh mã phiếu `RN-YYYYMMDD-XXXX`, gán `maker_id = currentUserId`, `status = 'PENDING_APPROVAL'`, lưu `receipt_note` và các dòng `receipt_note_item`. **Chưa tăng tồn kho thực tế ở bước này.**
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
 * **`approveReceiptNote(Long receiptId, ReceiptApprovalDTO approvalDTO, Long currentUserId)`:**
@@ -261,10 +268,10 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
     * **Kiểm tra trạng thái:** Phiếu phải đang ở trạng thái `PENDING_APPROVAL`.
     * **Trường hợp từ chối (`approved == false`):** Cập nhật `status = 'REJECTED'`, lưu lý do từ chối vào `review_note`.
     * **Trường hợp chấp thuận (`approved == true`):**
-      1. Cập nhật `receipt_note`: `status = 'APPROVED'`, `checker_id = currentUserId`, `approved_at = CURRENT_TIMESTAMP`.
-      2. Tăng tồn kho thực tế trong `stock_batch`: Tạo mới bản ghi lô hàng (hoặc cộng dồn nếu cùng lô và vị trí) với `on_hand_qty = on_hand_qty + actual_qty`, `reserved_qty = 0`.
-      3. Cập nhật tải trọng `warehouse_location`: `current_weight = current_weight + (actual_qty * product.max_weight_per_unit)`, chuyển trạng thái kệ sang `OCCUPIED`.
-      4. Ghi nhận nhật ký sổ `stock_card`: `change_type = 'NHAP_PO'`, `before_qty`, `change_qty = +actual_qty`, `after_qty`, `reference_code = receipt_code`.
+      1. Kiểm tra lại vùng, bảo trì và SKU tại vị trí. Ô không hợp lệ trả `400 Bad Request` và phiếu tiếp tục chờ duyệt.
+      2. Tạo hoặc cập nhật lô hàng và cộng lượng thực nhận vào On-hand.
+      3. Cập nhật ô thành `OCCUPIED` khi có tồn.
+      4. Ghi phát sinh nhập và vết kiểm toán. Trên mỗi dòng thẻ kho, `after_changed` là tổng On-hand của SKU ngay sau khi cộng lượng của lô phát sinh. Hoàn tất phiếu với trạng thái `COMPLETED`.
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`. Đảm bảo tính toàn vẹn tuyệt đối (ACID).
 * **`getReceiptNotes(String status, String poNumber)`:**
   * **Mục đích:** Tra cứu danh sách phiếu nhập kho theo bộ lọc trạng thái và mã PO.
@@ -289,6 +296,8 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
   * **Mục đích:** Tạo phiếu xuất kho và tạm khóa giữ chỗ tồn kho khả dụng (`UC04`).
   * **Quy tắc & Logic xử lý:**
     * Kiểm tra tồn khả dụng của từng lô được chỉ định. Nếu không đủ, ném `InsufficientStockException`.
+    * **Dữ liệu lưu.** Đầu phiếu lưu `order_number`, `customer_name` (khách hàng hoặc bộ phận nhận) và `export_type`. Một yêu cầu SKU có thể sinh nhiều dòng theo lô. Khi lập phiếu, mỗi dòng lưu `requested_qty = allocated_qty` bằng phần lượng lấy từ lô đó. Tổng các dòng là lượng yêu cầu đã được cấp đủ.
+    * **Ngoại lệ FEFO/FIFO.** Yêu cầu lý do 10–255 ký tự sau khi bỏ khoảng trắng đầu/cuối. API phản hồi `isOverridden` và `overrideReason`. Giao diện đánh dấu phiếu ngoại lệ để Quản lý xem lý do khi duyệt phiếu.
     * **Khóa tạm giữ tồn kho:** Với mỗi dòng xuất, tăng `reserved_qty = reserved_qty + allocated_qty` trên bảng `stock_batch`. Cơ chế này ngăn chặn tuyệt đối các giao dịch khác tranh chấp xuất âm.
     * Sinh mã phiếu `IN-YYYYMMDD-XXXX`, gán `maker_id = currentUserId`, `status = 'PENDING_APPROVAL'`, lưu `issue_note` và `issue_note_item`.
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
@@ -296,19 +305,19 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
   * **Mục đích:** Quản lý phê duyệt phiếu xuất kho chuyển sang trạng thái chờ lấy hàng (`UC05`).
   * **Quy tắc & Logic xử lý:**
     * **Maker-Checker (`BR-SEC-03`):** Bắt buộc `currentUserId != issue.maker_id`. Ném `SecurityViolationException` (HTTP 403) nếu tự duyệt.
-    * **Kiểm tra hạn dùng (Chốt chặn 1 - Quyết định D4 / `BR-OUT-03`):** Hệ thống duyệt qua toàn bộ item của phiếu xuất; nếu phát hiện có lô hàng bị quá hạn (`batch.isExpired()`), lập tức ném `ExpiredLotException` (HTTP 409 Conflict) để chặn duyệt, yêu cầu Quản lý bấm Từ chối (Reject) phiếu để giải phóng hàng giữ chỗ và yêu cầu lập phiếu mới.
+    * **Kiểm tra điều kiện lô (BR-OUT-03).** Lô quá hạn hoặc không đủ điều kiện xuất thông thường, gồm `QUARANTINED` và `BLOCKED`, làm thao tác duyệt trả `409 Conflict`. Lượng giữ chỗ được giải phóng khi từ chối hoặc hủy phiếu theo trạng thái.
     * Cập nhật `issue_note`: `status = 'APPROVED_READY_TO_PICK'`, `checker_id = currentUserId`, `updated_at = CURRENT_TIMESTAMP`.
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
 * **`confirmDispatch(Long issueId, Long currentUserId)`:**
   * **Mục đích:** Nhân viên kho xác nhận hoàn tất bốc hàng và bàn giao thực tế khỏi kho, chính thức trừ tồn On-hand (`UC05`).
   * **Quy tắc & Logic xử lý:**
     * Kiểm tra trạng thái phiếu: Bắt buộc phải là `APPROVED_READY_TO_PICK`. Ném `ConflictException` (HTTP 409) nếu sai trạng thái.
-    * **Kiểm tra hạn dùng (Chốt chặn 2 - Quyết định D4 / `BR-OUT-03`):** Kiểm tra lại một lần nữa hạn sử dụng của từng lô hàng trước khi bốc hàng ra khỏi kho; nếu có lô hết hạn ném `ExpiredLotException` (HTTP 409 Conflict).
+    * **Kiểm tra điều kiện lô (BR-OUT-03).** Kiểm tra lại từng lô trước khi giao. Lô quá hạn hoặc bị khóa làm thao tác trả `409 Conflict` và giữ nguyên On-hand, Reserved và trạng thái phiếu. Hủy phiếu đã duyệt để giải phóng lượng giữ chỗ.
     * Cập nhật `stock_batch` theo từng item:
       * Trừ tồn thực tế: `on_hand_qty = on_hand_qty - allocated_qty`.
       * Giải phóng lượng giữ chỗ: `reserved_qty = reserved_qty - allocated_qty`.
-    * Cập nhật `warehouse_location`: Nếu vị trí không còn tồn lô hàng nào thì tự động chuyển trạng thái về `EMPTY` (`BR-CAT-03`).
-    * Ghi nhật ký vào `stock_card`: `change_type = 'XUAT_KHO'`, `qty_changed = -allocated_qty`, `after_changed = batch.on_hand_qty`, `reference_code = issue_number` (`BR-SEC-02`).
+    * Cập nhật ô kệ còn tồn thành `OCCUPIED`, ô hết tồn thành `EMPTY` và giữ nguyên trạng thái ô `MAINTENANCE` (`BR-CAT-03`).
+    * Ghi nhật ký vào `stock_card`: `change_type = 'XUAT_KHO'`, `qty_changed = -allocated_qty`, `after_changed = SUM(on_hand_qty)` trên mọi lô cùng SKU ngay sau dòng xuất, `reference_code = issue_number` (`BR-SEC-02`).
     * Cập nhật `issue_note`: `status = 'COMPLETED'`, `updated_at = CURRENT_TIMESTAMP`.
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
 * **`cancelIssueNote(Long issueId, String reason, Long currentUserId)`:**
@@ -326,16 +335,17 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
 * **`calculateAvailableQuantity(Long productId)`:**
   * **Mục đích:** Tính toán động tồn kho khả dụng chuẩn 3NF:
     ```text
-    Available = SUM(on_hand_qty - reserved_qty)  (với các lô có status = 'AVAILABLE' và expiry_date >= CURRENT_DATE hoặc không quản lý lô)
+    Available = SUM(max(0, on_hand_qty - reserved_qty))
+    Lô đủ điều kiện: AVAILABLE, vị trí RAW hoặc FG, EXP >= hôm nay hoặc EXP NULL.
     ```
 * **`getAllAvailableStock()`:**
-  * **Mục đích:** Tổng hợp tồn kho toàn bộ mặt hàng SKU; tự động so sánh tồn khả dụng với `min_stock_alert` để gán cờ cảnh báo đỏ (`underMin = true`).
+  * **Mục đích:** Tổng hợp tồn theo SKU. `underMin` đúng khi `Available ≤ Min Stock`. `onOrder` là tổng `ordered_qty − received_qty` trên PO `APPROVED`. `suggestedOrderQty` bằng `max(0, Max Stock − (Available + onOrder))` nếu tổng không vượt Min Stock. Các trường hợp còn lại trả 0.
 * **`getStockCardHistory(Long productId, LocalDate fromDate, LocalDate toDate)`:**
   * **Mục đích:** Tra cứu sổ thẻ kho của sản phẩm (`UC06`), sắp xếp theo thời gian tăng dần để phục vụ công tác đối soát, kiểm toán kho.
 * **`getLowStockAlerts()`:**
   * **Mục đích:** Lọc danh sách các mặt hàng có tồn khả dụng `<= min_stock_alert` (`UC07`) để hiển thị thông báo bổ sung hàng khẩn cấp lên Dashboard.
 * **`getNearExpiryAlerts(int thresholdDays)`:**
-  * **Mục đích:** Lọc danh sách các lô hàng có `CURRENT_DATE <= expiry_date <= CURRENT_DATE + thresholdDays` (`UC07`) để ưu tiên xuất sớm hoặc xử lý cách ly.
+  * **Mục đích:** Lọc lô có On-hand > 0, EXP khác NULL và `EXP ≤ ngày tra cứu + thresholdDays` (UC07). Bao gồm cả lô quá hạn. API dùng một ngưỡng chung theo lần tra cứu.
 
 ---
 
@@ -343,29 +353,37 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
 
 | Mã UC | HTTP Method | URL Route Path | Controller Handler | Tham số Đầu vào (Input Payload) | Kết quả Trả về (Output) | HTTP Status | Quyền hạn (RBAC) |
 | :---: | :---: | :--- | :--- | :--- | :--- | :---: | :---: |
-| **AUTH** | `GET` | `/login` | `AuthController.showLoginForm` | - | `auth/login.html` | `200 OK` | Public |
-| **AUTH** | `POST` | `/api/v1/auth/login` | `AuthController.login` | `@RequestBody @Valid LoginRequestDTO` | `UserResponseDTO` (JSON) | `200 OK` | Public |
-| **AUTH** | `POST` | `/logout` | `AuthController.logout` | - | Redirect `/login` | `302 Found` | Đã đăng nhập |
-| **UC01** | `GET` | `/catalog/products` | `CatalogController.listProducts` | - | `catalog/list.html` | `200 OK` | Staff, Manager |
-| **UC01** | `POST` | `/api/v1/catalog/products` | `CatalogController.createProduct` | `@RequestBody @Valid ProductCreateDTO` | `ProductResponseDTO` (JSON) | `201 Created`| Manager, Admin |
-| **UC01** | `GET` | `/api/v1/catalog/products/{id}` | `CatalogController.getProduct` | `@PathVariable Long id` | `ProductResponseDTO` (JSON) | `200 OK` | Staff, Manager |
-| **UC01** | `POST` | `/api/v1/catalog/locations` | `CatalogController.setupLocation` | `@RequestBody @Valid LocationSetupDTO` | Thông báo thành công | `201 Created`| Manager, Admin |
-| **UC02** | `GET` | `/receipt/create` | `ReceiptController.showCreateForm` | - | `receipt/create.html` | `200 OK` | **ROLE_STAFF** |
-| **UC02** | `POST` | `/api/v1/receipts` | `ReceiptController.createReceipt` | `@RequestBody @Valid ReceiptNoteCreateDTO` | `ReceiptNoteResponseDTO` (JSON) | `201 Created`| **ROLE_STAFF** |
-| **UC02** | `GET` | `/receipt/list` | `ReceiptController.listReceipts` | `@RequestParam(required = false) String status` | `receipt/list.html` | `200 OK` | Staff, Manager |
-| **UC03** | `GET` | `/receipt/{id}/approve` | `ReceiptController.showApproveView` | `@PathVariable Long id` | `receipt/approve.html` | `200 OK` | **ROLE_MANAGER** |
-| **UC03** | `POST` | `/api/v1/receipts/{id}/approve` | `ReceiptController.approveReceipt` | `@PathVariable Long id`, `@RequestBody @Valid ReceiptApprovalDTO` | `ReceiptNoteResponseDTO` (JSON) | `200 OK` | **ROLE_MANAGER** |
-| **UC04** | `GET` | `/issue/create` | `IssueController.showCreateForm` | - | `issue/create.html` | `200 OK` | **ROLE_STAFF** |
-| **UC04** | `POST` | `/api/v1/issues/propose-allocation` | `IssueController.proposeAllocation` | `@RequestParam Long productId`, `@RequestParam BigDecimal requestedQty`, `@RequestParam DispatchStrategy strategy` | `List<PickListProposalDTO>` (JSON) | `200 OK` | **ROLE_STAFF** |
-| **UC04** | `POST` | `/api/v1/issues` | `IssueController.createIssue` | `@RequestBody @Valid IssueRequestDTO` | `IssueNoteResponseDTO` (JSON) | `201 Created`| **ROLE_STAFF** |
-| **UC05** | `POST` | `/api/v1/issues/{id}/approve` | `IssueController.approveIssue` | `@PathVariable Long id` | `IssueNoteResponseDTO` (JSON) | `200 OK` | **ROLE_MANAGER** |
-| **UC05** | `POST` | `/api/v1/issues/{id}/dispatch` | `IssueController.confirmDispatchApi` | `@PathVariable Long id` | `IssueNoteResponseDTO` (JSON) | `200 OK` | **ROLE_STAFF** |
-| **UC05** | `POST` | `/api/v1/issues/{id}/cancel` | `IssueController.cancelIssue` | `@PathVariable Long id`, `@RequestParam String reason` | Thông báo hủy thành công | `200 OK` | **ROLE_MANAGER** |
-| **UC06** | `GET` | `/inventory/stock-cards` | `InventoryController.viewStockCards` | `@RequestParam(required = false) Long productId` | `inventory/stock_card.html` | `200 OK` | Staff, Manager |
-| **UC06** | `GET` | `/api/v1/inventory/stock-cards` | `InventoryController.getStockCards` | `@RequestParam Long productId`, `@RequestParam(required = false) LocalDate fromDate`, `@RequestParam(required = false) LocalDate toDate` | `List<StockCardDTO>` (JSON) | `200 OK` | Staff, Manager |
-| **UC07** | `GET` | `/inventory/alerts` | `InventoryController.viewAlerts` | - | `inventory/alerts.html` | `200 OK` | Staff, Manager |
-| **UC07** | `GET` | `/api/v1/inventory/alerts/low-stock` | `InventoryController.getLowStock` | - | `List<AvailableStockDTO>` (JSON) | `200 OK` | Staff, Manager |
-| **UC07** | `GET` | `/api/v1/inventory/alerts/near-expiry` | `InventoryController.getNearExpiry` | `@RequestParam(defaultValue = "30") int days` | `List<NearExpiryAlertDTO>` (JSON) | `200 OK` | Staff, Manager |
+| **AUTH** | `GET` | `/auth/login` | `AuthController.loginView` | — | `auth/login.html` | 200 | Công khai |
+| **AUTH** | `POST` | `/auth/api/login` | `AuthController.loginApi` | `LoginRequestDTO` | `UserResponseDTO` và phiên đăng nhập | 200 | Công khai |
+| **AUTH** | `POST` | `/auth/logout` | `AuthController.logout` | — | Chuyển tới `/auth/login` | 302 | Kết thúc phiên hiện có |
+| **FR02** | `GET` | `/api/v1/purchase-orders`, `/api/v1/purchase-orders/{poNumber}` | `PurchaseOrderController` | Mã PO khi xem chi tiết | Danh sách hoặc chi tiết PO | 200 | Công khai theo cấu hình hiện tại |
+| **FR02** | `GET` | `/receipt/api/purchase-orders` | `CoreController.orders` | — | Danh sách PO workspace | 200 | Đã đăng nhập |
+| **FR02** | `POST` | `/receipt/api/purchase-orders` | `CoreController.importOrder` | `ImportRequest` | `PurchaseOrderService.View` | 200, 401, 403 | `ROLE_MANAGER` |
+| **FR02** | `POST` | `/api/v1/purchase-orders` | `PurchaseOrderController.importOrder` | `PurchaseOrderImportDTO` | `PurchaseOrderResponseDTO` | 201, 401, 403 | `ROLE_MANAGER` |
+| **UC01** | `GET` | `/catalog/products`, `/catalog/locations` | `CatalogController` | — | Màn hình danh mục | 200 | Đã đăng nhập |
+| **UC01** | `GET` | `/catalog/api/products`, `/catalog/api/locations` | `CatalogController`, `UiQueryController` | — | Danh sách SKU hoặc ô kệ | 200 | Đã đăng nhập |
+| **UC01** | `POST` | `/catalog/api/products` | `CatalogController.createProductApi` | `ProductCreateDTO` | `ProductResponseDTO` | 201 | `ROLE_MANAGER`, `ROLE_ADMIN` |
+| **UC01** | `POST` | `/catalog/api/locations` | `CatalogController.setupLocationApi` | `LocationSetupDTO` | Thân phản hồi rỗng | 201 | `ROLE_MANAGER`, `ROLE_ADMIN` |
+| **UC01** | `PUT` | `/catalog/api/products/{id}/limits` | `CoreController.limits` | `Limits` | `ProductResponseDTO` | 200 | `ROLE_MANAGER`, `ROLE_ADMIN` |
+| **UC02** | `GET` | `/receipt/create` | `ReceiptController.createReceiptView` | — | Màn hình lập phiếu | 200 | Đã đăng nhập |
+| **UC02** | `GET` | `/receipt/api/notes`, `/receipt/api/notes/{id}` | `ReceiptController`, `UiQueryController` | Bộ lọc trạng thái và mã PO hoặc ID phiếu | Danh sách hoặc chi tiết phiếu | 200 | Đã đăng nhập |
+| **UC02** | `POST` | `/receipt/api/notes` | `ReceiptController.createReceiptNoteApi` | `ReceiptNoteCreateDTO` | `ReceiptNoteResponseDTO` | 201 | `ROLE_STAFF` |
+| **UC03** | `GET` | `/receipt/approve` | `ReceiptController.approveReceiptView` | — | Màn hình duyệt phiếu | 200 | Đã đăng nhập |
+| **UC03** | `POST` | `/receipt/api/notes/{id}/approve` | `ReceiptController.approveReceiptNoteApi` | `ReceiptApprovalDTO` | Phiếu `COMPLETED` hoặc `REJECTED` | 200 | `ROLE_MANAGER`, khác người lập |
+| **UC04** | `GET` | `/issue/create`, `/issue/pick` | `IssueController` | — | Màn hình lập phiếu hoặc bảng lấy hàng | 200 | Đã đăng nhập |
+| **UC04** | `GET` | `/issue/api/propose-fefo` | `IssueController.proposeAllocationApi` | `productId`, `requestedQty`, `strategy` | `List<PickListProposalDTO>` | 200 | Đã đăng nhập |
+| **UC04** | `POST` | `/issue/api/notes` | `IssueController.createIssueNoteApi` | `IssueRequestDTO` | `IssueNoteResponseDTO` | 201 | `ROLE_STAFF` |
+| **UC05** | `GET` | `/issue/api/notes`, `/issue/api/notes/{id}` | `UiQueryController` | Trạng thái hoặc ID phiếu | Danh sách hoặc chi tiết phiếu | 200 | Đã đăng nhập |
+| **UC05** | `POST` | `/issue/api/notes/{id}/approve`, `/issue/api/notes/{id}/reject` | `IssueController` | Lý do khi từ chối | `IssueNoteResponseDTO` | 200 | `ROLE_MANAGER`, khác người lập |
+| **UC05** | `POST` | `/issue/api/notes/{id}/dispatch`, `/issue/api/notes/{id}/complete` | `IssueController` | ID lệnh đã duyệt | `IssueNoteResponseDTO` | 200 | `ROLE_STAFF` |
+| **UC05** | `POST` | `/issue/api/notes/{id}/cancel` | `IssueController.cancel` | `Decision` gồm lý do hủy | Thân phản hồi rỗng | 204 | `ROLE_MANAGER` hoặc `ROLE_STAFF` là người lập |
+| **UC06** | `GET` | `/inventory/stock-card` | `InventoryController.stockCardView` | — | Màn hình thẻ kho | 200 | Đã đăng nhập |
+| **UC06** | `GET` | `/inventory/api/stock-cards` | `InventoryController.getStockCardHistoryApi` | `productId`, tùy chọn `fromDate`, `toDate` | `List<StockCardDTO>` | 200 | Đã đăng nhập |
+| **UC07** | `GET` | `/inventory/alerts` | `InventoryController.alertsView` | — | Màn hình cảnh báo | 200 | Đã đăng nhập |
+| **UC07** | `GET` | `/inventory/api/alerts/low-stock` | `InventoryController.getLowStockAlertsApi` | — | `List<AvailableStockDTO>` | 200 | Đã đăng nhập |
+| **UC07** | `GET` | `/inventory/api/alerts/near-expiry` | `InventoryController.getNearExpiryAlertsApi` | `thresholdDays` (1–365, mặc định 30) | `List<NearExpiryAlertDTO>` | 200, 400 | Đã đăng nhập |
+
+“Đã đăng nhập” áp dụng cho cả ba role ở workspace. Phân quyền ghi và điều kiện trạng thái chứng từ được đối chiếu ở [ma trận quyền](../00_survey_and_scope/chuong_1_gioi_thieu_va_pham_vi.md#actor-role-permission).
 
 ---
 

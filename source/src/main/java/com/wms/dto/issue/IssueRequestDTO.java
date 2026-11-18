@@ -11,9 +11,11 @@ import java.util.List;
 public class IssueRequestDTO {
 
   @NotBlank(message = "Mã lệnh xuất kho bắt buộc")
+  @Size(max = 50)
   private String orderNumber;
 
   @NotBlank(message = "Tên khách hàng / đơn vị nhận bắt buộc")
+  @Size(max = 255)
   private String customerName;
 
   @NotNull(message = "Chiến lược xuất bắt buộc (FEFO hoặc FIFO)")

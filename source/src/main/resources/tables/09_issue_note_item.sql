@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS issue_note_item (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     issue_id BIGINT NOT NULL,
     batch_id BIGINT NOT NULL,
-    requested_qty INT NOT NULL,
-    allocated_qty INT NOT NULL DEFAULT 0,
+    requested_qty DECIMAL(12, 2) NOT NULL,
+    allocated_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Khóa ngoại tham chiếu Phiếu xuất kho và Lô hàng

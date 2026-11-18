@@ -3,7 +3,8 @@
 -- Học phần: Phân tích và Thiết kế Yêu cầu (Mã môn: 502050 - ĐH Tôn Đức Thắng)
 -- Sprint 3 - Task T3.1 | Maker: M1 - Nguyễn Thành Trung | Reviewer: M2 - Nguyễn Bảo Khang
 -- Tiêu chuẩn: Chuẩn hóa 3NF, Khóa ngoại tường minh, Ràng buộc nghiệp vụ toàn vẹn
--- Ghi chú: Mã nguồn được chia thành 10 file riêng biệt tại thư mục ./tables/
+-- Ghi chú: DDL được chia thành 12 file theo bảng tại thư mục ./tables/.
+-- Chỉ dùng script này để khởi tạo hoặc reset schema thử nghiệm vì có DROP TABLE.
 -- =============================================================================
 
 -- TẮT TẠM THỜI RÀNG BUỘC KHÓA NGOẠI KHI KHỞI TẠO LẠI BẢNG (NẾU CẦN RESET)
@@ -78,8 +79,8 @@ CREATE TABLE product (
     sku_code VARCHAR(50) NOT NULL,
     name VARCHAR(255) NOT NULL,
     uom VARCHAR(50) NOT NULL,
-    min_stock INT NOT NULL DEFAULT 0,
-    max_stock INT NOT NULL,
+    min_stock DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    max_stock DECIMAL(12, 2) NOT NULL,
     manage_by_lot BIT NOT NULL DEFAULT 1,
     active BIT NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -137,8 +138,8 @@ CREATE TABLE stock_batch (
     location_id BIGINT NOT NULL,
     lot_number VARCHAR(50) NOT NULL,
     exp_date DATE NULL, -- Cho phép NULL đối với hàng không quản lý lô/hạn (Quyết định D5)
-    on_hand_qty INT NOT NULL DEFAULT 0,
-    reserved_qty INT NOT NULL DEFAULT 0,
+    on_hand_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    reserved_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -168,8 +169,8 @@ CREATE TABLE receipt_note (
     rejection_note VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_receipt_maker FOREIGN KEY (maker_id) REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_receipt_checker FOREIGN KEY (checker_id) REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_receipt_maker FOREIGN KEY (maker_id) REFERENCES `user`(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_receipt_checker FOREIGN KEY (checker_id) REFERENCES `user`(id) ON DELETE RESTRICT,
     CONSTRAINT uk_receipt_number UNIQUE (receipt_number),
     CONSTRAINT chk_receipt_maker_checker CHECK (checker_id IS NULL OR checker_id <> maker_id),
     CONSTRAINT chk_receipt_status CHECK (status IN ('PENDING_APPROVAL', 'COMPLETED', 'REJECTED', 'CANCELLED'))
@@ -190,8 +191,8 @@ CREATE TABLE receipt_note_item (
     location_id BIGINT NOT NULL,
     lot_number VARCHAR(50) NOT NULL,
     exp_date DATE NULL, -- Cho phép NULL đối với hàng không quản lý lô/hạn (Quyết định D5)
-    accepted_qty INT NOT NULL DEFAULT 0,
-    damaged_qty INT NOT NULL DEFAULT 0,
+    accepted_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    damaged_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_receipt_item_note FOREIGN KEY (receipt_id) REFERENCES receipt_note(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_receipt_item_batch FOREIGN KEY (batch_id) REFERENCES stock_batch(id) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -218,10 +219,19 @@ CREATE TABLE issue_note (
     status VARCHAR(30) NOT NULL DEFAULT 'PENDING_APPROVAL',
     is_overridden BIT NOT NULL DEFAULT 0,
     override_reason VARCHAR(255) NULL,
+    order_number VARCHAR(50) NULL,
+    customer_name VARCHAR(255) NULL,
+    note VARCHAR(500) NULL,
+    export_type VARCHAR(20) NULL DEFAULT 'SALE',
+    approved_at DATETIME(6) NULL,
+    completed_at DATETIME(6) NULL,
+    confirmed_by BIGINT NULL,
+    decision_reason VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_issue_maker FOREIGN KEY (maker_id) REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_issue_checker FOREIGN KEY (checker_id) REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_issue_maker FOREIGN KEY (maker_id) REFERENCES `user`(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_issue_checker FOREIGN KEY (checker_id) REFERENCES `user`(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_issue_confirmed_by FOREIGN KEY (confirmed_by) REFERENCES `user`(id) ON DELETE RESTRICT,
     CONSTRAINT uk_issue_number UNIQUE (issue_number),
     CONSTRAINT chk_issue_maker_checker CHECK (checker_id IS NULL OR checker_id <> maker_id),
     CONSTRAINT chk_issue_strategy CHECK (dispatch_strategy IN ('FEFO', 'FIFO')),
@@ -238,8 +248,8 @@ CREATE TABLE issue_note_item (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     issue_id BIGINT NOT NULL,
     batch_id BIGINT NOT NULL,
-    requested_qty INT NOT NULL,
-    allocated_qty INT NOT NULL DEFAULT 0,
+    requested_qty DECIMAL(12, 2) NOT NULL,
+    allocated_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_issue_item_note FOREIGN KEY (issue_id) REFERENCES issue_note(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_issue_item_batch FOREIGN KEY (batch_id) REFERENCES stock_batch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -261,8 +271,8 @@ CREATE TABLE stock_card (
     transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     reference_code VARCHAR(50) NOT NULL,
     change_type VARCHAR(20) NOT NULL,
-    qty_changed INT NOT NULL,
-    after_changed INT NOT NULL,
+    qty_changed DECIMAL(12, 2) NOT NULL,
+    after_changed DECIMAL(12, 2) NOT NULL,
     performed_by BIGINT NULL,
     approved_by BIGINT NULL,
     reason VARCHAR(500) NULL,

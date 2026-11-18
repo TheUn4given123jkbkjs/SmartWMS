@@ -13,15 +13,26 @@ CREATE TABLE IF NOT EXISTS issue_note (
     status VARCHAR(30) NOT NULL DEFAULT 'PENDING_APPROVAL',
     is_overridden BIT NOT NULL DEFAULT 0,
     override_reason VARCHAR(255) NULL,
+    order_number VARCHAR(50) NULL,
+    customer_name VARCHAR(255) NULL,
+    note VARCHAR(500) NULL,
+    export_type VARCHAR(20) NULL DEFAULT 'SALE',
+    approved_at DATETIME(6) NULL,
+    completed_at DATETIME(6) NULL,
+    confirmed_by BIGINT NULL,
+    decision_reason VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     -- Khóa ngoại tham chiếu người lập (Maker) và người duyệt (Checker)
     CONSTRAINT fk_issue_maker FOREIGN KEY (maker_id) 
-        REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        REFERENCES `user`(id) ON DELETE RESTRICT,
     CONSTRAINT fk_issue_checker FOREIGN KEY (checker_id) 
-        REFERENCES `user`(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        REFERENCES `user`(id) ON DELETE RESTRICT,
         
+    CONSTRAINT fk_issue_confirmed_by FOREIGN KEY (confirmed_by)
+        REFERENCES `user`(id) ON DELETE RESTRICT,
+
     -- Ràng buộc tính duy nhất của số phiếu xuất kho
     CONSTRAINT uk_issue_number UNIQUE (issue_number),
     

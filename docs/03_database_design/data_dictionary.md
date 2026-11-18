@@ -61,8 +61,8 @@
 | `sku_code` | VARCHAR | 50 | NO | **UK** | None | UNIQUE, Not empty (`BR-CAT-01`) | Mã SKU định danh duy nhất toàn hệ thống |
 | `name` | VARCHAR | 255 | NO | - | None | Not empty | Tên thương mại của sản phẩm |
 | `uom` | VARCHAR | 50 | NO | - | None | Not empty (`BR-CAT-04`) | Đơn vị tính cơ sở duy nhất |
-| `min_stock` | INT | - | NO | - | 0 | `min_stock >= 0` (`BR-CAT-05`) | Định mức tồn tối thiểu an toàn |
-| `max_stock` | INT | - | NO | - | None | `max_stock > min_stock` (`BR-CAT-05`) | Định mức tồn tối đa cho phép |
+| `min_stock` | DECIMAL | (12, 2) | NO | - | 0 | `min_stock >= 0` (`BR-CAT-05`) | Định mức tồn tối thiểu an toàn |
+| `max_stock` | DECIMAL | (12, 2) | NO | - | None | `max_stock > min_stock` (`BR-CAT-05`) | Định mức tồn tối đa cho phép |
 | `manage_by_lot` | BIT | 1 | NO | - | 1 | `IN (0, 1)` | Cờ quản lý theo hạn dùng/lô |
 | `active` | BIT | 1 | NO | - | 1 | `IN (0, 1)` | Trạng thái kinh doanh sản phẩm |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm khởi tạo mặt hàng |
@@ -80,8 +80,8 @@
 | `location_id` | BIGINT | - | NO | **FK** | None | REFERENCES `warehouse_location(id)` RESTRICT | Khóa ngoại vị trí ô kệ chứa lô |
 | `lot_number` | VARCHAR | 50 | NO | - | None | Not empty (`BR-LOT-01`). Hệ thống tự sinh mã nếu để trống khi `manage_by_lot = FALSE` | Số lô sản xuất từ nhà cung cấp (hoặc mã hệ thống tự sinh) |
 | `exp_date` | DATE | - | YES | - | None | `exp_date > CURRENT_DATE` nếu `manage_by_lot = 1`; NULL nếu `manage_by_lot = 0` (`BR-LOT-01`) | Ngày hết hạn của lô hàng (NULL nếu không quản lý hạn dùng) |
-| `on_hand_qty` | INT | - | NO | - | 0 | `on_hand_qty >= 0` (`BR-OUT-01`) | Số lượng tồn kho thực tế hiện vật |
-| `reserved_qty` | INT | - | NO | - | 0 | `0 <= reserved_qty <= on_hand_qty` | Số lượng đang tạm giữ chỗ cho các lệnh xuất |
+| `on_hand_qty` | DECIMAL | (12, 2) | NO | - | 0 | `on_hand_qty >= 0` (`BR-OUT-01`) | Số lượng tồn kho thực tế hiện vật |
+| `reserved_qty` | DECIMAL | (12, 2) | NO | - | 0 | `0 <= reserved_qty <= on_hand_qty` | Số lượng đang tạm giữ chỗ cho các lệnh xuất |
 | `status` | VARCHAR | 20 | NO | - | 'AVAILABLE' | `IN ('AVAILABLE','EXPIRED','QUARANTINED','BLOCKED')` | Trạng thái chất lượng của lô |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm nhập lô vào hệ thống |
 | `updated_at` | TIMESTAMP | - | YES | - | CURRENT_TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Thời điểm cập nhật số dư |
@@ -118,8 +118,8 @@
 | `location_id` | BIGINT | - | NO | **FK** | None | REFERENCES `warehouse_location(id)` RESTRICT | Khóa ngoại vị trí ô kệ cất hàng (`BR-INB-03`) |
 | `lot_number` | VARCHAR | 50 | NO | - | None | Not empty (`BR-LOT-01`). Hệ thống tự sinh mã nếu để trống khi `manage_by_lot = FALSE` | Số lô trên nhãn bao bì (hoặc mã tự sinh) |
 | `exp_date` | DATE | - | YES | - | None | `exp_date > CURRENT_DATE` nếu `manage_by_lot = 1`; NULL nếu `manage_by_lot = 0` (`BR-LOT-01`) | Hạn sử dụng của mặt hàng (NULL nếu không quản lý hạn dùng) |
-| `accepted_qty` | INT | - | NO | - | 0 | `accepted_qty >= 0` (`BR-INB-01`) | Số lượng đạt chuẩn tiếp nhận vào kho |
-| `damaged_qty` | INT | - | NO | - | 0 | `damaged_qty >= 0` (`BR-INB-04`) | Số lượng vỡ hỏng/lỗi từ chối tiếp nhận |
+| `accepted_qty` | DECIMAL | (12, 2) | NO | - | 0 | `accepted_qty >= 0` (`BR-INB-01`) | Số lượng đạt chuẩn tiếp nhận vào kho |
+| `damaged_qty` | DECIMAL | (12, 2) | NO | - | 0 | `damaged_qty >= 0` (`BR-INB-04`) | Số lượng vỡ hỏng/lỗi từ chối tiếp nhận |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm tạo dòng chi tiết |
 
 ---
@@ -137,7 +137,15 @@
 | `checker_id` | BIGINT | - | YES | **FK** | NULL | `checker_id <> maker_id` (`BR-SEC-03`) | Khóa ngoại Quản lý phê duyệt (Checker) |
 | `status` | VARCHAR | 30 | NO | - | 'PENDING_APPROVAL' | `IN ('PENDING_APPROVAL','APPROVED_READY_TO_PICK','COMPLETED','REJECTED','CANCELLED')` | Trạng thái vòng đời lệnh xuất kho |
 | `is_overridden` | BIT | 1 | NO | - | 0 | `IN (0, 1)` | Cờ ghi đè lô ngoại lệ (Luồng 4a) |
-| `override_reason` | VARCHAR | 255 | YES | - | NULL | Bắt buộc khi `is_overridden = 1` | Lý do giải trình chọn lô khác (kẹt lối đi...) |
+| `override_reason` | VARCHAR | 255 | YES | - | NULL | Bắt buộc khi `is_overridden = 1`, 10–255 ký tự sau khi bỏ khoảng trắng đầu/cuối | Lý do giải trình đổi lô hoặc thứ tự ưu tiên |
+| `order_number` | VARCHAR | 50 | YES | - | NULL | Bắt buộc khi lập phiếu qua API | Số đơn yêu cầu |
+| `customer_name` | VARCHAR | 255 | YES | - | NULL | Bắt buộc khi lập phiếu qua API | Tên khách hàng hoặc bộ phận nhận |
+| `note` | VARCHAR | 500 | YES | - | NULL | - | Ghi chú phiếu xuất |
+| `export_type` | VARCHAR | 20 | YES | - | 'SALE' | API nhận `PRODUCTION` hoặc `SALE` | Loại xuất |
+| `approved_at` | DATETIME | 6 | YES | - | NULL | - | Thời điểm duyệt |
+| `completed_at` | DATETIME | 6 | YES | - | NULL | - | Thời điểm xác nhận bàn giao |
+| `confirmed_by` | BIGINT | - | YES | **FK** | NULL | REFERENCES `user(id)` RESTRICT | Người xác nhận bàn giao |
+| `decision_reason` | VARCHAR | 255 | YES | - | NULL | - | Lý do từ chối hoặc hủy |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm tạo lệnh xuất |
 | `updated_at` | TIMESTAMP | - | YES | - | CURRENT_TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Thời điểm duyệt / xác nhận xuất |
 
@@ -151,8 +159,8 @@
 | `id` | BIGINT | - | NO | **PK** | AUTO_INCREMENT | `id > 0` | Khóa chính định danh dòng phân bổ xuất |
 | `issue_id` | BIGINT | - | NO | **FK** | None | REFERENCES `issue_note(id)` CASCADE | Khóa ngoại liên kết Header phiếu xuất |
 | `batch_id` | BIGINT | - | NO | **FK** | None | REFERENCES `stock_batch(id)` RESTRICT | Khóa ngoại chỉ định lô hàng cần bốc (`BR-OUT-06`) |
-| `requested_qty` | INT | - | NO | - | None | `requested_qty > 0` (`BR-OUT-01`) | Số lượng yêu cầu xuất của mặt hàng |
-| `allocated_qty` | INT | - | NO | - | 0 | `0 <= allocated_qty <= requested_qty` | Số lượng thực tế phân bổ từ lô này |
+| `requested_qty` | DECIMAL | (12, 2) | NO | - | None | `requested_qty > 0` (`BR-OUT-01`) | Phần lượng yêu cầu được đáp ứng ở dòng phân bổ này. Khi lập phiếu, giá trị bằng `allocated_qty` |
+| `allocated_qty` | DECIMAL | (12, 2) | NO | - | 0 | `0 <= allocated_qty <= requested_qty` | Số lượng thực tế phân bổ từ lô này |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm phân bổ dòng hàng |
 
 ---
@@ -168,8 +176,8 @@
 | `transaction_date` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm giao dịch phát sinh ghi sổ |
 | `reference_code` | VARCHAR | 50 | NO | - | None | Not empty | Mã chứng từ đối chiếu (`RN-xxx` hoặc `IN-xxx`) |
 | `change_type` | VARCHAR | 20 | NO | - | None | `IN ('NHAP_PO','XUAT_KHO','KIEM_KE','DIEU_CHINH')` | Loại hình giao dịch phát sinh |
-| `qty_changed` | INT | - | NO | - | None | `qty_changed <> 0` | Lượng biến động (+ khi nhập, - khi xuất) |
-| `after_changed` | INT | - | NO | - | None | `after_changed >= 0` (`BR-SEC-02`) | Tồn kho thực tế lũy kế sau giao dịch |
+| `qty_changed` | DECIMAL | (12, 2) | NO | - | None | `qty_changed <> 0` | Lượng biến động (+ khi nhập, - khi xuất) |
+| `after_changed` | DECIMAL | (12, 2) | NO | - | None | `after_changed >= 0` (`BR-SEC-02`) | Tổng On-hand của SKU trên tất cả các lô ngay sau phát sinh của dòng thẻ kho. `batch_id` xác định lô phát sinh |
 | `performed_by` | BIGINT | - | YES | **FK** | NULL | REFERENCES `user(id)` RESTRICT | Khóa ngoại Người trực tiếp thực hiện giao dịch (`BR-SEC-02`) |
 | `approved_by` | BIGINT | - | YES | **FK** | NULL | REFERENCES `user(id)` RESTRICT | Khóa ngoại Quản lý phê duyệt giao dịch (`BR-SEC-02`) |
 | `reason` | VARCHAR | 500 | YES | - | NULL | None | Lý do thực hiện biến động kho |

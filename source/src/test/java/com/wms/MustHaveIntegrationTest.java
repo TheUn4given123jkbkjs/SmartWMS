@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.*;
+import com.wms.dto.auth.UserResponseDTO;
 import com.wms.entity.*;
 import com.wms.repository.*;
 import java.math.BigDecimal;
@@ -12,9 +13,12 @@ import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -41,10 +45,16 @@ class MustHaveIntegrationTest {
   IssueNoteRepository issues;
 
   @Autowired
+  IssueNoteItemRepository allocations;
+
+  @Autowired
   ReceiptNoteRepository receipts;
 
   @Autowired
   PurchaseOrderRepository orders;
+
+  @Autowired
+  JdbcTemplate jdbc;
 
   MockHttpSession staff, manager, admin;
   long product, location;
@@ -258,6 +268,254 @@ class MustHaveIntegrationTest {
       stock().get(field).decimalValue().compareTo(new BigDecimal(expected)),
       field
     );
+  }
+
+  @Test
+  void rejectedReceiptReleasesPoAndRecordsMakerAndChecker() throws Exception {
+    JsonNode created = receipt("REJECT-RECEIPT", "100", 31, 201);
+    long id = created.path("id").asLong();
+    String path = "/receipt/api/notes/" + id + "/approve";
+    request("POST", path, Map.of("approved", false), manager, 400);
+    request("POST", path, Map.of("approved", false, "reviewNote", "Sai quy cách"), staff, 403);
+    JsonNode rejected = request("POST", path,
+      Map.of("approved", false, "reviewNote", "Sai quy cách"), manager, 200);
+    assertEquals("REJECTED", rejected.path("status").asText());
+    number("totalOnHandQty", "0");
+    assertTrue(cards.findByProductIdOrderByTransactionDateDesc(product).isEmpty());
+    assertAudit(created.path("receiptCode").asText(),
+      List.of("CREATE_RECEIPT", "REJECT_RECEIPT"), List.of(staff, manager));
+    request("POST", path, Map.of("approved", true), manager, 409);
+    approveReceipt(receipt("REPLACEMENT", "100", 31, 201).path("id").asLong());
+    number("totalOnHandQty", "100");
+  }
+
+  @Test
+  void approvedReceiptAndIssuePersistAuditEventsWithActors() throws Exception {
+    JsonNode receipt = receipt("AUDITED", "10", 31, 201);
+    approveReceipt(receipt.path("id").asLong());
+    assertAudit(receipt.path("receiptCode").asText(),
+      List.of("CREATE_RECEIPT", "COMPLETE_RECEIPT"), List.of(staff, manager));
+    JsonNode issue = issue("3", 201);
+    String path = "/issue/api/notes/" + issue.path("id").asLong();
+    request("POST", path + "/approve", null, manager, 200);
+    request("POST", path + "/dispatch", null, staff, 200);
+    assertAudit(issue.path("issueCode").asText(),
+      List.of("RESERVE_ISSUE", "APPROVE_ISSUE", "COMPLETE_ISSUE"), List.of(staff, manager, staff));
+    number("totalOnHandQty", "7");
+    number("totalReservedQty", "0");
+  }
+
+  private void assertAudit(String reference, List<String> actions, List<MockHttpSession> actors) {
+    assertEquals(actions, jdbc.queryForList(
+      "SELECT action FROM audit_event WHERE reference_code = ? AND occurred_at IS NOT NULL ORDER BY id",
+      String.class, reference));
+    assertEquals(actors.stream().map(session -> ((UserResponseDTO) session.getAttribute("user")).getId()).toList(),
+      jdbc.queryForList("SELECT \"actor_id\" FROM audit_event WHERE reference_code = ? ORDER BY id",
+        Long.class, reference));
+  }
+
+  @Test
+  void allRolesCanReadInventoryAndManagerCanWriteCatalog() throws Exception {
+    for (var session : List.of(staff, manager, admin)) {
+      request("GET", "/inventory/api/available-stock", null, session, 200);
+      request("GET", "/inventory/api/alerts/low-stock", null, session, 200);
+      request("GET", "/inventory/api/stock-cards?productId=" + product, null, session, 200);
+    }
+    request("POST", "/catalog/api/locations", Map.of(
+      "locationCode", "FG-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
+      "zone", "FG", "shelf", "01", "maxCapacity", 100), manager, 201);
+  }
+
+  @Test
+  void lowStockUsesAvailableAndOffsetsApprovedPoBalance() throws Exception {
+    request("PUT", "/catalog/api/products/" + product + "/limits",
+      Map.of("minStock", 10, "maxStock", 30), manager, 200);
+    approveReceipt(receipt("LOW-STOCK", "100", 40, 201).path("id").asLong());
+    issue("89", 201);
+    number("availableQty", "11");
+    number("suggestedOrderQty", "0");
+    assertFalse(stock().path("underMin").asBoolean());
+    assertTrue(lowStockAlert().isEmpty());
+
+    issue("1", 201);
+    assertLowStock("10", "0", "20");
+    issue("2", 201);
+    assertLowStock("8", "0", "22");
+
+    po += "-INCOMING";
+    request("POST", "/receipt/api/purchase-orders",
+      Map.of("poNumber", po, "supplierName", "Supplier",
+        "items", List.of(Map.of("productId", product, "orderedQty", 7))),
+      manager, 200);
+    approveReceipt(receipt("PO-PARTIAL", "2", 40, 201).path("id").asLong());
+    issue("2", 201);
+    assertLowStock("8", "5", "0");
+    receipt("PO-PENDING", "1", 40, 201);
+    assertLowStock("8", "5", "0");
+  }
+
+  private Optional<JsonNode> lowStockAlert() throws Exception {
+    for (JsonNode row : request("GET", "/inventory/api/alerts/low-stock", null, staff, 200)) {
+      if (row.path("productId").asLong() == product) return Optional.of(row);
+    }
+    return Optional.empty();
+  }
+
+  private void assertLowStock(String available, String onOrder, String suggestion) throws Exception {
+    JsonNode row = lowStockAlert().orElseThrow();
+    assertTrue(row.path("underMin").asBoolean());
+    assertEquals(0, new BigDecimal(available).compareTo(row.path("availableQty").decimalValue()));
+    assertEquals(0, new BigDecimal(onOrder).compareTo(row.path("onOrder").decimalValue()));
+    assertEquals(0, new BigDecimal(suggestion).compareTo(row.path("suggestedOrderQty").decimalValue()));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {31, 30, 1, 0, -1})
+  void receiptUsesCurrentExpiryThreshold(int remaining) throws Exception {
+    JsonNode result = receipt("INBOUND-EXPIRY", "1", remaining, remaining > 0 ? 201 : 400);
+    if (remaining > 0) {
+      approveReceipt(result.path("id").asLong());
+      number("totalOnHandQty", "1");
+    } else {
+      assertFalse(result.path("validationErrors").path("items[0].expiryDate").isMissingNode());
+      number("totalOnHandQty", "0");
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, -1})
+  void receiptApprovalRechecksExpiryAfterWaiting(int remaining) throws Exception {
+    long id = receipt("WAITING-EXPIRY", "1", 1, 201).path("id").asLong();
+    assertEquals(1, jdbc.update("UPDATE receipt_note_item SET exp_date = ? WHERE receipt_id = ?",
+      LocalDate.now().plusDays(remaining), id));
+    request("POST", "/receipt/api/notes/" + id + "/approve",
+      Map.of("approved", true), manager, 409);
+    assertEquals("PENDING_APPROVAL", receipts.findById(id).orElseThrow().getStatus().name());
+    number("totalOnHandQty", "0");
+  }
+
+  @Test
+  void nearExpiryUsesInclusiveThresholdAndD3ExpiryBoundary() throws Exception {
+    for (int days : List.of(1, 7, 8, 30, 31)) {
+      approveReceipt(receipt("EXP-" + days, "1", days, 201).path("id").asLong());
+    }
+    for (String lot : List.of("TODAY", "PAST", "NO-DATE", "EMPTY-LOT")) {
+      approveReceipt(receipt(lot, "1", 10, 201).path("id").asLong());
+    }
+    LocalDate today = LocalDate.now();
+    jdbc.update("UPDATE stock_batch SET exp_date = ? WHERE product_id = ? AND lot_number = 'TODAY'",
+      today, product);
+    jdbc.update("UPDATE stock_batch SET exp_date = ? WHERE product_id = ? AND lot_number = 'PAST'",
+      today.minusDays(1), product);
+    jdbc.update("UPDATE stock_batch SET exp_date = NULL WHERE product_id = ? AND lot_number = 'NO-DATE'",
+      product);
+    jdbc.update("UPDATE stock_batch SET on_hand_qty = 0 WHERE product_id = ? AND lot_number = 'EMPTY-LOT'",
+      product);
+
+    Map<String, String> defaultAlerts = expiryLevels("");
+    assertEquals(Map.of("TODAY", "CRITICAL", "PAST", "EXPIRED", "EXP-1", "CRITICAL",
+      "EXP-7", "CRITICAL", "EXP-8", "WARNING", "EXP-30", "WARNING"), defaultAlerts);
+    assertEquals(defaultAlerts, expiryLevels("?thresholdDays=30"));
+    var extended = new HashMap<>(defaultAlerts);
+    extended.put("EXP-31", "WARNING");
+    assertEquals(extended, expiryLevels("?thresholdDays=31"));
+    assertEquals(extended, expiryLevels("?thresholdDays=365"));
+    assertEquals(Map.of("TODAY", "CRITICAL", "PAST", "EXPIRED", "EXP-1", "CRITICAL"),
+      expiryLevels("?thresholdDays=1"));
+    request("GET", "/inventory/api/alerts/near-expiry?thresholdDays=366", null, staff, 400);
+  }
+
+  private Map<String, String> expiryLevels(String query) throws Exception {
+    String sku = productRepository.findById(product).orElseThrow().getSkuCode();
+    Map<String, String> result = new HashMap<>();
+    for (JsonNode row : request("GET", "/inventory/api/alerts/near-expiry" + query, null, staff, 200)) {
+      if (sku.equals(row.path("skuCode").asText())) {
+        result.put(row.path("batchCode").asText(), row.path("alertLevel").asText());
+      }
+    }
+    return result;
+  }
+
+  @Test
+  void splitIssuePersistsDecimalAllocationsAndSkuBalances() throws Exception {
+    approveReceipt(receipt("SPLIT-FIRST", "5.25", 15, 201).get("id").asLong());
+    approveReceipt(receipt("SPLIT-SECOND", "7.75", 35, 201).get("id").asLong());
+    JsonNode created = issue("7.50", 201);
+    long id = created.get("id").asLong();
+    assertFalse(created.path("isOverridden").asBoolean(true));
+    assertEquals("ORDER", created.path("orderNumber").asText());
+    assertEquals("Production", created.path("customerName").asText());
+    assertEquals("PRODUCTION", created.path("exportType").asText());
+    assertEquals(2, created.path("pickList").size());
+    var lines = allocations.findByIssueNoteId(id).stream()
+      .sorted(Comparator.comparing(IssueNoteItem::getId))
+      .toList();
+    assertEquals(2, lines.size());
+    assertEquals(List.of(new BigDecimal("5.25"), new BigDecimal("2.25")),
+      lines.stream().map(IssueNoteItem::getAllocatedQty).toList());
+    assertEquals(lines.stream().map(IssueNoteItem::getAllocatedQty).toList(),
+      lines.stream().map(IssueNoteItem::getRequestedQty).toList());
+
+    request("POST", "/issue/api/notes/" + id + "/approve", null, manager, 200);
+    request("POST", "/issue/api/notes/" + id + "/dispatch", null, staff, 200);
+    var entries = cards.findByProductIdOrderByTransactionDateDesc(product).stream()
+      .sorted(Comparator.comparing(StockCard::getId))
+      .toList();
+    assertEquals(List.of(new BigDecimal("5.25"), new BigDecimal("7.75"),
+        new BigDecimal("-5.25"), new BigDecimal("-2.25")),
+      entries.stream().map(StockCard::getQtyChanged).toList());
+    assertEquals(List.of(new BigDecimal("5.25"), new BigDecimal("13.00"),
+        new BigDecimal("7.75"), new BigDecimal("5.50")),
+      entries.stream().map(StockCard::getAfterChanged).toList());
+    number("totalOnHandQty", "5.50");
+    number("totalReservedQty", "0");
+  }
+
+  @Test
+  void overrideRequiresTenCharactersAndStaysVisibleAfterApproval() throws Exception {
+    approveReceipt(receipt("OVERRIDE-CHECK", "10", 35, 201).get("id").asLong());
+    var data = new HashMap<String, Object>(Map.of(
+      "orderNumber", "OVERRIDE-ORDER",
+      "customerName", "Production",
+      "strategy", "FIFO",
+      "items", List.of(Map.of("productId", product, "requestedQty", 2))
+    ));
+    for (String reason : List.of("  ", " 123456789 ", "a".repeat(256))) {
+      data.put("overrideReason", reason);
+      request("POST", "/issue/api/notes", data, staff, 400);
+      number("totalReservedQty", "0");
+    }
+    data.put("overrideReason", "  1234567890  ");
+    JsonNode created = request("POST", "/issue/api/notes", data, staff, 201);
+    assertTrue(created.path("isOverridden").asBoolean());
+    assertEquals("1234567890", created.path("overrideReason").asText());
+    long id = created.path("id").asLong();
+    request("POST", "/issue/api/notes/" + id + "/approve", null, manager, 200);
+    JsonNode stored = request("GET", "/issue/api/notes/" + id, null, manager, 200);
+    assertEquals("APPROVED_READY_TO_PICK", stored.path("status").asText());
+    assertTrue(stored.path("isOverridden").asBoolean());
+    assertEquals("1234567890", stored.path("overrideReason").asText());
+  }
+
+  @Test
+  void quantityInputsEnforceDecimalPrecisionAndScale() throws Exception {
+    for (String invalid : List.of("1.001", "10000000000.00")) {
+      receipt("INVALID-DECIMAL", invalid, 35, 400);
+      issue(invalid, 400);
+    }
+    String path = "/receipt/api/purchase-orders";
+    String number = po + "-LIMIT";
+    for (String invalid : List.of("1.001", "10000000000.00")) {
+      request("POST", path, Map.of("poNumber", number, "supplierName", "Supplier",
+        "items", List.of(Map.of("productId", product, "orderedQty", new BigDecimal(invalid)))),
+        manager, 400);
+      assertTrue(orders.findByPoNumber(number).isEmpty());
+    }
+    JsonNode imported = request("POST", path, Map.of("poNumber", number, "supplierName", "Supplier",
+      "items", List.of(Map.of("productId", product, "orderedQty", new BigDecimal("9999999999.99")))),
+      manager, 200);
+    assertEquals(0, imported.path("items").get(0).path("orderedQty").decimalValue()
+      .compareTo(new BigDecimal("9999999999.99")));
   }
 
   @Test

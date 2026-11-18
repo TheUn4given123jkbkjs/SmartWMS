@@ -40,9 +40,10 @@ Phân tích và thiết kế hệ thống Quản lý Kho hàng (SmartWMS) giúp 
 
 * **Bối cảnh doanh nghiệp:** Hệ thống hướng tới một công ty sản xuất - phân phối phụ tùng, linh kiện kỹ thuật (tương ứng với một nhà máy thành viên trong tập đoàn công nghiệp Nhật Bản của case study VTI Solutions). Doanh nghiệp sở hữu một kho trung tâm thực hiện chức năng kép: quản lý nguyên vật liệu đầu vào và quản lý thành phẩm đầu ra.
 * **Mô hình kiến trúc & Quản trị kho bãi:** Mặt bằng kho bãi được tổ chức theo phương pháp **5S Nhật Bản** kết hợp tiêu chuẩn kẻ vạch sàn công nghiệp **3M Floor Marking Tapes** (phân định rõ các khu vực: Cầu cảng xuất nhập, Kiểm tra đầu vào, Lưu trữ nguyên vật liệu, Lưu trữ thành phẩm, Khu cách ly phế liệu và Lối đi an toàn). Dự án SmartWMS đóng vai trò là giải pháp số hóa các tiêu chuẩn này vào quy trình quản lý thông tin của phần mềm.
-* **Đối tượng sử dụng chính:**
+* **Tác nhân và bên liên quan:**
   - *Quản lý kho (Thủ kho trưởng):* Phê duyệt chứng từ, giám sát số liệu, tổ chức kiểm kê.
   - *Nhân viên kho (Thủ kho):* Thực hiện các thao tác nhập, xuất, kiểm đếm và cất hàng.
+  - *Quản trị viên:* Quản lý danh mục và tra cứu với tài khoản `ROLE_ADMIN` trong phiên bản hiện tại.
   - *Nhân viên Phòng Mua hàng:* Theo dõi mức tồn khả dụng và tiến độ giao hàng của các đơn mua hàng (PO).
   - *Bộ phận Kế hoạch Sản xuất / Bán hàng:* Tạo các yêu cầu xuất kho nguyên vật liệu hoặc thành phẩm.
   - *Bộ phận Kế toán kho & Ban Giám đốc:* Đối soát số liệu và xem báo cáo tổng hợp.
@@ -67,7 +68,24 @@ Dự án thực tế của VTI Solutions có quy mô rất lớn (triển khai �
 | **Quản lý Kiểm kê** | Tạo đợt kiểm kê (định kỳ hoặc đột xuất); nhập số lượng kiểm đếm thực tế; hệ thống tự động đối soát và kết xuất báo cáo sai lệch thừa/thiếu; hỗ trợ điều chỉnh số tồn sau khi Quản lý duyệt. |
 | **Cảnh báo & Đề xuất** | Cảnh báo trực quan trên giao diện (In-app Notification): cảnh báo tồn kho dưới mức tối thiểu (Min Stock); cảnh báo hàng cận hạn sử dụng 30 ngày; danh sách đề xuất số lượng cần đặt hàng bổ sung. |
 | **Báo cáo Thống kê** | Báo cáo tổng hợp Nhập - Xuất - Tồn theo kỳ; báo cáo chi tiết theo mặt hàng/lô hàng; báo cáo kết quả chênh lệch kiểm kê; xuất dữ liệu báo cáo phục vụ kế toán. |
-| **Hệ thống & Bảo mật** | Đăng nhập hệ thống; phân quyền người dùng theo vai trò (Quản lý kho, Thủ kho, Mua hàng); cơ chế kiểm soát chéo Maker-Checker; lưu vết nhật ký thao tác (Audit Log). |
+| **Hệ thống & Bảo mật** | Đăng nhập hệ thống; phân quyền hiện tại theo vai trò Thủ kho, Quản lý kho và Quản trị viên; cơ chế kiểm soát chéo Maker-Checker; lưu vết nhật ký thao tác (Audit Log). |
+
+<a id="actor-role-permission"></a>
+
+#### Ma trận tác nhân, role và quyền hiện tại
+
+| Tác nhân | Role hiện tại | Quyền thực tế |
+|---|---|---|
+| Nhân viên kho / Thủ kho | `ROLE_STAFF` | Đọc danh mục, PO, chứng từ, tồn, thẻ kho và cảnh báo. Lập phiếu nhập và xuất. Xác nhận giao lệnh xuất đã duyệt. Hủy lệnh xuất của chính mình khi lệnh còn chờ duyệt hoặc chờ lấy hàng. |
+| Quản lý kho / Thủ kho trưởng | `ROLE_MANAGER` | Các quyền đọc nêu trên. Tạo SKU và ô kệ, sửa định mức Min/Max. Nhập PO đã duyệt qua hai API ghi PO. Duyệt hoặc từ chối phiếu nhập/xuất của người khác. Hủy lệnh xuất còn chờ duyệt hoặc chờ lấy hàng. |
+| Quản trị viên | `ROLE_ADMIN` | Các quyền đọc nêu trên. Tạo SKU và ô kệ, sửa định mức Min/Max. Các API ghi PO và ghi phiếu nhập/xuất từ chối role này. |
+| Mua hàng | Chưa có role riêng | Bên cung cấp thông tin PO và sử dụng số liệu tồn hoặc đề xuất đặt hàng theo nghiệp vụ. |
+| Kế toán kho, Ban Giám đốc | Chưa có role riêng | Bên đối soát hoặc sử dụng báo cáo theo nghiệp vụ. |
+| Nhà cung cấp, Kế hoạch sản xuất / Bán hàng | Chưa có role riêng | Bên giao hàng hoặc gửi nhu cầu xuất theo quy trình doanh nghiệp. |
+
+Các quyền đọc trong workspace yêu cầu phiên đăng nhập. API đọc PO cũ `/api/v1/purchase-orders` cho phép tra cứu công khai theo cấu hình hiện tại. Các thao tác ghi kiểm tra role theo endpoint và service. Luồng từ chối phiếu nhập đã có. Quản lý tài khoản, tự đổi role và hủy phiếu nhập chưa có chức năng thực thi.
+
+**Phương án chờ phê duyệt.** Trong phạm vi ba role hiện tại, Quản lý kho có thể làm đầu mối cung cấp số liệu cho Mua hàng, Kế toán và Ban Giám đốc theo quy trình bên ngoài. Nếu các bộ phận cần truy cập trực tiếp, xác định phạm vi dữ liệu và quyền đọc riêng trước khi quyết định role mới.
 
 ### 1.4.2. Hệ thống không làm (Ngoài phạm vi hệ thống)
 * Tích hợp thực tế qua API/Webservice với các hệ thống ERP, MES, hay phần mềm kế toán bên ngoài (chỉ thiết kế kiến trúc sẵn sàng kết nối).

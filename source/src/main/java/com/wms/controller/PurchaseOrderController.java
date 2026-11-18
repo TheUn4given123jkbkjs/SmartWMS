@@ -4,7 +4,6 @@ import com.wms.dto.auth.UserResponseDTO;
 import com.wms.dto.purchase.PurchaseOrderImportDTO;
 import com.wms.dto.purchase.PurchaseOrderResponseDTO;
 import com.wms.service.PurchaseOrderService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -47,12 +46,12 @@ public class PurchaseOrderController {
   @PostMapping
   public ResponseEntity<PurchaseOrderResponseDTO> importOrder(
     @Valid @RequestBody PurchaseOrderImportDTO request,
-    HttpSession session
+    @SessionAttribute("user") UserResponseDTO currentUser
   ) {
-    UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-    Long actorId = currentUser != null ? currentUser.getId() : 1L;
-
-    PurchaseOrderResponseDTO result = purchaseOrderService.importPurchaseOrder(request, actorId);
+    PurchaseOrderResponseDTO result = purchaseOrderService.importPurchaseOrder(
+      request,
+      currentUser.getId()
+    );
     return ResponseEntity.status(HttpStatus.CREATED).body(result);
   }
 }
