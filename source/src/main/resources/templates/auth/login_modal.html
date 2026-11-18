@@ -31,7 +31,7 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2" id="register-tab" data-bs-toggle="pill" data-bs-target="#tab-register" type="button" role="tab" aria-controls="tab-register" aria-selected="false">
-                            <i class="bi bi-person-plus me-1"></i> Đăng Ký
+                            <i class="bi bi-person-plus me-1"></i> Đăng Ký Đối Tác
                         </button>
                     </li>
                 </ul>
@@ -42,12 +42,61 @@
                 <div class="tab-content" id="authTabContent">
                     <!-- TAB 1: ĐĂNG NHẬP -->
                     <div class="tab-pane fade show active" id="tab-login" role="tabpanel" aria-labelledby="login-tab">
-                        <div class="text-center mb-4">
-                            <h5 class="fw-bold text-dark font-heading mb-1">Cổng Đăng Nhập Hệ Thống Kho</h5>
-                            <p class="text-muted small">Vui lòng nhập tài khoản và mật khẩu để tiếp tục</p>
+                        <div class="text-center mb-3">
+                            <h5 class="fw-bold text-dark font-heading mb-1">Cổng Đăng Nhập Vận Hành</h5>
+                            <p class="text-muted small">Dành riêng cho Cán bộ Quản lý và Nhân viên Tổng kho Yamaha</p>
                         </div>
 
-                        <p>Đăng nhập bằng tài khoản được quản trị viên cấp.</p><a href="/auth/login" class="btn btn-orange w-100">Đến trang đăng nhập</a>
+                        <!-- Alert Error Message -->
+                        <div id="modalLoginAlert" class="alert alert-danger py-2 px-3 small d-none" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> <span id="modalLoginAlertMsg">Tài khoản hoặc mật khẩu không chính xác.</span>
+                        </div>
+
+                        <form id="modalLoginForm">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Tên đăng nhập</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" id="modalUsername" name="username" placeholder="Nhập tên đăng nhập..." required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="form-label small fw-bold text-dark">Mật khẩu</label>
+                                    <a href="#" class="small text-decoration-none" style="color: var(--wms-orange, #ff6a00); font-size: 0.78rem;" onclick="alert('Vui lòng liên hệ Quản trị viên hệ thống (Admin) để được cấp lại mật khẩu nội bộ.'); return false;">Quên mật khẩu?</a>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="modalPassword" name="password" placeholder="Nhập mật khẩu..." required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="const p = document.getElementById('modalPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.querySelector('i').classList.toggle('bi-eye'); this.querySelector('i').classList.toggle('bi-eye-slash');">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="modalRememberMe" checked>
+                                    <label class="form-check-label small text-muted" for="modalRememberMe" style="font-size: 0.8rem;">
+                                        Ghi nhớ đăng nhập
+                                    </label>
+                                </div>
+                                <span class="small text-muted" style="font-size: 0.76rem;">
+                                    <i class="bi bi-shield-check text-success me-1"></i> Xác thực phiên
+                                </span>
+                            </div>
+
+                            <button type="submit" id="modalBtnSubmit" class="btn btn-orange-quote w-100 justify-content-center py-2 mb-2" style="background-color: var(--wms-orange, #ff6a00); color: #fff; font-weight: 700; border-radius: 6px;">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> ĐĂNG NHẬP VÀO HỆ THỐNG
+                            </button>
+
+                            <div class="text-center mt-3">
+                                <a href="/auth/login" class="small text-muted text-decoration-none" style="font-size: 0.8rem;">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Mở trang đăng nhập độc lập
+                                </a>
+                            </div>
+                        </form>
                     </div>
 
                     <!-- TAB 2: ĐĂNG KÝ / ĐỐI TÁC -->
@@ -106,12 +155,68 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer border-0 bg-light py-2 justify-content-center text-center">
-                <span class="small text-muted" style="font-size: 0.76rem;">
-                    <i class="bi bi-shield-lock-fill text-success me-1"></i> Hệ thống lưu trữ bảo mật dữ liệu doanh nghiệp đạt chuẩn ISO/IEC 27001
+                <span class="small text-muted" style="font-size: 0.74rem;">
+                    <i class="bi bi-info-circle me-1"></i> Tài khoản vận hành được cấp phát bởi Quản trị viên (Admin).
                 </span>
             </div>
         </div>
     </div>
+
+    <!-- Script xử lý AJAX đăng nhập đặt BÊN TRONG fragment loginModal để Thymeleaf tự động chèn vào landing.html -->
+    <script>
+    (function() {
+        function initModalLogin() {
+            const modalForm = document.getElementById("modalLoginForm");
+            if (!modalForm || modalForm.dataset.bound === "true") return;
+            modalForm.dataset.bound = "true";
+
+            modalForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById("modalBtnSubmit");
+                const alertBox = document.getElementById("modalLoginAlert");
+                const alertMsg = document.getElementById("modalLoginAlertMsg");
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xác thực...';
+                alertBox.classList.add("d-none");
+
+                try {
+                    const formData = new FormData(modalForm);
+                    const payload = {
+                        username: formData.get("username"),
+                        password: formData.get("password")
+                    };
+
+                    const response = await fetch("/auth/api/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || "Tên đăng nhập hoặc mật khẩu không chính xác.");
+                    }
+
+                    modalForm.reset();
+                    window.location.assign("/app");
+                } catch (err) {
+                    alertMsg.textContent = err.message;
+                    alertBox.classList.remove("d-none");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i> ĐĂNG NHẬP VÀO HỆ THỐNG';
+                }
+            });
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initModalLogin);
+        } else {
+            initModalLogin();
+        }
+    })();
+    </script>
 </div>
 
 </body>

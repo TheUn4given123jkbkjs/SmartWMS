@@ -56,16 +56,28 @@ public class StockBatch {
   public StockBatch() {}
 
   /**
+   * Kiểm tra lô hàng đã hết hạn hay chưa (D3: Hết hạn khi expDate < ngày hiện tại).
+   */
+  public boolean isExpired() {
+    return expDate != null && expDate.isBefore(LocalDate.now());
+  }
+
+  /**
    * Tồn khả dụng (Available Qty) tính toán động = onHandQty - reservedQty
+   * Tuân thủ D2: Chỉ khả dụng khi trạng thái là AVAILABLE và chưa hết hạn.
    */
   public BigDecimal getAvailableQty() {
-    return onHandQty.subtract(reservedQty);
+    if (!"AVAILABLE".equalsIgnoreCase(status) || isExpired()) {
+      return BigDecimal.ZERO;
+    }
+    return onHandQty.subtract(reservedQty).max(BigDecimal.ZERO);
   }
 
   public boolean isEligible() {
     return (
       "AVAILABLE".equals(status) &&
-      (expDate == null || !expDate.isBefore(LocalDate.now())) &&
+      !isExpired() &&
+      location != null &&
       (location.getZone() == com.wms.util.ZoneType.RAW ||
         location.getZone() == com.wms.util.ZoneType.FG)
     );
@@ -116,7 +128,11 @@ public class StockBatch {
   }
 
   public void setOnHandQty(BigDecimal onHandQty) {
-    this.onHandQty = onHandQty;
+    this.onHandQty = onHandQty != null ? onHandQty : BigDecimal.ZERO;
+  }
+
+  public void setOnHandQty(Integer qty) {
+    this.onHandQty = qty != null ? BigDecimal.valueOf(qty) : BigDecimal.ZERO;
   }
 
   public BigDecimal getReservedQty() {
@@ -124,7 +140,11 @@ public class StockBatch {
   }
 
   public void setReservedQty(BigDecimal reservedQty) {
-    this.reservedQty = reservedQty;
+    this.reservedQty = reservedQty != null ? reservedQty : BigDecimal.ZERO;
+  }
+
+  public void setReservedQty(Integer qty) {
+    this.reservedQty = qty != null ? BigDecimal.valueOf(qty) : BigDecimal.ZERO;
   }
 
   public String getStatus() {
@@ -149,5 +169,45 @@ public class StockBatch {
 
   public void setUpdatedAt(LocalDateTime updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  // --- Helper methods khớp Class Diagram ---
+  public BigDecimal getOnHandQuantity() {
+    return onHandQty;
+  }
+
+  public BigDecimal getReservedQuantity() {
+    return reservedQty;
+  }
+
+  public BigDecimal getAvailableQuantity() {
+    return getAvailableQty();
+  }
+
+  public void reserve(BigDecimal quantity) {
+    if (quantity != null && quantity.compareTo(BigDecimal.ZERO) > 0) {
+      this.reservedQty = (this.reservedQty != null ? this.reservedQty : BigDecimal.ZERO).add(quantity);
+      this.updatedAt = LocalDateTime.now();
+    }
+  }
+
+  public void reserve(Integer quantity) {
+    if (quantity != null) {
+      reserve(BigDecimal.valueOf(quantity));
+    }
+  }
+
+  public void deductDispatched(BigDecimal quantity) {
+    if (quantity != null && quantity.compareTo(BigDecimal.ZERO) > 0) {
+      this.onHandQty = (this.onHandQty != null ? this.onHandQty : BigDecimal.ZERO).subtract(quantity).max(BigDecimal.ZERO);
+      this.reservedQty = (this.reservedQty != null ? this.reservedQty : BigDecimal.ZERO).subtract(quantity).max(BigDecimal.ZERO);
+      this.updatedAt = LocalDateTime.now();
+    }
+  }
+
+  public void deductDispatched(Integer quantity) {
+    if (quantity != null) {
+      deductDispatched(BigDecimal.valueOf(quantity));
+    }
   }
 }

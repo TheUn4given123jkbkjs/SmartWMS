@@ -104,7 +104,7 @@ Dự án thực tế của VTI Solutions có quy mô rất lớn (triển khai �
 | **EXP** | Expiration Date | Hạn sử dụng của sản phẩm – mốc thời gian mà sau đó hàng hóa bị cấm xuất kho hoặc sử dụng. |
 | **On-hand** | On-hand Inventory | Số lượng tồn kho thực tế đang hiện diện vật lý trong kho tại thời điểm hiện tại. |
 | **Reserved** | Reserved Inventory | Số lượng hàng tồn giữ chỗ – lượng hàng đã được cam kết cho các phiếu xuất đang xử lý nhưng chưa hoàn tất giao hàng. |
-| **Available** | Available Inventory | Số lượng tồn kho khả dụng có thể xuất: $\text{Available} = \text{On-hand} - \text{Reserved} - \text{Hàng hỏng/Hết hạn}$. |
+| **Available** | Available Inventory | Số lượng tồn kho khả dụng có thể xuất: $\text{Available} = \sum (\text{On-hand} - \text{Reserved})$ của các lô hàng đạt chuẩn lưu kho (trạng thái AVAILABLE và còn hạn sử dụng $\text{EXP} \ge \text{hôm nay}$). |
 | **Min Stock** | Minimum Stock Level | Định mức tồn kho tối thiểu – ngưỡng an toàn mà khi số lượng chạm hoặc giảm xuống dưới mức này, hệ thống sẽ phát cảnh báo. |
 | **Max Stock** | Maximum Stock Level | Định mức tồn kho tối đa – ngưỡng tồn trần nhằm tránh nguy cơ quá tải kho và ứ đọng vốn lưu động. |
 | **Thẻ kho** | Stock Card | Bản ghi theo dõi chi tiết lịch sử phát sinh nhập, xuất và số tồn tích lũy của từng mặt hàng theo thời gian. |

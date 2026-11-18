@@ -197,8 +197,8 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 | Bước | Hành động của Tác nhân | Phản hồi của Hệ thống |
 |:---:|:---|:---|
 | 1 | Nhân viên kho chọn chức năng **"Quản lý Xuất kho"** và bấm **"Tạo phiếu xuất mới"**. | Hệ thống hiển thị form nhập liệu yêu cầu xuất: Loại xuất kho (Xuất sản xuất, Xuất bán hàng), Bộ phận nhận hàng, Ngày hẹn giao hàng, Ghi chú. |
-| 2 | Nhân viên kho thêm các dòng mặt hàng cần xuất: chọn Mã SKU và nhập **Số lượng yêu cầu xuất** (`requested_quantity`). | Hệ thống truy vấn tồn kho thời gian thực và kiểm tra điều kiện xuất kho:<br>$$\text{Requested Quantity} \le \text{Available Quantity}$$<br>Trong đó $\text{Available} = \text{On-hand} - \text{Reserved} - \text{Expired}$ (`BR-OUT-01`). |
-| 3 | | Hệ thống tự động kích hoạt thuật toán đề xuất xuất lô thông minh:<br>1. Lọc bỏ toàn bộ các lô hàng đã hết hạn ($\text{EXP Date} \le \text{Current Date}$, `BR-OUT-03`).<br>2. Đối với hàng quản lý hạn dùng: Sắp xếp các lô còn hạn theo thứ tự hạn dùng gần nhất lên trước (**FEFO** – `BR-OUT-02`).<br>3. Đối với hàng không quản lý hạn: Sắp xếp theo ngày nhập kho cũ nhất lên trước (**FIFO** – `BR-OUT-02`).<br>4. Tự động phân bổ số lượng cần xuất vào từng lô và gán Vị trí ô kệ cụ thể cần lấy hàng (`BR-OUT-06`). |
+| 2 | Nhân viên kho thêm các dòng mặt hàng cần xuất: chọn Mã SKU và nhập **Số lượng yêu cầu xuất** (`requested_quantity`). | Hệ thống truy vấn tồn kho thời gian thực và kiểm tra điều kiện xuất kho:<br>$$\text{Requested Quantity} \le \text{Available Quantity}$$<br>Trong đó $\text{Available} = \sum (\text{On-hand} - \text{Reserved})$ của các lô có trạng thái AVAILABLE và còn hạn ($\text{EXP} \ge \text{hôm nay}$) ([`BR-OUT-01`](../../01_srs/business_rules.md)). |
+| 3 | | Hệ thống tự động kích hoạt thuật toán đề xuất xuất lô thông minh:<br>1. Lọc bỏ toàn bộ các lô hàng đã hết hạn ($\text{EXP Date} < \text{Current Date}$, [`BR-OUT-03`](../../01_srs/business_rules.md)). Các lô có $\text{EXP Date} = \text{Current Date}$ vẫn được phép xuất đến hết 23:59:59 của ngày.<br>2. Đối với hàng quản lý hạn dùng: Sắp xếp các lô còn hạn theo thứ tự hạn dùng gần nhất lên trước (**FEFO** – [`BR-OUT-02`](../../01_srs/business_rules.md)).<br>3. Đối với hàng không quản lý hạn: Sắp xếp theo ngày nhập kho cũ nhất lên trước (**FIFO** – [`BR-OUT-02`](../../01_srs/business_rules.md)).<br>4. Tự động phân bổ số lượng cần xuất vào từng lô và gán Vị trí ô kệ cụ thể cần lấy hàng ([`BR-OUT-06`](../../01_srs/business_rules.md)). |
 | 4 | | Hệ thống hiển thị Bảng chỉ dẫn lấy hàng dự kiến (Pick list proposal) gồm: SKU, Tên hàng, Số lô được phân bổ, Hạn sử dụng, Vị trí ô kệ (Khu vực - Kệ - Ô) và Số lượng cần bốc dỡ tại từng vị trí. |
 | 5 | Nhân viên kho xem lại danh sách chỉ dẫn lấy hàng và bấm **"Gửi phê duyệt phiếu xuất"**. | Hệ thống thực thi giao dịch kích hoạt cơ chế Tạm giữ chỗ (*Reserve*):<br>1. Cộng `requested_quantity` vào trường `reserved_quantity` của mặt hàng/lô hàng.<br>2. Trừ trực tiếp khỏi `available_quantity` của mặt hàng.<br>3. Giữ nguyên số lượng tồn kho vật lý `on_hand_quantity` không đổi (`BR-OUT-01`).<br>4. Tạo bản ghi Phiếu xuất kho (`IssueNote`) với trạng thái `PENDING_APPROVAL`, lưu `maker_id` và thời điểm lập. |
 | 6 | | Hệ thống phản hồi mã `201 Created`, cấp Số phiếu xuất kho, thông báo "Tạo phiếu xuất kho và tạm giữ chỗ thành công", và gửi thông báo chờ duyệt đến Quản lý kho. |
@@ -216,7 +216,7 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
   * Tại bước 2, Nhân viên kho nhập số lượng xuất lớn hơn lượng tồn `Available` hiện có của mặt hàng.
   * Hệ thống phát hiện vi phạm quy tắc chống bán âm `BR-OUT-01`, chặn lập phiếu và trả về mã lỗi `400 Bad Request`: *"Số lượng yêu cầu xuất [X] vượt quá số lượng tồn kho khả dụng hiện có [Y]. Không thể tạo phiếu xuất."*
 * **Luồng 3e1 – Cảnh báo chặn lô hàng đã quá hạn sử dụng (`400 Bad Request`):**
-  * Tại bước 3, Nhân viên kho cố tình chỉ định lấy hàng từ một lô đã hết hạn ($\text{EXP Date} \le \text{Current Date}$).
+  * Tại bước 3, Nhân viên kho cố tình chỉ định lấy hàng từ một lô đã hết hạn ($\text{EXP Date} < \text{Current Date}$).
   * Hệ thống khóa chặn lập tức theo quy định `BR-OUT-03`, từ chối thao tác và thông báo: *"Nghiêm cấm xuất kho đối với lô hàng đã hết hạn sử dụng theo quy tắc BR-OUT-03. Lô hàng này đã được đưa vào diện cách ly chờ tiêu hủy."*
 
 ---
@@ -241,11 +241,11 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 |:---:|:---|:---|
 | 1 | Quản lý kho truy cập danh mục **"Phê duyệt chứng từ"** và chọn tab **"Phiếu xuất chờ duyệt"**. | Hệ thống hiển thị danh sách các phiếu xuất đang có trạng thái `PENDING_APPROVAL` (nổi bật các phiếu có cờ ghi đè lô ngoại lệ nếu có). |
 | 2 | Quản lý kho chọn phiếu xuất, kiểm tra mục đích xuất, danh sách mặt hàng, số lượng và các lô hàng phân bổ. | Hệ thống hiển thị chi tiết phiếu xuất kèm danh tính Nhân viên kho lập phiếu (`maker_id`). |
-| 3 | Quản lý kho bấm nút **"Phê duyệt xuất kho"** (Approve). | Hệ thống kiểm tra điều kiện Maker-Checker: `checker_id != maker_id` (`BR-SEC-03`). |
-| 4 | | Hệ thống chuyển trạng thái phiếu xuất sang **"Đã duyệt – Chờ lấy hàng"** (`APPROVED_READY_TO_PICK`), ghi nhận `approver_id` và thời điểm duyệt. |
+| 3 | Quản lý kho bấm nút **"Phê duyệt xuất kho"** (Approve). | Hệ thống thực hiện kiểm tra 2 chốt chặn nghiệp vụ:<br>1. Điều kiện Maker-Checker: `checker_id != maker_id` (`BR-SEC-03`).<br>2. Tính hợp lệ về hạn dùng của từng lô hàng (`validateLotNotExpired`): tất cả các lô hàng được phân bổ phải còn hạn sử dụng (`exp_date >= Current Date`) theo quy tắc `BR-OUT-03`. |
+| 4 | | Khi kiểm tra thành công, hệ thống chuyển trạng thái phiếu xuất sang **"Đã duyệt – Chờ lấy hàng"** (`APPROVED_READY_TO_PICK`), ghi nhận `checker_id` và thời điểm duyệt. |
 | 5 | Nhân viên kho mở/in **Phiếu chỉ dẫn lấy hàng** (Pick list) hiển thị chi tiết: Mã SKU, Tên hàng, Số lô cần lấy, Hạn dùng, và Mã vị trí ô kệ cần đến lấy (`BR-OUT-06`). | Hệ thống xuất định dạng Pick list chuẩn hóa theo thứ tự tối ưu hóa quãng đường di chuyển trong kho. |
 | 6 | Nhân viên kho đến đúng vị trí ô kệ lấy hàng, kiểm tra thực tế, bàn giao hàng cho đại diện BP. Sản xuất / Bán hàng ký biên bản giao nhận. | |
-| 7 | Nhân viên kho truy cập hệ thống và bấm **"Xác nhận hoàn tất giao hàng"** (Confirm Dispatch). | Hệ thống thực thi Giao dịch nguyên tử (Atomic Database Transaction):<br>1. Chuyển trạng thái phiếu xuất sang `COMPLETED`.<br>2. Trừ số dư tồn kho thực tế (*On-hand*) tương ứng tại bảng `StockBatch` (`BR-OUT-04`).<br>3. Giải phóng số lượng giữ chỗ tương ứng khỏi `reserved_quantity`.<br>4. Kiểm tra vị trí kho: nếu tổng tồn tại vị trí bằng 0, tự động cập nhật trạng thái vị trí thành `EMPTY` (`BR-CAT-03`).<br>5. Tự động ghi 01 dòng bút toán vào Thẻ kho điện tử (`StockCard`): Số chứng từ, Loại giao dịch "XUẤT_KHO", Số lượng xuất, Tồn sau giao dịch (`BR-SEC-02`).<br>6. Ghi nhận Audit Log: Maker ID, Approver ID, Dispatcher ID, timestamps.<br>7. Khóa vĩnh viễn chứng từ cấm sửa/xóa (`BR-SEC-01`). |
+| 7 | Nhân viên kho truy cập hệ thống và bấm **"Xác nhận hoàn tất giao hàng"** (Confirm Dispatch). | Hệ thống kiểm tra chốt chặn hạn dùng lần 2, sau đó thực thi Giao dịch nguyên tử (Atomic Database Transaction):<br>1. Chuyển trạng thái phiếu xuất sang `COMPLETED`.<br>2. Trừ số dư tồn kho thực tế (*On-hand*) tương ứng tại bảng `StockBatch` (`BR-OUT-04`).<br>3. Giải phóng số lượng giữ chỗ tương ứng khỏi `reserved_quantity`.<br>4. Kiểm tra vị trí kho: nếu tổng tồn tại vị trí bằng 0, tự động cập nhật trạng thái vị trí thành `EMPTY` (`BR-CAT-03`).<br>5. Tự động ghi 01 dòng bút toán vào Thẻ kho điện tử (`StockCard`): Số chứng từ, Loại giao dịch "XUẤT_KHO", Số lượng xuất, Tồn sau giao dịch (`BR-SEC-02`).<br>6. Ghi nhận Audit Log: Maker ID, Approver ID, Dispatcher ID, timestamps.<br>7. Khóa vĩnh viễn chứng từ cấm sửa/xóa (`BR-SEC-01`). |
 | 8 | | Hệ thống phản hồi mã `200 OK`, hiển thị thông báo "Xuất kho hoàn tất thành công. Số dư tồn kho thực tế đã được cập nhật giảm", và hoàn thành ca sử dụng. |
 
 #### 3. Luồng phụ / Rẽ nhánh (Alternative Flows)
@@ -258,9 +258,15 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 * **Luồng 3e1 – Vi phạm nguyên tắc Maker-Checker / Tự duyệt phiếu xuất (`403 Forbidden`):**
   * Tại bước 3, tài khoản Quản lý kho duyệt trùng với tài khoản đã lập phiếu xuất (`checker_id == maker_id`).
   * Hệ thống chặn ngay lập tức, trả về mã lỗi `403 Forbidden`: *"Vi phạm quy tắc Maker-Checker: Người tạo yêu cầu xuất không được phép tự phê duyệt phiếu xuất của chính mình theo BR-SEC-03."*
+* **Luồng 3e2 – Phát hiện lô hàng quá hạn trong thời gian chờ duyệt (`409 Conflict`):**
+  * Tại bước 3, hệ thống phát hiện ít nhất 01 lô hàng trong phiếu xuất đã hết hạn (`exp_date < Current Date`) do thời gian chờ duyệt bị kéo dài.
+  * Hệ thống chặn phê duyệt, ném `ExpiredLotException` với mã lỗi `409 Conflict`: *"Lô hàng [Mã lô] đã quá hạn sử dụng vào ngày [exp_date] trong thời gian chờ duyệt. Không thể phê duyệt xuất hàng đã quá hạn theo quy tắc BR-OUT-03. Vui lòng bấm Từ chối (Reject) phiếu để giải phóng hàng giữ chỗ và yêu cầu lập phiếu mới."*
+  * Quản lý kho thực hiện Luồng 3a (Từ chối duyệt) để tự động giải phóng lượng hàng đã giữ chỗ của các mặt hàng còn lại.
 * **Luồng 7e1 – Xung đột dữ liệu tồn kho đồng thời (`409 Conflict`):**
   * Tại bước 7, trong quá trình xác nhận giao hàng, dữ liệu lô hàng bị xung đột trạng thái trong CSDL.
   * Hệ thống rollback toàn bộ giao dịch, trả về mã lỗi `409 Conflict` và yêu cầu người dùng thử lại sau vài giây.
+* **Luồng 7e2 – Phát hiện lô hàng quá hạn tại thời điểm bốc hàng bàn giao (`409 Conflict`):**
+  * Tại bước 7, khi Nhân viên kho bấm "Xác nhận hoàn tất giao hàng", hệ thống kiểm tra lại hạn sử dụng. Nếu phát hiện lô hàng bị quá hạn trong thời gian từ lúc duyệt đến lúc bốc hàng, hệ thống chặn xuất kho, rollback giao dịch và trả về mã lỗi `409 Conflict` (`ExpiredLotException`), yêu cầu chuyển lô hàng vào khu cách ly và xử lý theo quy định `BR-OUT-05`.
 
 ---
 
@@ -283,7 +289,7 @@ Tài liệu này đặc tả chi tiết 7 Ca sử dụng cốt lõi (Core Use Ca
 | Bước | Hành động của Tác nhân | Phản hồi của Hệ thống |
 |:---:|:---|:---|
 | 1 | Nhân viên kho / Quản lý kho chọn chức năng **"Tra cứu Tồn kho"** trên menu chính. | Hệ thống hiển thị màn hình Tra cứu tồn kho tổng hợp với thanh tìm kiếm đa năng và 3 tab góc nhìn: **Theo SKU**, **Theo Lô / Hạn dùng**, **Theo Vị trí ô kệ**. |
-| 2 | Tại tab mặc định **"Theo SKU"**, người dùng nhập từ khóa tìm kiếm (Mã SKU hoặc Tên hàng), chọn Nhóm hàng, Phân vùng kho 3M và bấm **"Tìm kiếm"**. | Hệ thống truy vấn CSDL và tính toán các chỉ số tồn kho tức thời:<br>$$\text{Available} = \text{On-hand} - \text{Reserved} - \text{Quá hạn/Hư hỏng}$$ |
+| 2 | Tại tab mặc định **"Theo SKU"**, người dùng nhập từ khóa tìm kiếm (Mã SKU hoặc Tên hàng), chọn Nhóm hàng, Phân vùng kho 3M và bấm **"Tìm kiếm"**. | Hệ thống truy vấn CSDL và tính toán các chỉ số tồn kho tức thời:<br>$$\text{Available} = \sum (\text{On-hand} - \text{Reserved}) \quad \text{(các lô có trạng thái AVAILABLE và còn hạn dùng)}$$ |
 | 3 | | Hệ thống hiển thị bảng dữ liệu kết quả trực quan gồm: Mã SKU, Tên hàng, ĐVT, Tồn thực tế (*On-hand*), Tồn giữ chỗ (*Reserved*), Tồn khả dụng (*Available*), và Trạng thái dự trữ an toàn (Badge màu: Xanh – Bình thường, Đỏ – Chạm ngưỡng Min). |
 | 4 | Nhân viên kho / Quản lý kho bấm chọn một dòng mặt hàng cụ thể và bấm nút **"Xem Thẻ kho"** (Electronic Stock Card). | Hệ thống hiển thị modal Tra cứu Thẻ kho điện tử, yêu cầu chọn khoảng thời gian cần truy vấn: **Từ ngày** (`from_date`) và **Đến ngày** (`to_date`). |
 | 5 | Nhân viên kho / Quản lý kho chọn khoảng thời gian và bấm **"Trích xuất Thẻ kho"**. | Hệ thống kiểm tra hợp lệ khoảng thời gian ($\text{to\_date} \ge \text{from\_date}$). |

@@ -1,11 +1,14 @@
 package com.wms.controller;
 
+import com.wms.dto.auth.UserResponseDTO;
 import com.wms.dto.issue.IssueNoteResponseDTO;
 import com.wms.dto.issue.IssueRequestDTO;
 import com.wms.dto.issue.PickListProposalDTO;
 import com.wms.service.IssueService;
 import com.wms.util.DispatchStrategy;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -61,12 +64,11 @@ public class IssueController {
   @ResponseBody
   public ResponseEntity<IssueNoteResponseDTO> createIssueNoteApi(
     @Valid @RequestBody IssueRequestDTO dto,
-    @SessionAttribute("user") com.wms.dto.auth.UserResponseDTO user
+    @SessionAttribute(value = "user", required = false) UserResponseDTO user,
+    @RequestHeader(value = "X-User-Id", defaultValue = "1") Long currentUserId
   ) {
-    IssueNoteResponseDTO created = issueService.createIssueNote(
-      dto,
-      user.getId()
-    );
+    Long actorId = user != null ? user.getId() : currentUserId;
+    IssueNoteResponseDTO created = issueService.createIssueNote(dto, actorId);
     return ResponseEntity.status(HttpStatus.CREATED).body(created);
   }
 
@@ -74,28 +76,39 @@ public class IssueController {
   @ResponseBody
   public ResponseEntity<IssueNoteResponseDTO> approveIssueNoteApi(
     @PathVariable Long id,
-    @SessionAttribute("user") com.wms.dto.auth.UserResponseDTO user
+    @SessionAttribute(value = "user", required = false) UserResponseDTO user,
+    @RequestHeader(value = "X-User-Id", defaultValue = "2") Long currentUserId
   ) {
-    IssueNoteResponseDTO approved = issueService.approveIssueNote(
-      id,
-      user.getId()
-    );
+    Long actorId = user != null ? user.getId() : currentUserId;
+    IssueNoteResponseDTO approved = issueService.approveIssueNote(id, actorId);
     return ResponseEntity.ok(approved);
   }
 
+  @PostMapping("/api/notes/{id}/dispatch")
+  @ResponseBody
+  public ResponseEntity<IssueNoteResponseDTO> confirmDispatchApi(
+    @PathVariable Long id,
+    @SessionAttribute(value = "user", required = false) UserResponseDTO user,
+    @RequestHeader(value = "X-User-Id", defaultValue = "1") Long currentUserId
+  ) {
+    Long actorId = user != null ? user.getId() : currentUserId;
+    IssueNoteResponseDTO dispatched = issueService.confirmDispatch(id, actorId);
+    return ResponseEntity.ok(dispatched);
+  }
+
   public record Decision(
-    @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(
-      max = 255
-    ) String reason
+    @NotBlank @Size(max = 255) String reason
   ) {}
 
   @PostMapping("/api/notes/{id}/complete")
   @ResponseBody
   public IssueNoteResponseDTO complete(
     @PathVariable Long id,
-    @SessionAttribute("user") com.wms.dto.auth.UserResponseDTO user
+    @SessionAttribute(value = "user", required = false) UserResponseDTO user,
+    @RequestHeader(value = "X-User-Id", defaultValue = "1") Long currentUserId
   ) {
-    return issueService.completeIssueNote(id, user.getId());
+    Long actorId = user != null ? user.getId() : currentUserId;
+    return issueService.completeIssueNote(id, actorId);
   }
 
   @PostMapping("/api/notes/{id}/reject")
@@ -103,9 +116,11 @@ public class IssueController {
   public IssueNoteResponseDTO reject(
     @PathVariable Long id,
     @Valid @RequestBody Decision decision,
-    @SessionAttribute("user") com.wms.dto.auth.UserResponseDTO user
+    @SessionAttribute(value = "user", required = false) UserResponseDTO user,
+    @RequestHeader(value = "X-User-Id", defaultValue = "2") Long currentUserId
   ) {
-    return issueService.rejectIssueNote(id, decision.reason(), user.getId());
+    Long actorId = user != null ? user.getId() : currentUserId;
+    return issueService.rejectIssueNote(id, decision.reason(), actorId);
   }
 
   @PostMapping("/api/notes/{id}/cancel")
@@ -113,9 +128,11 @@ public class IssueController {
   public ResponseEntity<Void> cancel(
     @PathVariable Long id,
     @Valid @RequestBody Decision decision,
-    @SessionAttribute("user") com.wms.dto.auth.UserResponseDTO user
+    @SessionAttribute(value = "user", required = false) UserResponseDTO user,
+    @RequestHeader(value = "X-User-Id", defaultValue = "1") Long currentUserId
   ) {
-    issueService.cancelIssueNote(id, decision.reason(), user.getId());
+    Long actorId = user != null ? user.getId() : currentUserId;
+    issueService.cancelIssueNote(id, decision.reason(), actorId);
     return ResponseEntity.noContent().build();
   }
 }

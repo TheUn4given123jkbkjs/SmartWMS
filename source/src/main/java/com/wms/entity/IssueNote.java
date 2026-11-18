@@ -70,91 +70,27 @@ public class IssueNote {
   @Column(length = 50)
   private String orderNumber;
 
-  public String getOrderNumber() {
-    return orderNumber;
-  }
-
-  public void setOrderNumber(String value) {
-    orderNumber = value;
-  }
-
   @Column(length = 255)
   private String customerName;
-
-  public String getCustomerName() {
-    return customerName;
-  }
-
-  public void setCustomerName(String value) {
-    customerName = value;
-  }
 
   @Column(length = 500)
   private String note;
 
-  public String getNote() {
-    return note;
-  }
-
-  public void setNote(String value) {
-    note = value;
-  }
-
   @Column(length = 20)
   private String exportType = "SALE";
-
-  public String getExportType() {
-    return exportType;
-  }
-
-  public void setExportType(String value) {
-    exportType = value;
-  }
 
   @Column
   private LocalDateTime approvedAt;
 
-  public LocalDateTime getApprovedAt() {
-    return approvedAt;
-  }
-
-  public void setApprovedAt(LocalDateTime value) {
-    approvedAt = value;
-  }
-
   @Column
   private LocalDateTime completedAt;
 
-  public LocalDateTime getCompletedAt() {
-    return completedAt;
-  }
-
-  public void setCompletedAt(LocalDateTime value) {
-    completedAt = value;
-  }
-
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "confirmed_by")
   private User confirmedBy;
 
-  public User getConfirmedBy() {
-    return confirmedBy;
-  }
-
-  public void setConfirmedBy(User value) {
-    confirmedBy = value;
-  }
-
   @Column(length = 255)
   private String decisionReason;
-
-  public String getDecisionReason() {
-    return decisionReason;
-  }
-
-  public void setDecisionReason(String value) {
-    decisionReason = value;
-  }
 
   public IssueNote() {}
 
@@ -252,5 +188,80 @@ public class IssueNote {
 
   public void setUpdatedAt(LocalDateTime updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  public String getOrderNumber() {
+    return orderNumber;
+  }
+
+  public void setOrderNumber(String orderNumber) {
+    this.orderNumber = orderNumber;
+  }
+
+  public String getCustomerName() {
+    return customerName;
+  }
+
+  public void setCustomerName(String customerName) {
+    this.customerName = customerName;
+  }
+
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
+  }
+
+  public String getExportType() {
+    return exportType;
+  }
+
+  public void setExportType(String exportType) {
+    this.exportType = exportType;
+  }
+
+  public LocalDateTime getApprovedAt() {
+    return approvedAt;
+  }
+
+  public void setApprovedAt(LocalDateTime approvedAt) {
+    this.approvedAt = approvedAt;
+  }
+
+  public LocalDateTime getCompletedAt() {
+    return completedAt;
+  }
+
+  public void setCompletedAt(LocalDateTime completedAt) {
+    this.completedAt = completedAt;
+  }
+
+  public User getConfirmedBy() {
+    return confirmedBy;
+  }
+
+  public void setConfirmedBy(User confirmedBy) {
+    this.confirmedBy = confirmedBy;
+  }
+
+  public String getDecisionReason() {
+    return decisionReason;
+  }
+
+  public void setDecisionReason(String decisionReason) {
+    this.decisionReason = decisionReason;
+  }
+
+  // --- Helper methods theo Class Diagram ---
+  public void reserveInventory() {
+    this.status = IssueStatus.PENDING_APPROVAL;
+  }
+
+  public void confirmDispatch(Long checkerId) {
+    this.status = IssueStatus.COMPLETED;
+    this.completedAt = LocalDateTime.now();
+    this.updatedAt = LocalDateTime.now();
   }
 }

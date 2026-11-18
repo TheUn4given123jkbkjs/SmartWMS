@@ -188,11 +188,13 @@ public class IssueServiceImpl implements IssueService {
     IssueNote n = require(id);
     ops.checker(n.getMaker(), checker);
     pending(n);
-    for (IssueNoteItem i : n.getItems()) if (
-      !i.getStockBatch().isEligible()
-    ) throw new ExpiredLotException(
-      "Phiếu có lô đã quá hạn hoặc bị cách ly. Hãy từ chối/hủy để giải phóng giữ chỗ."
-    );
+    for (IssueNoteItem i : n.getItems()) {
+      if (i.getStockBatch() != null && (!i.getStockBatch().isEligible() || i.getStockBatch().isExpired())) {
+        throw new ExpiredLotException(
+          "Phiếu có lô " + i.getStockBatch().getLotNumber() + " đã quá hạn hoặc bị cách ly. Hãy từ chối/hủy để giải phóng giữ chỗ."
+        );
+      }
+    }
     n.setChecker(checker);
     n.setApprovedAt(LocalDateTime.now());
     n.setUpdatedAt(LocalDateTime.now());
@@ -213,9 +215,11 @@ public class IssueServiceImpl implements IssueService {
     for (IssueNoteItem i : n.getItems()) {
       StockBatch b = i.getStockBatch();
       BigDecimal q = i.getAllocatedQty();
-      if (!b.isEligible()) throw new ExpiredLotException(
-        "Lô đã hết hạn hoặc không đủ điều kiện xuất."
-      );
+      if (b == null || !b.isEligible() || b.isExpired()) {
+        throw new ExpiredLotException(
+          "Lô đã hết hạn hoặc không đủ điều kiện xuất."
+        );
+      }
       if (
         b.getReservedQty().compareTo(q) < 0 || b.getOnHandQty().compareTo(q) < 0
       ) throw new ConflictException("Số dư tồn kho/giữ chỗ không hợp lệ.");
@@ -238,6 +242,11 @@ public class IssueServiceImpl implements IssueService {
     n.setUpdatedAt(LocalDateTime.now());
     ops.audit(n.getIssueNumber(), "COMPLETE_ISSUE", actor);
     return map(n);
+  }
+
+  @Override
+  public IssueNoteResponseDTO confirmDispatch(Long issueId, Long currentUserId) {
+    return completeIssueNote(issueId, currentUserId);
   }
 
   public IssueNoteResponseDTO rejectIssueNote(
@@ -284,11 +293,13 @@ public class IssueServiceImpl implements IssueService {
     ) throw new InvalidQuantityException("Phải nhập lý do (tối đa 255 ký tự).");
     for (IssueNoteItem i : n.getItems()) {
       StockBatch b = i.getStockBatch();
-      if (
-        b.getReservedQty().compareTo(i.getAllocatedQty()) < 0
-      ) throw new ConflictException("Số giữ chỗ không hợp lệ.");
-      b.setReservedQty(b.getReservedQty().subtract(i.getAllocatedQty()));
-      b.setUpdatedAt(LocalDateTime.now());
+      if (b != null) {
+        if (
+          b.getReservedQty().compareTo(i.getAllocatedQty()) < 0
+        ) throw new ConflictException("Số giữ chỗ không hợp lệ.");
+        b.setReservedQty(b.getReservedQty().subtract(i.getAllocatedQty()));
+        b.setUpdatedAt(LocalDateTime.now());
+      }
     }
     n.setStatus(status);
     n.setDecisionReason(reason);

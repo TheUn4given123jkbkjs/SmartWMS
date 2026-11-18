@@ -1,38 +1,19 @@
 package com.wms.service;
 
-import com.wms.entity.*;
-import com.wms.exception.*;
-import com.wms.repository.*;
-import com.wms.util.*;
+import com.wms.dto.purchase.PurchaseOrderImportDTO;
+import com.wms.dto.purchase.PurchaseOrderResponseDTO;
+import com.wms.entity.PurchaseOrder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
-import java.util.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
-@Service
-@Transactional
-public class PurchaseOrderService {
+/**
+ * Service Interface quản lý dữ liệu Đơn mua hàng PO (FR02, BR-INB-01).
+ */
+public interface PurchaseOrderService {
 
-  private final PurchaseOrderRepository orders;
-  private final ProductRepository products;
-  private final ReceiptNoteRepository receipts;
-  private final WarehouseOperations ops;
-
-  public PurchaseOrderService(
-    PurchaseOrderRepository o,
-    ProductRepository p,
-    ReceiptNoteRepository r,
-    WarehouseOperations ops
-  ) {
-    orders = o;
-    products = p;
-    receipts = r;
-    this.ops = ops;
-  }
-
-  public record Line(
+  record Line(
     Long productId,
     String skuCode,
     String productName,
@@ -42,7 +23,7 @@ public class PurchaseOrderService {
     BigDecimal remainingQty
   ) {}
 
-  public record View(
+  record View(
     Long id,
     String poNumber,
     String supplierName,
@@ -50,107 +31,35 @@ public class PurchaseOrderService {
     List<Line> items
   ) {}
 
-  public record ImportLine(
+  record ImportLine(
     @NotNull Long productId,
     @NotNull @DecimalMin(value = "0", inclusive = false) BigDecimal orderedQty
   ) {}
 
-  public record ImportRequest(
+  record ImportRequest(
     @NotBlank @Size(max = 50) String poNumber,
     @NotBlank @Size(max = 255) String supplierName,
     @NotEmpty List<@Valid ImportLine> items
   ) {}
 
-  @Transactional(readOnly = true)
-  public List<View> list() {
-    return orders.findAll().stream().map(this::view).toList();
-  }
+  /** Lấy danh sách tất cả các đơn mua hàng kèm tiến độ giao hàng chi tiết */
+  List<PurchaseOrderResponseDTO> getAllPurchaseOrders();
 
-  public View importApproved(ImportRequest request, Long actor) {
-    ops.lock();
-    ops.actor(actor, UserRole.ROLE_MANAGER);
-    if (
-      orders.findByPoNumber(request.poNumber()).isPresent()
-    ) throw new ConflictException("Mã PO đã tồn tại.");
-    PurchaseOrder po = new PurchaseOrder();
-    po.setPoNumber(request.poNumber());
-    po.setSupplierName(request.supplierName());
-    Set<Long> seen = new HashSet<>();
-    for (var line : request.items()) {
-      if (!seen.add(line.productId())) throw new InvalidQuantityException(
-        "PO không được trùng SKU."
-      );
-      Product p = products
-        .findById(line.productId())
-        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy SKU.")
-        );
-      PurchaseOrderItem i = new PurchaseOrderItem();
-      i.setPurchaseOrder(po);
-      i.setProduct(p);
-      i.setOrderedQty(ops.qty(line.orderedQty(), true));
-      po.getItems().add(i);
-    }
-    orders.save(po);
-    ops.audit(
-      po.getPoNumber(),
-      "IMPORT_APPROVED_PO",
-      ops.actor(actor, UserRole.ROLE_MANAGER)
-    );
-    return view(po);
-  }
+  /** Lấy chi tiết một đơn mua hàng theo mã PO */
+  PurchaseOrderResponseDTO getPurchaseOrderByNumber(String poNumber);
 
-  public BigDecimal pending(
-    String number,
-    Long productId,
-    Long excludeReceipt
-  ) {
-    return receipts
-      .findAll()
-      .stream()
-      .filter(
-        r ->
-          r.getPoNumber().equals(number) &&
-          r.getStatus() == ReceiptStatus.PENDING_APPROVAL &&
-          (excludeReceipt == null || !r.getId().equals(excludeReceipt))
-      )
-      .flatMap(r -> r.getItems().stream())
-      .filter(i -> i.getProduct().getId().equals(productId))
-      .map(ReceiptNoteItem::getAcceptedQty)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
-  }
+  /** Tiếp nhận/Import một đơn mua hàng đã duyệt vào hệ thống */
+  PurchaseOrderResponseDTO importPurchaseOrder(PurchaseOrderImportDTO dto, Long actorId);
 
-  public PurchaseOrder require(String number) {
-    return orders
-      .findByPoNumber(number)
-      .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy PO."));
-  }
+  /** Tra cứu Entity PO bắt buộc tồn tại */
+  PurchaseOrder require(String poNumber);
 
-  public View view(PurchaseOrder po) {
-    return new View(
-      po.getId(),
-      po.getPoNumber(),
-      po.getSupplierName(),
-      po.getStatus(),
-      po
-        .getItems()
-        .stream()
-        .map(i -> {
-          BigDecimal pending = pending(
-            po.getPoNumber(),
-            i.getProduct().getId(),
-            null
-          );
-          return new Line(
-            i.getProduct().getId(),
-            i.getProduct().getSkuCode(),
-            i.getProduct().getName(),
-            i.getOrderedQty(),
-            i.getReceivedQty(),
-            pending,
-            i.getOrderedQty().subtract(i.getReceivedQty()).subtract(pending)
-          );
-        })
-        .toList()
-    );
-  }
+  /** Tính tổng số lượng hàng đang nằm trên các phiếu nhập chờ duyệt (Pending) */
+  BigDecimal getPendingQty(String poNumber, Long productId, Long excludeReceiptId);
+
+  // --- Các method phục vụ CoreController & tích hợp sơ đồ kho ---
+  List<View> list();
+  View importApproved(ImportRequest request, Long actor);
+  BigDecimal pending(String number, Long productId, Long excludeReceipt);
+  View view(PurchaseOrder po);
 }

@@ -17,11 +17,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(ConflictException.class)
-  @ResponseBody
-  public ResponseEntity<Map<String, Object>> conflict(ConflictException ex) {
-    return ResponseEntity.status(409).body(Map.of("message", ex.getMessage()));
-  }
+    @ExceptionHandler({ConflictException.class, ExpiredLotException.class})
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> handleConflictAndExpiredLot(BusinessException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "Xung Đột Nghiệp Vụ hoặc Hàng Quá Hạn (Conflict)");
+        body.put("errorCode", ex.getErrorCode());
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
 
   @ExceptionHandler(
     {

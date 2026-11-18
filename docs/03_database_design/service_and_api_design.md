@@ -183,7 +183,7 @@
 | `AvailableStockDTO` | `uom` | `String` | Không rỗng | Đơn vị tính cơ bản |
 | `AvailableStockDTO` | `totalOnHandQty` | `BigDecimal` | Không rỗng | Tổng tồn kho thực tế trong kho: `sum(on_hand)` |
 | `AvailableStockDTO` | `totalReservedQty`| `BigDecimal` | Không rỗng | Tổng tồn đang bị tạm giữ: `sum(reserved)` |
-| `AvailableStockDTO` | `availableQty` | `BigDecimal` | Không rỗng | Tồn kho khả dụng thực tế: `on_hand - reserved` |
+| `AvailableStockDTO` | `availableQty` | `BigDecimal` | Không rỗng | Tồn kho khả dụng thực tế: $\sum (\text{on\_hand} - \text{reserved})$ của các lô AVAILABLE còn hạn |
 | `AvailableStockDTO` | `minStockAlert` | `BigDecimal` | Không rỗng | Định mức tồn an toàn tối thiểu |
 | `AvailableStockDTO` | `underMin` | `Boolean` | Không rỗng | Cờ cảnh báo đỏ nếu `availableQty <= minStockAlert` |
 | **`NearExpiryAlertDTO`**| `batchId` | `Long` | Không rỗng | Khóa chính lô hàng cận hạn |
@@ -279,7 +279,7 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
 * **`proposeAllocation(Long productId, BigDecimal requestedQty, DispatchStrategy strategy)`:**
   * **Mục đích:** Gợi ý danh sách bốc hàng tối ưu theo chiến lược xuất kho (`UC04`).
   * **Quy tắc & Logic xử lý:**
-    * Quét các lô của sản phẩm có `Available = on_hand_qty - reserved_qty > 0` và `expiry_date > CURRENT_DATE`.
+    * Quét các lô của sản phẩm có `status = 'AVAILABLE'`, `Available = on_hand_qty - reserved_qty > 0` và `(expiry_date IS NULL OR expiry_date >= CURRENT_DATE)`.
     * Kiểm tra tổng tồn khả dụng: Nếu `sum(Available) < requestedQty`, ném `InsufficientStockException` (`BR-OUT-01`).
     * Sắp xếp danh sách lô:
       * Nếu `strategy == FEFO`: Sắp xếp theo thứ tự `expiry_date ASC, received_date ASC`.
@@ -293,15 +293,23 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
     * Sinh mã phiếu `IN-YYYYMMDD-XXXX`, gán `maker_id = currentUserId`, `status = 'PENDING_APPROVAL'`, lưu `issue_note` và `issue_note_item`.
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
 * **`approveIssueNote(Long issueId, Long currentUserId)`:**
-  * **Mục đích:** Quản lý phê duyệt xuất kho, trừ tồn kho thực tế và giải phóng lượng tạm giữ (`UC05`).
+  * **Mục đích:** Quản lý phê duyệt phiếu xuất kho chuyển sang trạng thái chờ lấy hàng (`UC05`).
   * **Quy tắc & Logic xử lý:**
-    * **Maker-Checker (`BR-SEC-03`):** Bắt buộc `currentUserId != issue.maker_id`. Ném `SecurityViolationException` nếu tự duyệt.
-    * Cập nhật `issue_note`: `status = 'COMPLETED'`, `checker_id = currentUserId`, `approved_at = CURRENT_TIMESTAMP`.
-    * Cập nhật `stock_batch`:
+    * **Maker-Checker (`BR-SEC-03`):** Bắt buộc `currentUserId != issue.maker_id`. Ném `SecurityViolationException` (HTTP 403) nếu tự duyệt.
+    * **Kiểm tra hạn dùng (Chốt chặn 1 - Quyết định D4 / `BR-OUT-03`):** Hệ thống duyệt qua toàn bộ item của phiếu xuất; nếu phát hiện có lô hàng bị quá hạn (`batch.isExpired()`), lập tức ném `ExpiredLotException` (HTTP 409 Conflict) để chặn duyệt, yêu cầu Quản lý bấm Từ chối (Reject) phiếu để giải phóng hàng giữ chỗ và yêu cầu lập phiếu mới.
+    * Cập nhật `issue_note`: `status = 'APPROVED_READY_TO_PICK'`, `checker_id = currentUserId`, `updated_at = CURRENT_TIMESTAMP`.
+  * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
+* **`confirmDispatch(Long issueId, Long currentUserId)`:**
+  * **Mục đích:** Nhân viên kho xác nhận hoàn tất bốc hàng và bàn giao thực tế khỏi kho, chính thức trừ tồn On-hand (`UC05`).
+  * **Quy tắc & Logic xử lý:**
+    * Kiểm tra trạng thái phiếu: Bắt buộc phải là `APPROVED_READY_TO_PICK`. Ném `ConflictException` (HTTP 409) nếu sai trạng thái.
+    * **Kiểm tra hạn dùng (Chốt chặn 2 - Quyết định D4 / `BR-OUT-03`):** Kiểm tra lại một lần nữa hạn sử dụng của từng lô hàng trước khi bốc hàng ra khỏi kho; nếu có lô hết hạn ném `ExpiredLotException` (HTTP 409 Conflict).
+    * Cập nhật `stock_batch` theo từng item:
       * Trừ tồn thực tế: `on_hand_qty = on_hand_qty - allocated_qty`.
       * Giải phóng lượng giữ chỗ: `reserved_qty = reserved_qty - allocated_qty`.
-    * Cập nhật tải trọng `warehouse_location`: Giảm `current_weight` tương ứng số lượng xuất; nếu `current_weight == 0` thì chuyển trạng thái về `EMPTY`.
-    * Ghi nhật ký vào `stock_card`: `change_type = 'XUAT_KHO'`, `change_qty = -allocated_qty`, `reference_code = issue_code`.
+    * Cập nhật `warehouse_location`: Nếu vị trí không còn tồn lô hàng nào thì tự động chuyển trạng thái về `EMPTY` (`BR-CAT-03`).
+    * Ghi nhật ký vào `stock_card`: `change_type = 'XUAT_KHO'`, `qty_changed = -allocated_qty`, `after_changed = batch.on_hand_qty`, `reference_code = issue_number` (`BR-SEC-02`).
+    * Cập nhật `issue_note`: `status = 'COMPLETED'`, `updated_at = CURRENT_TIMESTAMP`.
   * **Ràng buộc giao dịch:** `@Transactional(rollbackFor = Exception.class)`.
 * **`cancelIssueNote(Long issueId, String reason, Long currentUserId)`:**
   * **Mục đích:** Hủy phiếu xuất kho và giải phóng hoàn toàn số lượng đã tạm giữ.
@@ -318,7 +326,7 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
 * **`calculateAvailableQuantity(Long productId)`:**
   * **Mục đích:** Tính toán động tồn kho khả dụng chuẩn 3NF:
     ```text
-    Available = SUM(on_hand_qty - reserved_qty)  (với tất cả các lô có expiry_date > CURRENT_DATE)
+    Available = SUM(on_hand_qty - reserved_qty)  (với các lô có status = 'AVAILABLE' và expiry_date >= CURRENT_DATE hoặc không quản lý lô)
     ```
 * **`getAllAvailableStock()`:**
   * **Mục đích:** Tổng hợp tồn kho toàn bộ mặt hàng SKU; tự động so sánh tồn khả dụng với `min_stock_alert` để gán cờ cảnh báo đỏ (`underMin = true`).
@@ -351,6 +359,7 @@ Toàn bộ 5 Service Interfaces đã được triển khai mã nguồn Java th�
 | **UC04** | `POST` | `/api/v1/issues/propose-allocation` | `IssueController.proposeAllocation` | `@RequestParam Long productId`, `@RequestParam BigDecimal requestedQty`, `@RequestParam DispatchStrategy strategy` | `List<PickListProposalDTO>` (JSON) | `200 OK` | **ROLE_STAFF** |
 | **UC04** | `POST` | `/api/v1/issues` | `IssueController.createIssue` | `@RequestBody @Valid IssueRequestDTO` | `IssueNoteResponseDTO` (JSON) | `201 Created`| **ROLE_STAFF** |
 | **UC05** | `POST` | `/api/v1/issues/{id}/approve` | `IssueController.approveIssue` | `@PathVariable Long id` | `IssueNoteResponseDTO` (JSON) | `200 OK` | **ROLE_MANAGER** |
+| **UC05** | `POST` | `/api/v1/issues/{id}/dispatch` | `IssueController.confirmDispatchApi` | `@PathVariable Long id` | `IssueNoteResponseDTO` (JSON) | `200 OK` | **ROLE_STAFF** |
 | **UC05** | `POST` | `/api/v1/issues/{id}/cancel` | `IssueController.cancelIssue` | `@PathVariable Long id`, `@RequestParam String reason` | Thông báo hủy thành công | `200 OK` | **ROLE_MANAGER** |
 | **UC06** | `GET` | `/inventory/stock-cards` | `InventoryController.viewStockCards` | `@RequestParam(required = false) Long productId` | `inventory/stock_card.html` | `200 OK` | Staff, Manager |
 | **UC06** | `GET` | `/api/v1/inventory/stock-cards` | `InventoryController.getStockCards` | `@RequestParam Long productId`, `@RequestParam(required = false) LocalDate fromDate`, `@RequestParam(required = false) LocalDate toDate` | `List<StockCardDTO>` (JSON) | `200 OK` | Staff, Manager |

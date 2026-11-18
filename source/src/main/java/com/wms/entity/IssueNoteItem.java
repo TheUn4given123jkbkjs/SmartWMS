@@ -66,6 +66,10 @@ public class IssueNoteItem {
     this.requestedQty = requestedQty;
   }
 
+  public void setRequestedQty(Integer qty) {
+    this.requestedQty = qty != null ? BigDecimal.valueOf(qty) : BigDecimal.ZERO;
+  }
+
   public BigDecimal getAllocatedQty() {
     return allocatedQty;
   }
@@ -74,11 +78,23 @@ public class IssueNoteItem {
     this.allocatedQty = allocatedQty;
   }
 
+  public void setAllocatedQty(Integer qty) {
+    this.allocatedQty = qty != null ? BigDecimal.valueOf(qty) : BigDecimal.ZERO;
+  }
+
   public LocalDateTime getCreatedAt() {
     return createdAt;
   }
 
   public void setCreatedAt(LocalDateTime createdAt) {
     this.createdAt = createdAt;
+  }
+
+  /**
+   * Kiểm tra lô hàng được phân bổ có còn hạn sử dụng hay không (BR-OUT-03).
+   * @return true nếu lô hàng còn hạn hoặc không quản lý hạn, false nếu đã quá hạn.
+   */
+  public Boolean validateLotNotExpired() {
+    return stockBatch == null || !stockBatch.isExpired();
   }
 }

@@ -43,40 +43,16 @@ public class StockCard {
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "performed_by")
   private User performedBy;
 
-  public User getPerformedBy() {
-    return performedBy;
-  }
-
-  public void setPerformedBy(User value) {
-    performedBy = value;
-  }
-
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "approved_by")
   private User approvedBy;
 
-  public User getApprovedBy() {
-    return approvedBy;
-  }
-
-  public void setApprovedBy(User value) {
-    approvedBy = value;
-  }
-
   @Column(length = 500)
   private String reason;
-
-  public String getReason() {
-    return reason;
-  }
-
-  public void setReason(String value) {
-    reason = value;
-  }
 
   public StockCard() {}
 
@@ -136,6 +112,10 @@ public class StockCard {
     this.qtyChanged = qtyChanged;
   }
 
+  public void setQtyChanged(Integer qtyChanged) {
+    this.qtyChanged = qtyChanged != null ? BigDecimal.valueOf(qtyChanged) : BigDecimal.ZERO;
+  }
+
   public BigDecimal getAfterChanged() {
     return afterChanged;
   }
@@ -144,11 +124,64 @@ public class StockCard {
     this.afterChanged = afterChanged;
   }
 
+  public void setAfterChanged(Integer afterChanged) {
+    this.afterChanged = afterChanged != null ? BigDecimal.valueOf(afterChanged) : BigDecimal.ZERO;
+  }
+
+  public User getPerformedBy() {
+    return performedBy;
+  }
+
+  public void setPerformedBy(User performedBy) {
+    this.performedBy = performedBy;
+  }
+
+  public User getApprovedBy() {
+    return approvedBy;
+  }
+
+  public void setApprovedBy(User approvedBy) {
+    this.approvedBy = approvedBy;
+  }
+
+  public String getReason() {
+    return reason;
+  }
+
+  public void setReason(String reason) {
+    this.reason = reason;
+  }
+
   public LocalDateTime getCreatedAt() {
     return createdAt;
   }
 
   public void setCreatedAt(LocalDateTime createdAt) {
     this.createdAt = createdAt;
+  }
+
+  // --- Aliases theo Class Diagram ---
+  public BigDecimal getQuantityChanged() {
+    return qtyChanged;
+  }
+
+  public void setQuantityChanged(BigDecimal quantityChanged) {
+    this.qtyChanged = quantityChanged;
+  }
+
+  public void setQuantityChanged(Integer quantityChanged) {
+    this.qtyChanged = quantityChanged != null ? BigDecimal.valueOf(quantityChanged) : BigDecimal.ZERO;
+  }
+
+  public BigDecimal getAfterQuantity() {
+    return afterChanged;
+  }
+
+  public void setAfterQuantity(BigDecimal afterQuantity) {
+    this.afterChanged = afterQuantity;
+  }
+
+  public void setAfterQuantity(Integer afterQuantity) {
+    this.afterChanged = afterQuantity != null ? BigDecimal.valueOf(afterQuantity) : BigDecimal.ZERO;
   }
 }

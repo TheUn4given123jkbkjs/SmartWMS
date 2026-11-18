@@ -19,7 +19,7 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
   List<StockBatch> findByProductId(Long productId);
 
   @Query(
-    "SELECT b FROM StockBatch b WHERE b.product.id = :productId AND (b.onHandQty - b.reservedQty) > 0 AND (b.expDate IS NULL OR b.expDate >= :currentDate) ORDER BY b.expDate ASC, b.createdAt ASC, b.id ASC"
+    "SELECT b FROM StockBatch b WHERE b.product.id = :productId AND b.status = 'AVAILABLE' AND (b.onHandQty - b.reservedQty) > 0 AND (b.expDate IS NULL OR b.expDate >= :currentDate) ORDER BY b.expDate ASC NULLS LAST, b.createdAt ASC, b.id ASC"
   )
   List<StockBatch> findAvailableBatchesOrderByFefo(
     @Param("productId") Long productId,

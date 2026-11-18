@@ -15,6 +15,7 @@ public interface IssueService {
   );
   IssueNoteResponseDTO createIssueNote(IssueRequestDTO dto, Long currentUserId);
   IssueNoteResponseDTO approveIssueNote(Long issueId, Long currentUserId);
+  IssueNoteResponseDTO confirmDispatch(Long issueId, Long currentUserId);
   IssueNoteResponseDTO completeIssueNote(Long id, Long userId);
   IssueNoteResponseDTO rejectIssueNote(Long id, String reason, Long userId);
   void cancelIssueNote(Long issueId, String reason, Long currentUserId);
