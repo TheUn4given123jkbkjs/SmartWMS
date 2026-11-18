@@ -1,32 +1,26 @@
-# BÁO CÁO KẾT QUẢ CHẠY KIỂM THỬ (TEST EXECUTION REPORT)
+# 5.2. BÁO CÁO KẾT QUẢ THỰC THI KIỂM THỬ (TEST EXECUTION REPORT)
 
-**Học phần:** Phân tích và Thiết kế Yêu cầu (Mã môn: 502050 - ĐH Tôn Đức Thắng)  
-**Dự án:** Hệ thống Quản lý Kho Hàng Thông Minh (SmartWMS) - Đối tác Phụ tùng Xe máy Yamaha  
-**Hạng mục:** Sprint 5 - Task T5.4 (Test Execution & Reporting)  
-**Thành viên thực hiện (Maker):** Nguyễn Bảo Khang (MSSV: 52400015 - Thành viên M2)  
-**Người kiểm tra & duyệt (Reviewer):** Tôn Thanh Thiên (Thành viên M3)  
-**Tiêu chuẩn quy chiếu:** `SpecificationStandard.md` (Chương 6 & Mục 8.2), `SprintPlan_PhanCong.md` (Task T5.4), `test_cases.md`  
-**Ngày báo cáo:** 18/11/2026  
+Phần này ghi nhận toàn diện kết quả thực thi kiểm thử thực tế của Hệ thống Quản lý Kho Hàng Thông Minh (SmartWMS) trên toàn bộ 54 ca kiểm thử đã thiết kế, đối chiếu chi tiết với bộ kiểm thử tự động hóa (Automated Test Suite) trong mã nguồn và đánh giá chất lượng phần mềm trước khi nghiệm thu.
 
 ---
 
-## 1. MỤC TIÊU & PHẠM VI KIỂM THỬ (TEST EXECUTION OBJECTIVES & SCOPE)
+### 5.2.1. MỤC TIÊU & PHẠM VI KIỂM THỬ (TEST EXECUTION OBJECTIVES & SCOPE)
 
-### 1.1. Mục tiêu kiểm thử (Test Objectives)
+#### 5.2.1.1. Mục tiêu kiểm thử (Test Objectives)
 1. Thẩm định và chứng minh sự vận hành chính xác của toàn bộ **11 Yêu cầu Chức năng con (FRxx.yy)** thuộc 4 Phân hệ cốt lõi mức **Must-have** (`FR01`, `FR02`, `FR03`, `FR04`) cùng cơ chế Xác thực & Phân quyền bảo mật (`AUTH`).
 2. Xác nhận việc thực thi nghiêm ngặt các **Quy tắc Nghiệp vụ cốt lõi (Business Rules - BR)**:
    - `BR-SEC-01`: Tính bất biến của chứng từ (Append-only, cấm sửa/xóa chứng từ đã duyệt).
    - `BR-SEC-02`: Ghi nhận nhật ký thao tác và Sổ Thẻ kho điện tử (Audit Trail).
    - `BR-SEC-03`: Nguyên tắc kiểm soát chéo hai bước độc lập Maker-Checker (Người lập không được tự phê duyệt).
    - `NFR-SEC-04` & `D21`: Kiểm soát truy cập RBAC và cô lập thẩm quyền Quản trị viên (Admin không thao tác chứng từ kho).
-   - `BR-CAT-01` $\rightarrow$ `BR-CAT-05` & `D12`: Tính duy nhất của SKU, quy tắc định mức Min/Max, phân vùng 3M và khóa ô kệ bảo trì `MAINTENANCE`.
-   - `BR-INB-01` $\rightarrow$ `BR-INB-04` & `D7..D9`, `D15`: Tiếp nhận PO, quản lý hạn mức Pending, kiểm định chất lượng và nhập kho.
-   - `BR-OUT-01` $\rightarrow$ `BR-OUT-07` & `D10`, `D13`: Giữ chỗ tự động Reserved, thuật toán xuất kho FEFO/FIFO, xử lý ngoại lệ Short-pick và khóa lô cách ly.
-   - `BR-INV-01` $\rightarrow$ `BR-INV-03` & `D16..D19`: Tính tồn khả dụng Available, cảnh báo Min Stock và cảnh báo cận hạn 30 ngày.
+   - `BR-CAT-01` → `BR-CAT-05` & `D12`: Tính duy nhất của SKU, quy tắc định mức Min/Max, phân vùng 3M và khóa ô kệ bảo trì `MAINTENANCE`.
+   - `BR-INB-01` → `BR-INB-04` & `D7..D9`, `D15`: Tiếp nhận PO, quản lý hạn mức Pending, kiểm định chất lượng và nhập kho.
+   - `BR-OUT-01` → `BR-OUT-07` & `D10`, `D13`: Giữ chỗ tự động Reserved, thuật toán xuất kho FEFO/FIFO, xử lý ngoại lệ Short-pick và khóa lô cách ly.
+   - `BR-INV-01` → `BR-INV-03` & `D16..D19`: Tính tồn khả dụng Available, cảnh báo Min Stock và cảnh báo cận hạn 30 ngày.
 3. Kiểm thử tích hợp tính toàn vẹn giao dịch và cơ chế tự động hoàn tác (**ACID Transaction Rollback** theo `NFR-REL-02`) khi xảy ra sự cố runtime.
 4. Đo lường định lượng các chỉ tiêu hiệu năng và thời gian phản hồi hệ thống (**Response Time** theo `NFR-PER-01`, `NFR-PER-02`).
 
-### 1.2. Phạm vi kiểm thử (Scope of Testing)
+#### 5.2.1.2. Phạm vi kiểm thử (Scope of Testing)
 - **Trong phạm vi (In-Scope):**
   - Kiểm thử chức năng tự động hóa (Automated Integration Testing) thông qua bộ kiểm thử JUnit 5, Spring Boot Test và MockMvc.
   - Kiểm thử đơn vị (Unit Testing) các thuật toán phân bổ xuất kho FEFO/FIFO và logic nghiệp vụ lõi tại tầng Service.
@@ -34,12 +28,11 @@
   - Kiểm thử cơ chế bảo mật phân quyền 3 vai trò (`ROLE_STAFF`, `ROLE_MANAGER`, `ROLE_ADMIN`).
   - Kiểm thử khả năng phục hồi dữ liệu khi rollback giao dịch.
 - **Ngoài phạm vi (Out-of-Scope):**
-  - Các chức năng nâng cao thuộc nhóm Should-have / Could-have (`FR05` Quản lý kiểm kê, `FR06` Phiếu chuyển ô cách ly `SCRAP` & Phiếu xuất hủy).
-  - Tích hợp thiết bị phần cứng máy quét mã vạch cầm tay Barcode/RFID thực tế ngoài môi trường phòng thí nghiệm.
+  - Tích hợp thiết bị phần cứng máy quét mã vạch Barcode/RFID cầm tay thực tế và cổng thanh toán trực tuyến.
 
 ---
 
-## 2. ĐẶC TẢ MÔI TRƯỜNG THỰC THI KIỂM THỬ (TEST ENVIRONMENTS SPECIFICATION)
+### 5.2.2. ĐẶC TẢ MÔI TRƯỜNG THỰC THI KIỂM THỬ (TEST ENVIRONMENTS SPECIFICATION)
 
 Để đảm bảo tính khách quan và kiểm soát sai lệch giữa cơ sở dữ liệu giả lập và cơ sở dữ liệu thực tế, bộ kiểm thử được thiết lập phân tầng trên 2 cấu hình môi trường chuẩn:
 
@@ -56,9 +49,9 @@
 
 ---
 
-## 3. TỔNG HỢP KẾT QUẢ THỰC THI KIỂM THỬ (EXECUTIVE TEST SUMMARY)
+### 5.2.3. TỔNG HỢP KẾT QUẢ THỰC THI KIỂM THỬ (EXECUTIVE TEST SUMMARY)
 
-### 3.1. Thống kê theo Phân hệ Nghiệp vụ
+#### 5.2.3.1. Thống kê theo Phân hệ Nghiệp vụ
 
 | Phân hệ | Tên Nhóm Chức năng / Cấp độ Kiểm thử | Số ca Đặc tả | Số ca PASS | Số ca FAIL | Số ca BLOCKED | Tỷ lệ Đạt (%) |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -71,7 +64,7 @@
 | **NFR-PER** | Hiệu năng Thời gian Đáp ứng (Response Time theo SLA `NFR-PER-01`, `NFR-PER-02`) | 2 | 2 | 0 | 0 | **100%** |
 | **TỔNG CỘNG** | **Toàn bộ 4 Phân hệ Must-have + Bảo mật + Tích hợp ACID & Hiệu năng** | **54** | **54** | **0** | **0** | **100%** |
 
-### 3.2. Thống kê Thực thi Bộ Kiểm thử Tự động Java (Maven Surefire Suite)
+#### 5.2.3.2. Thống kê Thực thi Bộ Kiểm thử Tự động Java (Maven Surefire Suite)
 
 Kết quả thực thi toàn diện qua lệnh đóng gói kiểm thử `mvn test` trên mã nguồn dự án:
 
@@ -81,16 +74,16 @@ Kết quả thực thi toàn diện qua lệnh đóng gói kiểm thử `mvn tes
 | `PhaseOneIntegrationTest` | `com.wms` | 14 | 14 | 0 | 0 | 0 | 1.35 giây |
 | `WorkspaceIntegrationTest` | `com.wms` | 11 | 11 | 0 | 0 | 0 | 2.04 giây |
 | `IssueServiceTest` | `com.wms.service` | 4 | 4 | 0 | 0 | 0 | 0.82 giây |
-| **TỔNG HỢP AUTOMATED SUITE** | **Toàn bộ Test Suite** | **53** | **53** | **0** | **0** | **0** | **1 phút 07 giây** |
+| **TỔNG HỢP AUTOMATED SUITE** | **Toàn bộ Test Suite** | **53** | **53** | **0** | **0** | **0** | **45.65 giây** |
 
-> [!NOTE]
-> **Đánh giá chung:** Toàn bộ 53 ca kiểm thử tự động trong mã nguồn thực thi thành công $100\%$ (`BUILD SUCCESS`). Không có bất kỳ ca kiểm thử nào thất bại (`Failures = 0`), phát sinh lỗi ngoại lệ chưa kiểm soát (`Errors = 0`) hoặc bị bỏ qua (`Skipped = 0`).
+![Minh chứng thực thi kiểm thử tự động Maven Surefire](./assets/maven_test_execution_success.png)
+*Hình 5.1: Ảnh chụp màn hình Terminal chạy kiểm thử tự động `mvn test` đạt BUILD SUCCESS (Tests run: 53, Failures: 0, Errors: 0, Skipped: 0).*
+
 
 ---
 
-## 4. MA TRẬN TRUY VẾT KIỂM THỬ (TEST TRACEABILITY MATRIX - RTM TEST MAPPING)
+### 5.2.4. MA TRẬN TRUY VẾT KIỂM THỬ (TEST TRACEABILITY MATRIX - RTM)
 
-Bảng ma trận truy vết chứng minh sự liên kết hai chiều chặt chẽ giữa 54 Ca kiểm thử đặc tả nghiệp vụ (`test_cases.md`) và các Phương thức kiểm thử tự động hóa trong mã nguồn Java:
 
 | Mã Ca kiểm thử (`test_cases.md`) | Phân hệ / Nghiệp vụ | Phương thức Kiểm thử Tự động tương ứng trong Source Code | Lớp Kiểm thử (Test Class) | Kết quả |
 | :---: | :--- | :--- | :--- | :---: |
@@ -106,7 +99,7 @@ Bảng ma trận truy vết chứng minh sự liên kết hai chiều chặt ch�
 | `TC-FR01.01-N1` | Chặn trùng mã SKU (`BR-CAT-01`) | `catalogWritesPersistAndDuplicateIsReported()` | `WorkspaceIntegrationTest` | **PASS** |
 | `TC-FR01.01-N2` | Chặn để trống SKU/Tên SP | `allRolesCanReadInventoryAndManagerCanWriteCatalog()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-FR01.02-P` | Cập nhật Min/Max Stock | `allRolesCanReadInventoryAndManagerCanWriteCatalog()` | `MustHaveIntegrationTest` | **PASS** |
-| `TC-FR01.02-N1` | Chặn Max Stock $\le$ Min Stock | `allRolesCanReadInventoryAndManagerCanWriteCatalog()` | `MustHaveIntegrationTest` | **PASS** |
+| `TC-FR01.02-N1` | Chặn Max Stock ≤ Min Stock | `allRolesCanReadInventoryAndManagerCanWriteCatalog()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-FR01.02-N2` | Chặn Min Stock âm | `quantityInputsEnforceDecimalPrecisionAndScale()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-FR01.02-N3` | Chặn ký tự chữ/đặc biệt Min/Max | `quantityInputsEnforceDecimalPrecisionAndScale()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-FR01.03-P` | Thêm vị trí ô kệ 3M mới | `catalogWritesPersistAndDuplicateIsReported()` | `WorkspaceIntegrationTest` | **PASS** |
@@ -142,32 +135,32 @@ Bảng ma trận truy vết chứng minh sự liên kết hai chiều chặt ch�
 | `TC-FR04.02-N1` | Chặn khoảng ngày tra cứu sai | `lowStockUsesAvailableAndOffsetsApprovedPoBalance()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-FR04.02-N2` | Tính bất biến Thẻ kho (Append-only) | `approvedReceiptAndIssuePersistAuditEventsWithActors()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-FR04.03-P1` | Cảnh báo thiếu hàng dưới Min Stock | `lowStockUsesAvailableAndOffsetsApprovedPoBalance()` | `MustHaveIntegrationTest` | **PASS** |
-| `TC-FR04.03-P2` | Cảnh báo lô cận hạn $\le 30$ ngày (`D16`) | `nearExpiryUsesInclusiveThresholdAndD3ExpiryBoundary()` | `MustHaveIntegrationTest` | **PASS** |
+| `TC-FR04.03-P2` | Cảnh báo lô cận hạn ≤ 30 ngày (`D16`) | `nearExpiryUsesInclusiveThresholdAndD3ExpiryBoundary()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-FR04.03-P3` | Gợi ý đặt hàng bù trừ (`D18`) | `lowStockUsesAvailableAndOffsetsApprovedPoBalance()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-INT-TX.01` | Hoàn tác khi lỗi duyệt nhập (`ACID`) | `receiptApprovalRollsBackEveryLineOnLotConflict()` | `MustHaveIntegrationTest` | **PASS** |
 | `TC-INT-TX.02` | Hoàn tác khi lỗi duyệt xuất (`ACID`) | `fefoFifoOverrideCancellationAndRollback()` | `MustHaveIntegrationTest` | **PASS** |
-| `TC-NFR-PER.01` | Đo Response Time FEFO ($< 1.5s$) | Đo lường tích hợp trên tập 1.000 lô hàng (`System.currentTimeMillis()`) | Tầng Service / Benchmark | **PASS** |
-| `TC-NFR-PER.02` | Đo Response Time Thẻ kho ($< 2.0s$) | Đo lường tích hợp trên tập 10.000 dòng thẻ kho (`System.currentTimeMillis()`) | Tầng Query / Benchmark | **PASS** |
+| `TC-NFR-PER.01` | Đo Response Time FEFO (< 1.5s) | Đo lường tích hợp trên tập 1.000 lô hàng (`System.currentTimeMillis()`) | Tầng Service / Benchmark | **PASS** |
+| `TC-NFR-PER.02` | Đo Response Time Thẻ kho (< 2.0s) | Đo lường tích hợp trên tập 10.000 dòng thẻ kho (`System.currentTimeMillis()`) | Tầng Query / Benchmark | **PASS** |
 
 ---
 
-## 5. ĐÁNH GIÁ CHI TIẾT THEO TỪNG PHÂN HỆ NGHIỆP VỤ
+### 5.2.5. ĐÁNH GIÁ CHI TIẾT THEO TỪNG PHÂN HỆ NGHIỆP VỤ
 
-### 5.1. Phân hệ AUTH: Xác thực & Phân quyền RBAC (`NFR-SEC-04`, `SCR01`)
+#### 5.2.5.1. Phân hệ AUTH: Xác thực & Phân quyền RBAC (`NFR-SEC-04`, `SCR01`)
 - **Kết quả thực hiện:** 8/8 Ca kiểm thử đạt kết quả **PASS**.
 - **Điểm nổi bật về nghiệp vụ & bảo mật:**
   - Hệ thống áp dụng `SessionInterceptor` kiểm soát tập trung: Mọi yêu cầu HTTP không có phiên làm việc hợp lệ đều bị từ chối chuyển hướng về `/auth/login` (Web) hoặc trả mã `401 Unauthorized` (API).
   - Phân quyền chính xác 3 vai trò người dùng chuẩn hóa: `ROLE_STAFF`, `ROLE_MANAGER`, `ROLE_ADMIN`.
   - Triển khai thành công Quyết định **D21**: Cô lập tuyệt đối quyền của Quản trị viên (`ROLE_ADMIN`). Khi tài khoản Admin cố tình gọi lệnh tạo hoặc phê duyệt chứng từ kho (`/receipt/api/*`, `/issue/api/*`), hệ thống chặn đứng và trả về mã lỗi `403 Forbidden`. Admin chỉ được phép quản trị tài khoản, danh mục và tra cứu báo cáo.
 
-### 5.2. Phân hệ FR01: Quản lý Danh mục Kho & Hàng hóa (`SCR03`)
+#### 5.2.5.2. Phân hệ FR01: Quản lý Danh mục Kho & Hàng hóa (`SCR03`)
 - **Kết quả thực hiện:** 10/10 Ca kiểm thử đạt kết quả **PASS**.
 - **Điểm nổi bật về nghiệp vụ:**
   - SKU phụ tùng Yamaha được định danh duy nhất (`BR-CAT-01`), chặn triệt để mã trùng (`409 Conflict`).
-  - Kiểm soát toàn diện định mức tồn an toàn Min/Max Stock (`BR-CAT-05`): Bắt buộc `maxStock > minStock \ge 0`, từ chối ký tự đặc biệt hoặc chữ cái (`400 Bad Request`).
+  - Kiểm soát toàn diện định mức tồn an toàn Min/Max Stock (`BR-CAT-05`): Bắt buộc `maxStock > minStock ≥ 0`, từ chối ký tự đặc biệt hoặc chữ cái (`400 Bad Request`).
   - Triển khai Quyết định **D12**: Bổ sung trạng thái `MAINTENANCE` (Bảo trì) cho vị trí ô kệ (`warehouse_location`). Hệ thống chặn mọi hành vi tiếp nhận hàng vào các ô kệ đang bảo trì (`BR-CAT-03`) và chỉ cho phép cất hàng tại hai phân vùng lưu trữ hợp lệ là `RAW` (Nguyên vật liệu) và `FG` (Thành phẩm) (`BR-INB-03`).
 
-### 5.3. Phân hệ FR02: Nhập kho theo PO & Phê duyệt Maker-Checker (`SCR04`)
+#### 5.2.5.3. Phân hệ FR02: Nhập kho theo PO & Phê duyệt Maker-Checker (`SCR04`)
 - **Kết quả thực hiện:** 14/14 Ca kiểm thử đạt kết quả **PASS**.
 - **Điểm nổi bật về nghiệp vụ:**
   - Cơ chế kiểm soát hạn mức PO linh hoạt theo **D7/D8/D9**: Số lượng tiếp nhận được kiểm tra chặt chẽ trên công thức hạn mức còn lại `remaining_qty = ordered_qty - received_qty - pending_approval_qty`. Chặn tiếp nhận vượt ngưỡng (`BR-INB-01`).
@@ -175,44 +168,44 @@ Bảng ma trận truy vết chứng minh sự liên kết hai chiều chặt ch�
   - Thẩm định chất lượng tại khu kiểm định `INSP`: Hàng hỏng/móp méo được ghi nhận riêng vào `rejected_qty` kèm lý do bắt buộc (`BR-INB-04`), không cộng vào tồn khả dụng On-hand và không tính vào số lượng hoàn tất của PO.
   - Tuân thủ nguyên tắc Maker-Checker hai lớp bảo vệ (`BR-SEC-03`): Ẩn nút trên giao diện Web và chặn tại Service Backend (`403 Forbidden`) khi người lập trùng người duyệt.
 
-### 5.4. Phân hệ FR03: Xuất kho, Cơ chế Giữ chỗ & Gợi ý FEFO/FIFO (`SCR05`)
+#### 5.2.5.4. Phân hệ FR03: Xuất kho, Cơ chế Giữ chỗ & Gợi ý FEFO/FIFO (`SCR05`)
 - **Kết quả thực hiện:** 10/10 Ca kiểm thử đạt kết quả **PASS**.
 - **Điểm nổi bật về nghiệp vụ:**
   - Cơ chế giữ chỗ tự động (`BR-OUT-01`): Khi lệnh xuất ở trạng thái `PENDING_APPROVAL`, hệ thống tự động tăng `reserved_qty` và giảm `available_qty`, giữ nguyên `on_hand_qty`. Khi lệnh bị hủy, lượng giữ chỗ được giải phóng ngay lập tức.
   - Thuật toán phân bổ lô FEFO thông minh (`BR-OUT-02`): Tự động ưu tiên lô có hạn dùng gần nhất xuất trước; nếu cùng HSD thì sắp xếp theo FIFO (`created_at ASC`). Tự động tách dòng phân bổ nếu 1 lô không đủ số lượng (đạt chuẩn 3NF trên bảng `issue_note_item` theo **D10**).
-  - Khóa chặn lô hết hạn (`BR-OUT-03`): Tuyệt đối không đề xuất lô có `exp_date \le current_date`.
+  - Khóa chặn lô hết hạn (`BR-OUT-03`): Tuyệt đối không đề xuất lô có `exp_date ≤ current_date`.
   - Cho phép Quản lý ghi đè (Override) gợi ý FEFO nhưng bắt buộc nhập lý do giải trình tối thiểu 10 ký tự (`BR-OUT-06`).
   - Xử lý sự cố Short-pick theo **D13**: Khi phát hiện thiếu hàng thực tế tại kệ, hệ thống hủy lệnh xuất và khóa trạng thái lô hàng thành `BLOCKED` để đưa vào kiểm kê đột xuất.
 
-### 5.5. Phân hệ FR04: Tra cứu Tồn kho Khả dụng, Thẻ kho & Cảnh báo Dự trữ (`SCR02`, `SCR06`)
+#### 5.2.5.5. Phân hệ FR04: Tra cứu Tồn kho Khả dụng, Thẻ kho & Cảnh báo Dự trữ (`SCR02`, `SCR06`)
 - **Kết quả thực hiện:** 8/8 Ca kiểm thử đạt kết quả **PASS**.
 - **Điểm nổi bật về nghiệp vụ:**
-  - Công thức tính tồn kho khả dụng thời gian thực chuẩn xác: $\text{Available} = \text{On-hand} - \text{Reserved}$.
+  - Công thức tính tồn kho khả dụng thời gian thực chuẩn xác: `Available = On-hand - Reserved`.
   - Thẻ kho điện tử (`stock_card`) bất biến theo chuẩn kiểm toán Append-only (`BR-SEC-01`, `BR-SEC-02`): Không có nút sửa/xóa; số dư lũy kế `after_changed` được tính toán chuẩn xác theo từng SKU (theo **D19**).
   - Cảnh báo tồn an toàn tự động (`BR-INV-01`, `BR-INV-02`): Phát cảnh báo đỏ khi `available < min_stock`, tính toán số lượng đề xuất đặt hàng bù trừ chính xác có trừ đi lượng hàng đang về của PO (theo **D18**).
-  - Cảnh báo cận hạn 30 ngày (`BR-INV-03`, theo **D16**): Hiển thị huy hiệu vàng cho các lô phụ tùng còn hạn dùng $\le 30$ ngày.
+  - Cảnh báo cận hạn 30 ngày (`BR-INV-03`, theo **D16**): Hiển thị huy hiệu vàng cho các lô phụ tùng còn hạn dùng ≤ 30 ngày.
 
-### 5.6. Phân hệ INT-TX: Tính Toàn vẹn Giao dịch & Cơ chế Hoàn tác (ACID Rollback - `NFR-REL-02`)
+#### 5.2.5.6. Phân hệ INT-TX: Tính Toàn vẹn Giao dịch & Cơ chế Hoàn tác (ACID Rollback - `NFR-REL-02`)
 - **Kết quả thực hiện:** 2/2 Ca kiểm thử đạt kết quả **PASS**.
 - **Phân tích kỹ thuật:**
   - Mô phỏng sự cố ngắt kết nối CSDL và ngoại lệ runtime tại bước ghi Thẻ kho hoặc cập nhật chi tiết lô hàng trong chuỗi giao dịch liên bảng (Multi-table Pipeline).
-  - Toàn bộ các thao tác được bao bọc trong annotation `@Transactional`. Khi ngoại lệ xảy ra, Spring Framework kích hoạt cơ chế `TransactionAspectSupport` tự động rollback $100\%$ toàn bộ các bản ghi: Trạng thái phiếu giữ nguyên, số dư tồn kho không bị tăng/giảm ảo, trạng thái ô kệ được bảo toàn.
+  - Toàn bộ các thao tác được bao bọc trong annotation `@Transactional`. Khi ngoại lệ xảy ra, Spring Framework kích hoạt cơ chế `TransactionAspectSupport` tự động rollback **100%** toàn bộ các bản ghi: Trạng thái phiếu giữ nguyên, số dư tồn kho không bị tăng/giảm ảo, trạng thái ô kệ được bảo toàn.
 
-### 5.7. Phân hệ NFR-PER: Hiệu năng & Thời gian Phản hồi (Performance SLA)
+#### 5.2.5.7. Phân hệ NFR-PER: Hiệu năng & Thời gian Phản hồi (Performance SLA)
 - **Kết quả thực hiện:** 2/2 Ca kiểm thử đạt kết quả **PASS**.
 - **Thông số đo lường định lượng thực tế:**
   - **`TC-NFR-PER.01` (Thuật toán gợi ý FEFO trên 1.000 lô hàng):**  
-    $$\text{Response Time thực tế} = \mathbf{1.20\text{ giây}} \quad (\text{Cam kết SLA: } < 1.50\text{ giây theo } \mathbf{NFR-PER-02})$$  
-    *Đánh giá:* **ĐẠT (Vượt chỉ tiêu SLA $20\%$)**.
+    - **Response Time thực tế:** **1.20 giây** (Cam kết SLA: `< 1.50 giây` theo `NFR-PER-02`).  
+    - *Đánh giá:* **ĐẠT** (Vượt chỉ tiêu SLA 20%).
   - **`TC-NFR-PER.02` (Kết xuất Sổ Thẻ kho trên 10.000 dòng giao dịch):**  
-    $$\text{Response Time thực tế} = \mathbf{0.85\text{ giây}} \quad (\text{Cam kết SLA: } < 2.00\text{ giây theo } \mathbf{NFR-PER-01})$$  
-    *Đánh giá:* **ĐẠT (Vượt chỉ tiêu SLA $57.5\%$)**.
+    - **Response Time thực tế:** **0.85 giây** (Cam kết SLA: `< 2.00 giây` theo `NFR-PER-01`).  
+    - *Đánh giá:* **ĐẠT** (Vượt chỉ tiêu SLA 57.5%).
 
 ---
 
-## 6. NHẬT KÝ PHÁT HIỆN LỖI & KẾT QUẢ KHẮC PHỤC (DEFECT LOG & RESOLUTION)
+### 5.2.6. NHẬT KÝ PHÁT HIỆN LỖI & KẾT QUẢ KHẮC PHỤC (DEFECT LOG & RESOLUTION)
 
-Trong chu kỳ kiểm thử từ Sprint 4 đến Sprint 5, các khiếm khuyết phần mềm (Defects) đã được phát hiện, phân loại và khắc phục triệt để như sau:
+Trong chu kỳ kiểm thử thực tế, các khiếm khuyết phần mềm (Defects) đã được phát hiện, phân loại và khắc phục triệt để như sau:
 
 | Mã Bug | Mô tả Khiếm khuyết | Mức độ | Nguyên nhân | Biện pháp Khắc phục | Trạng thái |
 | :---: | :--- | :---: | :--- | :--- | :---: |
@@ -226,18 +219,18 @@ Trong chu kỳ kiểm thử từ Sprint 4 đến Sprint 5, các khiếm khuyết
 
 ---
 
-## 7. KẾT LUẬN & ĐÁNH GIÁ NGHIỆM THU (CONCLUSION & SIGN-OFF)
+### 5.2.7. KẾT LUẬN & ĐÁNH GIÁ NGHIỆM THU (CONCLUSION & SIGN-OFF)
 
-### 7.1. Đối chiếu Tiêu chuẩn Hoàn thành (Definition of Done - DoD)
-Căn cứ theo tiêu chuẩn DoD tại Mục 8.3 `SpecificationStandard.md`:
-1. [x] **Mã nguồn sạch & Build thành công:** Dự án biên dịch và đóng gói thành công $100\%$ không có lỗi cú pháp hay cảnh báo nghiêm trọng.
+#### 5.2.7.1. Đối chiếu Tiêu chuẩn Hoàn thành (Definition of Done - DoD)
+Căn cứ theo Tiêu chuẩn Hoàn thành (Definition of Done - DoD) của Đồ án:
+1. [x] **Mã nguồn sạch & Build thành công:** Dự án biên dịch và đóng gói thành công **100%** không có lỗi cú pháp hay cảnh báo nghiêm trọng.
 2. [x] **Test Suite Pass 100%:** Toàn bộ 53 ca kiểm thử tự động (Unit & Integration Tests) chạy thành công, không có ca nào bị Fail hoặc Skip.
 3. [x] **Đặc tả Ca kiểm thử đồng bộ:** Bộ 54 ca kiểm thử nghiệp vụ (`test_cases.md`) khớp hoàn toàn với thiết kế hệ thống và mã nguồn thực thi.
-4. [x] **Đáp ứng SLA Hiệu năng:** Thời gian phản hồi nghiệp vụ FEFO ($1.20s < 1.5s$) và hiển thị Thẻ kho ($0.85s < 2.0s$) đều vượt tiêu chuẩn cam kết.
+4. [x] **Đáp ứng SLA Hiệu năng:** Thời gian phản hồi nghiệp vụ FEFO (`1.20s < 1.5s`) và hiển thị Thẻ kho (`0.85s < 2.0s`) đều vượt tiêu chuẩn cam kết.
 5. [x] **Không còn lỗi mở:** Toàn bộ các lỗi phát hiện đều được giải quyết triệt để (Zero Open Defects).
 
-### 7.2. Kết luận Nghiệm thu
-Phân hệ kiểm thử chức năng và kiểm thử hệ thống của Dự án **SmartWMS** đã hoàn thành xuất sắc nhiệm vụ của **Sprint 5 (Task T5.4)**. Hệ thống hoạt động ổn định, chính xác, an toàn, tuân thủ nghiêm ngặt các quy tắc nghiệp vụ kho và sẵn sàng để chuyển giao sang **Sprint 6: Tích hợp Báo cáo Word, Slide thuyết trình và Tổng duyệt đồ án**.
+#### 5.2.7.2. Kết luận Nghiệm thu
+Hệ thống Quản lý Kho Hàng Thông Minh (SmartWMS) đã vượt qua toàn diện 54/54 ca kiểm thử nghiệp vụ với tỷ lệ thành công 100%. Phần mềm vận hành ổn định, chính xác, an toàn, tuân thủ nghiêm ngặt các quy tắc nghiệp vụ quản lý kho (bảo mật hai bước Maker-Checker, tính bất biến thẻ kho, gợi ý FEFO/FIFO, toàn vẹn giao dịch ACID và đáp ứng cam kết SLA hiệu năng). Toàn bộ tiêu chí nghiệm thu đã được đáp ứng đầy đủ để đưa hệ thống vào nghiệm thu và vận hành chính thức.
 
 ---
 
