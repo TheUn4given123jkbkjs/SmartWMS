@@ -55,6 +55,7 @@
 - **3NF:** Không có phụ thuộc bắc cầu; **không lưu cột dư thừa tồn khả dụng** (tính toán thời gian thực: `available = on_hand_qty - reserved_qty`).
 - **Khử quan hệ N-N:** Quan hệ Nhiều - Nhiều giữa `product` và `warehouse_location` được phân rã triệt để qua bảng trung gian **`stock_batch`**.
 - **Phân tách thực thể nghiệp vụ & bảng kỹ thuật:** Mô hình dữ liệu tập trung trọn vẹn vào **12 thực thể nghiệp vụ cốt lõi**. Các bảng hạ tầng như `audit_event` (nhật ký API kỹ thuật) và `warehouse_mutex` (khóa kỹ thuật phân tán chống xung đột ghi) không đưa vào ERD nghiệp vụ.
+- **Phân tách thực thể nghiệp vụ & bảng kỹ thuật:** Mô hình dữ liệu chuẩn hóa 3NF tập trung trọn vẹn vào **12 thực thể nghiệp vụ cốt lõi**. Các bảng hạ tầng như `audit_event` (nhật ký API kỹ thuật) và `warehouse_mutex` (khóa kỹ thuật phân tán chống xung đột ghi) được quản lý ở tầng hạ tầng (infrastructure concern), không đưa vào ERD nghiệp vụ kho để đảm bảo tính toàn vẹn tham chiếu 3NF.
 
 ### 2.2. Danh mục 12 Bảng Cơ sở Dữ liệu
 
