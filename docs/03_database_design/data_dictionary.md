@@ -78,8 +78,8 @@
 | `id` | BIGINT | - | NO | **PK** | AUTO_INCREMENT | `id > 0` | Khóa chính định danh lô tồn kho |
 | `product_id` | BIGINT | - | NO | **FK** | None | REFERENCES `product(id)` RESTRICT | Khóa ngoại sản phẩm |
 | `location_id` | BIGINT | - | NO | **FK** | None | REFERENCES `warehouse_location(id)` RESTRICT | Khóa ngoại vị trí ô kệ chứa lô |
-| `lot_number` | VARCHAR | 50 | NO | - | None | Not empty (`BR-LOT-01`) | Số lô sản xuất từ nhà cung cấp |
-| `exp_date` | DATE | - | NO | - | None | Not empty (`BR-LOT-01`) | Ngày hết hạn của lô hàng |
+| `lot_number` | VARCHAR | 50 | NO | - | None | Not empty (`BR-LOT-01`). Hệ thống tự sinh mã nếu để trống khi `manage_by_lot = FALSE` | Số lô sản xuất từ nhà cung cấp (hoặc mã hệ thống tự sinh) |
+| `exp_date` | DATE | - | YES | - | None | `exp_date > CURRENT_DATE` nếu `manage_by_lot = 1`; NULL nếu `manage_by_lot = 0` (`BR-LOT-01`) | Ngày hết hạn của lô hàng (NULL nếu không quản lý hạn dùng) |
 | `on_hand_qty` | INT | - | NO | - | 0 | `on_hand_qty >= 0` (`BR-OUT-01`) | Số lượng tồn kho thực tế hiện vật |
 | `reserved_qty` | INT | - | NO | - | 0 | `0 <= reserved_qty <= on_hand_qty` | Số lượng đang tạm giữ chỗ cho các lệnh xuất |
 | `status` | VARCHAR | 20 | NO | - | 'AVAILABLE' | `IN ('AVAILABLE','EXPIRED','QUARANTINED','BLOCKED')` | Trạng thái chất lượng của lô |
@@ -116,8 +116,8 @@
 | `batch_id` | BIGINT | - | YES | **FK** | NULL | REFERENCES `stock_batch(id)` SET NULL | Khóa ngoại lô hàng sau khi duyệt nhập |
 | `product_id` | BIGINT | - | NO | **FK** | None | REFERENCES `product(id)` RESTRICT | Khóa ngoại mặt hàng tiếp nhận |
 | `location_id` | BIGINT | - | NO | **FK** | None | REFERENCES `warehouse_location(id)` RESTRICT | Khóa ngoại vị trí ô kệ cất hàng (`BR-INB-03`) |
-| `lot_number` | VARCHAR | 50 | NO | - | None | Not empty (`BR-LOT-01`) | Số lô trên nhãn bao bì |
-| `exp_date` | DATE | - | NO | - | None | `exp_date > CURRENT_DATE` (`BR-LOT-01`) | Hạn sử dụng của mặt hàng |
+| `lot_number` | VARCHAR | 50 | NO | - | None | Not empty (`BR-LOT-01`). Hệ thống tự sinh mã nếu để trống khi `manage_by_lot = FALSE` | Số lô trên nhãn bao bì (hoặc mã tự sinh) |
+| `exp_date` | DATE | - | YES | - | None | `exp_date > CURRENT_DATE` nếu `manage_by_lot = 1`; NULL nếu `manage_by_lot = 0` (`BR-LOT-01`) | Hạn sử dụng của mặt hàng (NULL nếu không quản lý hạn dùng) |
 | `accepted_qty` | INT | - | NO | - | 0 | `accepted_qty >= 0` (`BR-INB-01`) | Số lượng đạt chuẩn tiếp nhận vào kho |
 | `damaged_qty` | INT | - | NO | - | 0 | `damaged_qty >= 0` (`BR-INB-04`) | Số lượng vỡ hỏng/lỗi từ chối tiếp nhận |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm tạo dòng chi tiết |

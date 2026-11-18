@@ -64,10 +64,10 @@
 | **`purchase_order`** | `id bigint(10)` | — | `po_number` UNIQUE (BR-INB-01), `status IN ('APPROVED','PARTIALLY_RECEIVED','CLOSED','CANCELLED')` |
 | **`purchase_order_item`** | `id bigint(10)` | `purchase_order_id`, `product_id` | `UNIQUE(purchase_order_id, product_id)`, `ordered_qty > 0`, `received_qty >= 0` |
 | **`warehouse_location`** | `id bigint(10)` | — | `location_code` UNIQUE (BR-CAT-02), `zone` (DOCK, INSP, RAW, FG, SCRAP) |
-| **`stock_batch`** | `id bigint(10)` | `product_id`, `location_id` | `lot_number`, `exp_date`, `on_hand_qty >= 0`, `reserved_qty >= 0` |
+| **`stock_batch`** | `id bigint(10)` | `product_id`, `location_id` | `lot_number`, `exp_date` (NULL nếu không quản lý hạn), `on_hand_qty >= 0`, `reserved_qty >= 0` |
 | **`stock_card`** | `id bigint(10)` | `product_id`, `batch_id` | `qty_changed > 0`, `change_type`, `transaction_date` |
 | **`receipt_note`** | `id bigint(10)` | `maker_id` $\rightarrow$ `user.id` | `receipt_number` UNIQUE, `po_number`, `checker_id != maker_id` (BR-SEC-03) |
-| **`receipt_note_item`** | `id bigint(10)` | `receipt_id`, `batch_id` | `accepted_qty >= 0`, `damged_qty >= 0`, `exp_date > CURRENT_DATE` |
+| **`receipt_note_item`** | `id bigint(10)` | `receipt_id`, `batch_id` | `accepted_qty >= 0`, `damaged_qty >= 0`, `exp_date` (NULL nếu không quản lý hạn) |
 | **`issue_note`** | `id bigint(10)` | `maker_id` $\rightarrow$ `user.id` | `issue_number` UNIQUE, `dispatch_strategy` (FEFO/FIFO), `checker_id != maker_id` |
 | **`issue_note_item`** | `id bigint(10)` | `issue_id`, `batch_id` | `requested_qty > 0`, `allocated_qty >= 0` |
 | **`user`** | `id bigint(10)` | — | `username` UNIQUE, `passwordhash` NOT NULL, `active bit DEFAULT 1` |
@@ -99,7 +99,7 @@
 | **BR-CAT-03** | Trạng thái ô kệ | `WarehouseLocation.status` / `warehouse_location.status` (EMPTY/OCCUPIED) |
 | **BR-CAT-04** | ĐVT cơ sở duy nhất | `Product.uom` / `product.uom` NOT NULL |
 | **BR-CAT-05** | Định mức Min/Max | `Product.minStock`, `maxStock` / `product.min_stock`, `max_stock` |
-| **BR-LOT-01** | Lô & Hạn sử dụng | `StockBatch.lotNumber`, `expDate` / `stock_batch.lot_number`, `exp_date` |
+| **BR-LOT-01** | Lô & Hạn sử dụng | `StockBatch.lotNumber`, `expDate` / `stock_batch.lot_number`, `exp_date` (cho phép NULL khi `manage_by_lot = FALSE`, xuất theo FIFO) |
 | **BR-INB-01** | Nhập gắn đơn PO & Chặn vượt số | `ReceiptNote.poNumber` đối soát `PurchaseOrder.poNumber`, kiểm soát `remainingQty >= accepted_qty` |
 | **BR-INB-02** | Tăng tồn khi duyệt | `StockBatch.onHandQuantity` tăng khi `ReceiptNote.status = 'COMPLETED'` |
 | **BR-INB-04** | Phân loại hàng hỏng | `ReceiptNoteItem.damagedQuantity` / `receipt_note_item.damged_qty` |
