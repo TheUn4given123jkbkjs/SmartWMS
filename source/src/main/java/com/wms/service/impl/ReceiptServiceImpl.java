@@ -146,6 +146,9 @@ public class ReceiptServiceImpl implements ReceiptService {
     if (
       location.getZone() != ZoneType.RAW && location.getZone() != ZoneType.FG
     ) throw new InvalidLocationException("Chỉ được cất hàng ở RAW hoặc FG.");
+    if (location.getStatus() == LocationStatus.MAINTENANCE) {
+      throw new InvalidLocationException("Không được cất hàng vào ô đang bảo trì.");
+    }
     if (
       batches
         .findAll()
@@ -248,6 +251,28 @@ public class ReceiptServiceImpl implements ReceiptService {
     note.setStatus(ReceiptStatus.COMPLETED);
     ops.audit(note.getReceiptNumber(), "COMPLETE_RECEIPT", checker);
     return map(note);
+  }
+
+  @Override
+  public void cancelReceiptNote(Long id, String reason, Long userId) {
+    ops.lock();
+    ReceiptNote note = require(id);
+    User actor;
+    if (note.getMaker().getId().equals(userId)) {
+      actor = ops.actor(userId, UserRole.ROLE_STAFF);
+    } else {
+      actor = ops.actor(userId, UserRole.ROLE_MANAGER);
+    }
+    if (note.getStatus() != ReceiptStatus.PENDING_APPROVAL) {
+      throw new ConflictException("Chỉ có thể hủy phiếu nhập đang chờ duyệt (PENDING_APPROVAL).");
+    }
+    if (reason == null || reason.isBlank() || reason.length() > 255) {
+      throw new InvalidQuantityException("Phải nhập lý do hủy (tối đa 255 ký tự).");
+    }
+    note.setStatus(ReceiptStatus.CANCELLED);
+    note.setRejectionNote(reason);
+    note.setUpdatedAt(LocalDateTime.now());
+    ops.audit(note.getReceiptNumber(), "CANCEL_RECEIPT", actor);
   }
 
   private ReceiptNote require(Long id) {

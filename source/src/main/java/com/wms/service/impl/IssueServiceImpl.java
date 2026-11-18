@@ -137,13 +137,12 @@ public class IssueServiceImpl implements IssueService {
         order = List.of(selected);
       }
       if (overridden) {
-        if (
-          dto.getOverrideReason() == null || dto.getOverrideReason().isBlank()
-        ) throw new InvalidQuantityException(
-          "Đổi thứ tự ưu tiên phải nhập lý do ngoại lệ."
-        );
+        String reason = dto.getOverrideReason() == null ? "" : dto.getOverrideReason().strip();
+        if (reason.length() < 10 || reason.length() > 255) {
+          throw new InvalidQuantityException("Lý do ngoại lệ phải có từ 10 đến 255 ký tự.");
+        }
         n.setIsOverridden(true);
-        n.setOverrideReason(dto.getOverrideReason());
+        n.setOverrideReason(reason);
       }
       for (StockBatch batch : order) {
         BigDecimal q = remaining.min(batch.getAvailableQty());
@@ -350,6 +349,7 @@ public class IssueServiceImpl implements IssueService {
         .map(i -> pick(i.getStockBatch(), i.getAllocatedQty()))
         .toList()
     );
+    d.setIsOverridden(Boolean.TRUE.equals(n.getIsOverridden()));
     d.setOverrideReason(n.getOverrideReason());
     d.setDecisionReason(n.getDecisionReason());
     d.setCompletedAt(n.getCompletedAt());

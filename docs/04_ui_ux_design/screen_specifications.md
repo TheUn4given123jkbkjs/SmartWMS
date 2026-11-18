@@ -52,7 +52,7 @@
 | **Mã màn hình** | `SCR02` |
 | **Tên màn hình** | Dashboard Tổng quan & Cảnh báo Tồn kho |
 | **Tác nhân sử dụng** | `ROLE_STAFF` (Thủ kho), `ROLE_MANAGER` (Quản lý kho) |
-| **Yêu cầu chức năng** | `FR-INV.02` (Cảnh báo tồn tối thiểu), `FR-INV.03` (Cảnh báo cận hạn), `UC07` |
+| **Yêu cầu chức năng** | `FR04.03` (Cảnh báo tồn thấp và hạn dùng), `UC07` |
 | **Mục đích giao diện** | Cung cấp cái nhìn toàn cảnh về khối lượng hàng hóa, các phiếu đang xử lý và kích hoạt phản ứng khẩn cấp với hàng cận hạn/thiếu hụt. |
 
 #### Bảng Tương tác UI và Luồng chuyển trang (Navigation Flow):
@@ -62,8 +62,8 @@
 | `CARD_02` | KPI Stat Card | "Phiếu Nhập Chờ Duyệt" | Click | Lọc nhanh và chuyển sang `SCR04` (danh sách phiếu chờ duyệt) |
 | `CARD_03` | KPI Stat Card | "Phiếu Xuất Đang Giữ Tồn" | Click | Chuyển sang `SCR05` xem các lệnh xuất đang tạm giữ Reserved |
 | `CARD_04` | KPI Stat Card | "Cảnh Báo Nguy Cấp" | Click cuộn trang | Tự động cuộn xuống 2 bảng cảnh báo tồn bên dưới |
-| `TBL_05` | Data Table | "Cảnh Báo Tồn Dưới Định Mức" | Tra cứu danh sách | Hiển thị SKU có `availableQty <= minStockAlert`. Badge đỏ "NGUY CẤP" |
-| `TBL_06` | Data Table | "Cảnh Báo Lô Hàng Cận Hạn (FEFO)" | Tra cứu lô hàng | Hiển thị lô hàng có ngày hết hạn `<= 30 ngày`. Gợi ý: "Ưu tiên xuất FEFO" |
+| `TBL_05` | Data Table | "Cảnh Báo Tồn Dưới Định Mức" | Tra cứu danh sách | Hiển thị SKU có `availableQty <= minStockAlert`. Khi On-order dương và gợi ý bằng 0, hiện “Đã có hàng đang về” |
+| `TBL_06` | Data Table | "Cảnh Báo Lô Hàng Cận Hạn (FEFO)" | Tra cứu lô hàng | Dashboard dùng ngưỡng 30 ngày. Trang Cảnh báo cho đổi ngưỡng chung từ 1–365 ngày. Hết hạn hôm nay hiện “Cận hạn nguy cấp” |
 
 ---
 

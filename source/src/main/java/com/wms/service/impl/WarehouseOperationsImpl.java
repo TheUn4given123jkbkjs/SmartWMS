@@ -95,6 +95,8 @@ public class WarehouseOperationsImpl implements WarehouseOperations {
 
   @Override
   public void location(WarehouseLocation location) {
+    if (location.getStatus() == LocationStatus.MAINTENANCE) return;
+
     boolean occupied = batches
       .findAll()
       .stream()

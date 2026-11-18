@@ -1,0 +1,36 @@
+name: smartwms
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: smartwms
+      MYSQL_USER: smartwms_app
+      MYSQL_PASSWORD: ${SMARTWMS_DB_PASSWORD:?Set SMARTWMS_DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${SMARTWMS_DB_ROOT_PASSWORD:?Set SMARTWMS_DB_ROOT_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql --protocol=TCP -h 127.0.0.1 -u \"$$MYSQL_USER\" \"$$MYSQL_DATABASE\" -Nse 'SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "127.0.0.1:8081:80"
+
+volumes:
+  mysql_data:

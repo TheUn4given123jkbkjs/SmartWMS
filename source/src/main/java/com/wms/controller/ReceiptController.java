@@ -79,4 +79,21 @@ public class ReceiptController {
     );
     return ResponseEntity.ok(approved);
   }
+
+  public record Decision(
+    @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 255) String reason
+  ) {}
+
+  @PostMapping("/api/notes/{id}/cancel")
+  @ResponseBody
+  public ResponseEntity<Void> cancelReceiptNoteApi(
+    @PathVariable Long id,
+    @Valid @RequestBody Decision decision,
+    @SessionAttribute(value = "user", required = false) com.wms.dto.auth.UserResponseDTO user,
+    @RequestHeader(value = "X-User-Id", defaultValue = "1") Long currentUserId
+  ) {
+    Long actorId = user != null ? user.getId() : currentUserId;
+    receiptService.cancelReceiptNote(id, decision.reason(), actorId);
+    return ResponseEntity.noContent().build();
+  }
 }

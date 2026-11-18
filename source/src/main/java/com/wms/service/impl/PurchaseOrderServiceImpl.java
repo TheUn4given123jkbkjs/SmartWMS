@@ -6,10 +6,11 @@ import com.wms.dto.purchase.PurchaseOrderResponseDTO;
 import com.wms.entity.Product;
 import com.wms.entity.PurchaseOrder;
 import com.wms.entity.PurchaseOrderItem;
-import com.wms.entity.ReceiptNoteItem;
+import com.wms.entity.User;
 import com.wms.exception.ConflictException;
 import com.wms.exception.InvalidQuantityException;
 import com.wms.exception.ResourceNotFoundException;
+import com.wms.exception.SecurityViolationException;
 import com.wms.repository.ProductRepository;
 import com.wms.repository.PurchaseOrderRepository;
 import com.wms.repository.ReceiptNoteRepository;
@@ -21,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,20 +35,17 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
   private final PurchaseOrderRepository orders;
   private final ProductRepository products;
   private final ReceiptNoteRepository receipts;
-  private WarehouseOperations ops;
+  private final WarehouseOperations ops;
 
   public PurchaseOrderServiceImpl(
     PurchaseOrderRepository orders,
     ProductRepository products,
-    ReceiptNoteRepository receipts
+    ReceiptNoteRepository receipts,
+    WarehouseOperations ops
   ) {
     this.orders = orders;
     this.products = products;
     this.receipts = receipts;
-  }
-
-  @Autowired(required = false)
-  public void setWarehouseOperations(WarehouseOperations ops) {
     this.ops = ops;
   }
 
@@ -66,34 +63,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
   @Override
   public PurchaseOrderResponseDTO importPurchaseOrder(PurchaseOrderImportDTO dto, Long actorId) {
-    if (orders.findByPoNumber(dto.getPoNumber()).isPresent()) {
-      throw new ConflictException("Mã đơn mua hàng (PO) '" + dto.getPoNumber() + "' đã tồn tại.");
-    }
-
-    PurchaseOrder po = new PurchaseOrder();
-    po.setPoNumber(dto.getPoNumber().trim());
-    po.setSupplierName(dto.getSupplierName().trim());
-    po.setStatus("APPROVED");
-
-    Set<Long> seenProducts = new HashSet<>();
-    for (PurchaseOrderImportDTO.Item itemDTO : dto.getItems()) {
-      if (!seenProducts.add(itemDTO.getProductId())) {
-        throw new InvalidQuantityException("Đơn mua hàng không được chứa trùng lặp SKU sản phẩm.");
-      }
-      Product p = products
-        .findById(itemDTO.getProductId())
-        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm có ID: " + itemDTO.getProductId()));
-
-      PurchaseOrderItem item = new PurchaseOrderItem();
-      item.setPurchaseOrder(po);
-      item.setProduct(p);
-      item.setOrderedQty(itemDTO.getOrderedQty());
-      item.setReceivedQty(BigDecimal.ZERO);
-      po.getItems().add(item);
-    }
-
-    PurchaseOrder saved = orders.save(po);
-    return mapToDTO(saved);
+    ImportRequest request = new ImportRequest(
+      dto.getPoNumber(),
+      dto.getSupplierName(),
+      dto.getItems().stream()
+        .map(item -> new ImportLine(item.getProductId(), item.getOrderedQty()))
+        .toList()
+    );
+    return mapToDTO(saveApproved(request, actorId));
   }
 
   @Override
@@ -164,16 +141,22 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
   }
 
   @Override
-  public View importApproved(ImportRequest request, Long actor) {
-    if (ops != null) {
-      ops.lock();
-      ops.actor(actor, UserRole.ROLE_MANAGER);
+  public View importApproved(ImportRequest request, Long actorId) {
+    return view(saveApproved(request, actorId));
+  }
+
+  private PurchaseOrder saveApproved(ImportRequest request, Long actorId) {
+    if (actorId == null) {
+      throw new SecurityViolationException("Phải đăng nhập để nhập PO.");
     }
-    if (orders.findByPoNumber(request.poNumber()).isPresent()) {
+    User actor = ops.actor(actorId, UserRole.ROLE_MANAGER);
+    ops.lock();
+    String poNumber = request.poNumber().trim();
+    if (orders.findByPoNumber(poNumber).isPresent()) {
       throw new ConflictException("Mã PO đã tồn tại.");
     }
     PurchaseOrder po = new PurchaseOrder();
-    po.setPoNumber(request.poNumber().trim());
+    po.setPoNumber(poNumber);
     po.setSupplierName(request.supplierName().trim());
     po.setStatus("APPROVED");
 
@@ -188,15 +171,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
       PurchaseOrderItem i = new PurchaseOrderItem();
       i.setPurchaseOrder(po);
       i.setProduct(p);
-      i.setOrderedQty(line.orderedQty());
+      i.setOrderedQty(ops.qty(line.orderedQty(), true));
       i.setReceivedQty(BigDecimal.ZERO);
       po.getItems().add(i);
     }
-    orders.save(po);
-    if (ops != null) {
-      ops.audit(po.getPoNumber(), "IMPORT_APPROVED_PO", ops.actor(actor, UserRole.ROLE_MANAGER));
-    }
-    return view(po);
+    PurchaseOrder saved = orders.save(po);
+    ops.audit(saved.getPoNumber(), "IMPORT_APPROVED_PO", actor);
+    return saved;
   }
 
   @Override
