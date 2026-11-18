@@ -30,3 +30,6 @@ desktop.ini
 # Crash logs
 hs_err_pid*
 replay_pid*
+
+# Local Docker / Spring credentials
+/.env
