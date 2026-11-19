@@ -9,11 +9,10 @@
 -- Mật khẩu mặc định cho toàn bộ tài khoản demo: 123456
 -- -----------------------------------------------------------------------------
 INSERT INTO `user` (id, username, password_hash, full_name, role, active, created_at) VALUES
-(1, 'admin', '123456', 'Quản trị viên Hệ thống', 'ROLE_ADMIN', 1, CURRENT_TIMESTAMP),
-(2, 'manager_trung', '123456', 'Nguyễn Thành Trung (Thủ kho trưởng)', 'ROLE_MANAGER', 1, CURRENT_TIMESTAMP),
-(3, 'manager_khang', '123456', 'Nguyễn Bảo Khang (Quản lý kho phó / Checker)', 'ROLE_MANAGER', 1, CURRENT_TIMESTAMP),
-(4, 'staff_thien', '123456', 'Tôn Thanh Thiên (Thủ kho Tiếp nhận / Maker)', 'ROLE_STAFF', 1, CURRENT_TIMESTAMP),
-(5, 'staff_quan', '123456', 'Thạch Hoàng Quân (Thủ kho Xuất hàng / Maker)', 'ROLE_STAFF', 1, CURRENT_TIMESTAMP);
+(1, 'manager_trung', '123456', 'Nguyễn Thành Trung (Thủ kho trưởng)', 'ROLE_MANAGER', 1, CURRENT_TIMESTAMP),
+(2, 'manager_khang', '123456', 'Nguyễn Bảo Khang (Quản lý kho phó / Checker)', 'ROLE_MANAGER', 1, CURRENT_TIMESTAMP),
+(3, 'staff_thien', '123456', 'Tôn Thanh Thiên (Thủ kho Tiếp nhận / Maker)', 'ROLE_STAFF', 1, CURRENT_TIMESTAMP),
+(4, 'staff_quan', '123456', 'Thạch Hoàng Quân (Thủ kho Xuất hàng / Maker)', 'ROLE_STAFF', 1, CURRENT_TIMESTAMP);
 
 -- -----------------------------------------------------------------------------
 -- 2. BẢNG `category`: DANH MỤC NGÀNH HÀNG PHỤ TÙNG XE MÁY YAMAHA

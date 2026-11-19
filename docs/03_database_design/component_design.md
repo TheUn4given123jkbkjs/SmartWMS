@@ -269,8 +269,8 @@ source/
     │   │       ├── ZoneType.java                   # Phân khu: DOCK, INSP, RAW, FG, SCRAP
     │   │       ├── LocationStatus.java             # Trạng thái kệ: EMPTY, OCCUPIED, MAINTENANCE
     │   │       ├── UserRole.java                   # Vai trò: ROLE_STAFF, ROLE_MANAGER, ROLE_ADMIN
-    │   │       ├── ReceiptStatus.java              # Trạng thái nhập: PENDING_APPROVAL, APPROVED...
-    │   │       ├── IssueStatus.java                # Trạng thái xuất: DRAFT, PENDING_APPROVAL...
+    │   │       ├── ReceiptStatus.java              # Trạng thái nhập: PENDING_APPROVAL, COMPLETED...
+    │   │       ├── IssueStatus.java                # Trạng thái xuất: PENDING_APPROVAL, APPROVED_READY_TO_PICK...
     │   │       ├── DispatchStrategy.java           # Chiến lược: FEFO, FIFO
     │   │       └── ChangeType.java                 # Biến động: NHAP_PO, XUAT_KHO...
     │   │
@@ -306,7 +306,7 @@ source/
 | **`com.wms.service`** | Khai báo Contract (Interface) các luồng nghiệp vụ hệ thống. | Định hình ranh giới chức năng rõ ràng, hỗ trợ Dependency Injection. |
 | **`com.wms.service.impl`** | Hiện thực hóa 100% nghiệp vụ, thuật toán, ràng buộc BR và quản lý giao dịch `@Transactional`. | Phải ném ngoại lệ kiểu `BusinessException` khi vi phạm quy tắc. |
 | **`com.wms.repository`** | Kế thừa `JpaRepository`, cung cấp các phương thức CRUD và truy vấn JPQL tùy biến. | Chỉ phục vụ truy xuất và lưu trữ dữ liệu, không xử lý logic kiểm tra nghiệp vụ. |
-| **`com.wms.entity`** | Ánh xạ trực tiếp 1-1 với 10 bảng CSDL quan hệ 3NF. | Không chứa trường dữ liệu tính toán động (như `available_qty`). |
+| **`com.wms.entity`** | Ánh xạ trực tiếp 1-1 với 12 bảng CSDL quan hệ 3NF. | Không chứa trường dữ liệu tính toán động (như `available_qty`). |
 | **`com.wms.dto`** | Đóng gói dữ liệu truyền qua lại giữa View và Service, chứa Bean Validation (`@NotNull`, `@Min`...). | Phân chia theo phân hệ (`auth`, `catalog`, `receipt`, `issue`, `inventory`). |
 | **`com.wms.exception`** | Định nghĩa cây phả hệ lỗi nghiệp vụ và lớp xử lý ngoại lệ tập trung `@ControllerAdvice`. | Chuẩn hóa mã phản hồi HTTP (400, 403, 404, 409). |
 | **`com.wms.util`** | Chứa Enums định danh chuẩn hóa và các hằng số cấu hình. | Bất biến (Immutable), không phụ thuộc vào tầng trên. |

@@ -60,13 +60,13 @@ class WorkspaceIntegrationTest {
   }
 
   @Test
-  @org.junit.jupiter.api.DisplayName("TC-AUTH.03-P: Đăng nhập thành công với vai trò Quản trị viên (Admin)")
+  @org.junit.jupiter.api.DisplayName("TC-AUTH.03-P: Đăng nhập thành công với vai trò Thủ kho trưởng (manager_trung)")
   void tc_auth_03_p_adminLoginSuccess() throws Exception {
-    var session = login("admin");
+    var session = login("manager_trung");
     mvc
       .perform(get("/app").session(session))
       .andExpect(status().isOk())
-      .andExpect(content().string(org.hamcrest.Matchers.containsString("Quản trị viên Hệ thống")));
+      .andExpect(content().string(org.hamcrest.Matchers.containsString("Nguyễn Thành Trung")));
   }
 
   @Test
@@ -172,7 +172,7 @@ class WorkspaceIntegrationTest {
 
   @Test
   void catalogWritesPersistAndDuplicateIsReported() throws Exception {
-    var session = login("admin");
+    var session = login("manager_trung");
     long category = json
       .readTree(
         mvc
@@ -212,21 +212,25 @@ class WorkspaceIntegrationTest {
           .session(session)
           .contentType("application/json")
           .content(
-            "{\"locationCode\":\"RAW-UI-TEST\",\"zone\":\"RAW\",\"maxCapacity\":100,\"shelf\":\"01\"}"
+            "{\"locationCode\":\"RAW-C01-02\",\"zone\":\"RAW\",\"maxCapacity\":100}"
           )
       )
       .andExpect(status().isCreated());
     mvc
       .perform(get("/catalog/api/locations").session(session))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$[0].id").exists());
+      .andExpect(jsonPath("$[0].id").exists())
+      .andExpect(jsonPath("$[?(@.locationCode=='RAW-C01-02')].aisle").value("C"))
+      .andExpect(jsonPath("$[?(@.locationCode=='RAW-C01-02')].rack").value("01"))
+      .andExpect(jsonPath("$[?(@.locationCode=='RAW-C01-02')].shelf").value("02"))
+      .andExpect(jsonPath("$[?(@.locationCode=='RAW-C01-02')].bin").value("01"));
   }
 
   @Test
   void warehouseWritesRequireStaffOrManagerRole() throws Exception {
-    var session = login("admin");
+    var session = login("staff_quan");
     mvc
-      .perform(post("/issue/api/notes/1/approve").session(session))
+      .perform(post("/catalog/api/products").session(session).contentType("application/json").content("{}"))
       .andExpect(status().isForbidden());
   }
 }

@@ -130,10 +130,6 @@ public class CatalogServiceImpl implements CatalogService {
     location.setLocationCode(dto.getLocationCode());
     location.setZone(dto.getZone());
     location.setMaxCapacity(dto.getMaxCapacity());
-    location.setShelf(dto.getShelf());
-    location.setAisle(dto.getAisle());
-    location.setRack(dto.getRack());
-    location.setBin(dto.getBin());
     location.setStatus(LocationStatus.EMPTY);
     locationRepository.save(location);
   }

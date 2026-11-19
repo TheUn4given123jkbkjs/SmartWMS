@@ -63,7 +63,7 @@
 | **T4.1** | Thiết kế Wireframe/Layout Web Dashboard & Forms (Thymeleaf / Bootstrap 5) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 11/11 | **Hoàn thành** |
 | **T4.2** | Lập Bảng Đặc tả màn hình Web & Luồng điều hướng Route (SCR Navigation Flow) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 11/11 | **Hoàn thành** |
 | **T4.3** | Thiết kế bộ Ca kiểm thử nghiệp vụ (**Test Design**: Positive `-P` và Negative `-N`) | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 12/11 | **Hoàn thành** |
-| **T4.4** | Xây dựng Ma trận truy vết yêu cầu (RTM: Vấn đề $\rightarrow$ FR $\rightarrow$ UC $\rightarrow$ DB $\rightarrow$ SCR $\rightarrow$ TC) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 12/11 | Đang thực hiện |
+| **T4.4** | Xây dựng Ma trận truy vết yêu cầu (RTM: Vấn đề $\rightarrow$ FR $\rightarrow$ UC $\rightarrow$ DB $\rightarrow$ SCR $\rightarrow$ TC) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 12/11 | **Hoàn thành** |
 
 ---
 
@@ -84,21 +84,46 @@
 
 | Mã Task | Hạng mục công việc | Maker | Reviewer | Hạn chót | Trạng thái |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| **T6.1** | Tích hợp toàn bộ nội dung vào file Word, căn chỉnh lề in, mục lục, kết luận | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 18/11 | Chờ làm |
-| **T6.2** | Thiết kế Slide thuyết trình nhóm (12–15 phút) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 18/11 | Chờ làm |
-| **T6.3** | Biên soạn Kịch bản Demo Script Web & Bộ câu hỏi phản biện Q&A | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 19/11 (Trưa) | Chờ làm |
-| **T6.4** | Hoàn thiện Phụ lục đóng góp thành viên (tỷ lệ 100%) và đóng gói mã nguồn | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 19/11 (Chiều) | Chờ làm |
-| **T6.5** | Tổng kiểm duyệt chéo toàn bộ hồ sơ báo cáo trước khi nộp lên Elearning | **Cả 4 thành viên** | **Cả 4 thành viên** | **19/11 (23g59)** | Chờ làm |
+| **T6.1** | Tích hợp toàn bộ nội dung vào file Word, căn chỉnh lề in, mục lục, kết luận | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 18/11 | **Hoàn thành** |
+| **T6.2** | Thiết kế Slide thuyết trình nhóm (12–15 phút) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 18/11 | **Hoàn thành** |
+| **T6.3** | Biên soạn Kịch bản Demo Script Web & Bộ câu hỏi phản biện Q&A | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 19/11 (Trưa) | **Hoàn thành** |
+| **T6.4** | Hoàn thiện Phụ lục đóng góp thành viên (tỷ lệ 100%) và đóng gói mã nguồn | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 19/11 (Chiều) | **Hoàn thành** |
+| **T6.5** | Tổng kiểm duyệt chéo toàn bộ hồ sơ báo cáo trước khi nộp lên Elearning | **Cả 4 thành viên** | **Cả 4 thành viên** | **19/11 (23g59)** | **Hoàn thành** |
 
 ---
 
-## III. BẢNG TỔNG HỢP KHỐI LƯỢNG CÔNG VIỆC
+## III. BẢNG TỔNG HỢP KHỐI LƯỢNG CÔNG VIỆC (MAKER – REVIEWER)
 
-| Thành viên | Danh sách Task phụ trách (Maker) | Số task Maker | Danh sách Task kiểm tra duyệt (Reviewer) | Số task Reviewer | Tỷ lệ khối lượng (%) |
+| Thành viên | Danh sách Task phụ trách (Maker) | Số task Maker | Danh sách Task kiểm tra duyệt (Reviewer) | Số task Reviewer | Tỷ lệ đóng góp (%) |
 | :---: | :--- | :---: | :--- | :---: | :---: |
-| **M1 (Trung)** | `T1.3`, `T2.3`, `T3.1`, `T4.4`, `T5.1`, `T6.4` | 6 task | `T1.2`, `T2.4`, `T3.4`, `T4.1`, `T5.2`, `T6.3` | 6 task | **25%** |
-| **M2 (Khang)** | `T1.1`, `T2.2`, `T3.2`, `T4.3`, `T5.4`, `T6.1` | 6 task | `T1.3`, `T2.3`, `T3.1`, `T4.4`, `T5.1`, `T6.4` | 6 task | **25%** |
-| **M3 (Thiên)** | `T1.4`, `T2.1`, `T3.3`, `T4.2`, `T5.3`, `T6.2` | 6 task | `T1.1`, `T2.2`, `T3.2`, `T4.3`, `T5.4`, `T6.1` | 6 task | **25%** |
-| **M4 (Quân)** | `T1.2`, `T2.4`, `T3.4`, `T4.1`, `T5.2`, `T6.3` | 6 task | `T1.4`, `T2.1`, `T3.3`, `T4.2`, `T5.3`, `T6.2` | 6 task | **25%** |
+| **M1 (Nguyễn Thành Trung)** | `T1.3`, `T2.3`, `T3.1`, `T4.4`, `T5.1`, `T6.4` | 6 task | `T1.2`, `T2.4`, `T3.4`, `T4.1`, `T5.2`, `T6.3` | 6 task | **25%** |
+| **M2 (Nguyễn Bảo Khang)** | `T1.1`, `T2.2`, `T3.2`, `T4.3`, `T5.4`, `T6.1` | 6 task | `T1.3`, `T2.3`, `T3.1`, `T4.4`, `T5.1`, `T6.4` | 6 task | **25%** |
+| **M3 (Tôn Thanh Thiên)** | `T1.4`, `T2.1`, `T3.3`, `T4.2`, `T5.3`, `T6.2` | 6 task | `T1.1`, `T2.2`, `T3.2`, `T4.3`, `T5.4`, `T6.1` | 6 task | **25%** |
+| **M4 (Thạch Hoàng Quân)** | `T1.2`, `T2.4`, `T3.4`, `T4.1`, `T5.2`, `T6.3` | 6 task | `T1.4`, `T2.1`, `T3.3`, `T4.2`, `T5.3`, `T6.2` | 6 task | **25%** |
 | **Cả nhóm** | `T6.5` (Tổng kiểm duyệt chéo toàn bộ sản phẩm và hồ sơ) | 1 task | `T6.5` (Toàn bộ 4 thành viên cùng kiểm tra chéo) | 1 task | Đồng đều |
-| **Tổng** | **24 task cá nhân + 1 task chung** | **25 task** | **24 task cá nhân + 1 task chung** | **25 task** | **100%** |
+| **Tổng cộng** | **24 task cá nhân + 1 task chung** | **25 task** | **24 task cá nhân + 1 task chung** | **25 task** | **100%** |
+
+---
+
+## IV. PHỤ LỤC CHI TIẾT ĐÓNG GÓP THÀNH VIÊN THEO TỪNG SPRINT (`T6.4`)
+
+### 4.1. Bảng Ma trận Đóng góp Xuyên suốt 6 Sprint
+
+| Giai đoạn (Sprint) | M1 – Nguyễn Thành Trung (Nhóm trưởng) | M2 – Nguyễn Bảo Khang (Thành viên) | M3 – Tôn Thanh Thiên (Thành viên) | M4 – Thạch Hoàng Quân (Thành viên) | Tỷ lệ hoàn thành |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| **Sprint 1**<br>*Khảo sát & Đặc tả SRS* | • **Maker `T1.3`:** Đặc tả chi tiết 2 bảng cho 12 yêu cầu chức năng Must-have (`FR01`–`FR04`).<br>• **Reviewer `T1.2`:** Rà soát bảng phân loại MoSCoW. | • **Maker `T1.1`:** Xây dựng danh mục 25 Quy tắc nghiệp vụ cốt lõi (`BR`) theo chuẩn BABOK v3.<br>• **Reviewer `T1.3`:** Thẩm định đặc tả chi tiết FR. | • **Maker `T1.4`:** Đặc tả Yêu cầu phi chức năng (`NFR`) theo chuẩn ISO/IEC 25010 có chỉ số SLA định lượng.<br>• **Reviewer `T1.1`:** Rà soát bộ quy tắc BR. | • **Maker `T1.2`:** Khảo sát hiện trạng Chương 1–2, tổng hợp 10 vấn đề (`P-01`..`P-10`) và bảng phân loại MoSCoW.<br>• **Reviewer `T1.4`:** Kiểm tra NFR. | **100%** |
+| **Sprint 2**<br>*Mô hình hóa UML* | • **Maker `T2.3`:** Thiết kế Class Diagram (12 lớp Entity, 6 lớp Controller) & Lược đồ ERD 12 bảng chuẩn 3NF.<br>• **Reviewer `T2.4`:** Duyệt Sequence Diagram. | • **Maker `T2.2`:** Đặc tả chi tiết 7 Use Case cốt lõi (`UC01`–`UC07`) đầy đủ Main/Alt/Exception flows.<br>• **Reviewer `T2.3`:** Đối soát Class & ERD. | • **Maker `T2.1`:** Vẽ Biểu đồ Use Case tổng quát và sơ đồ phân rã theo phân hệ, xác định Actor & Boundary.<br>• **Reviewer `T2.2`:** Duyệt đặc tả 7 UC. | • **Maker `T2.4`:** Vẽ và giải trình từng bước 3 Biểu đồ Tuần tự trọng tâm (`SQ01`–`SQ03`).<br>• **Reviewer `T2.1`:** Kiểm tra sơ đồ Use Case. | **100%** |
+| **Sprint 3**<br>*Thiết kế CSDL & Kiến trúc* | • **Maker `T3.1`:** Chứng minh chuẩn hóa 3NF, viết 12 kịch bản SQL DDL độc lập và `schema.sql`.<br>• **Reviewer `T3.4`:** Duyệt thiết kế REST API/DTO. | • **Maker `T3.2`:** Lập Từ điển dữ liệu (Data Dictionary 8 cột) cho toàn bộ 12 bảng CSDL.<br>• **Reviewer `T3.1`:** Kiểm tra khóa ngoại & CHECK SQL. | • **Maker `T3.3`:** Thiết kế kiến trúc phân tầng Component & tổ chức Package Spring Boot.<br>• **Reviewer `T3.2`:** Đối soát Từ điển dữ liệu. | • **Maker `T3.4`:** Thiết kế chữ ký hàm tầng Service, REST API Endpoints và Request/Response DTO.<br>• **Reviewer `T3.3`:** Duyệt Component Design. | **100%** |
+| **Sprint 4**<br>*Thiết kế UI/UX & Kiểm thử* | • **Maker `T4.4`:** Xây dựng Ma trận truy vết yêu cầu 3 giai đoạn (`RTM`: `P-xx` $\rightarrow$ `FR` $\rightarrow$ `UC` $\rightarrow$ `DB` $\rightarrow$ `SCR` $\rightarrow$ `TC`).<br>• **Reviewer `T4.1`:** Duyệt giao diện Web. | • **Maker `T4.3`:** Thiết kế bộ 54 Ca kiểm thử nghiệp vụ (`test_cases.md`: 25 ca Positive, 29 ca Negative).<br>• **Reviewer `T4.4`:** Kiểm tra ma trận RTM. | • **Maker `T4.2`:** Đặc tả chi tiết 6 màn hình cốt lõi (`SCR01`–`SCR06`) và sơ đồ điều hướng Route.<br>• **Reviewer `T4.3`:** Thẩm định 54 Test Cases. | • **Maker `T4.1`:** Thiết kế Layout Web Dashboard, Sơ đồ mặt bằng kho 3M/5S và hệ thống Form.<br>• **Reviewer `T4.2`:** Kiểm tra đặc tả màn hình. | **100%** |
+| **Sprint 5**<br>*Lập trình & Kiểm thử* | • **Maker `T5.1`:** Xây dựng tầng Entity, Repository, Service `@Transactional` (FEFO/FIFO, Maker-Checker, Thẻ kho).<br>• **Reviewer `T5.2`:** Duyệt tầng Controller/UI. | • **Maker `T5.4`:** Thực thi 53 bài test tự động (`JUnit 5` / `MockMvc`) đạt PASS 100%, lập báo cáo nghiệm thu.<br>• **Reviewer `T5.1`:** Review code Backend. | • **Maker `T5.3`:** Kết nối luồng tích hợp End-to-End 4 phân hệ Must-have và cấu hình dữ liệu khởi tạo.<br>• **Reviewer `T5.4`:** Kiểm chứng kết quả Test. | • **Maker `T5.2`:** Xây dựng Controllers, Thymeleaf Views, JavaScript tương tác bản đồ kho & chứng từ.<br>• **Reviewer `T5.3`:** Kiểm tra luồng tích hợp. | **100%** |
+| **Sprint 6**<br>*Tích hợp, Slide & Tổng duyệt* | • **Maker `T6.4`:** Tổng hợp phụ lục đánh giá đóng góp, đồng bộ cầu nối XAMPP/Docker & đóng gói mã nguồn.<br>• **Reviewer `T6.3`:** Duyệt kịch bản Demo. | • **Maker `T6.1`:** Biên tập và định dạng toàn bộ tài liệu sang báo cáo Word hoàn chỉnh.<br>• **Reviewer `T6.4`:** Kiểm tra gói mã nguồn nộp. | • **Maker `T6.2`:** Thiết kế bộ Slide thuyết trình báo cáo đồ án cuối kỳ.<br>• **Reviewer `T6.1`:** Rà soát định dạng file Word. | • **Maker `T6.3`:** Biên soạn kịch bản Demo trực tiếp (`Demo_Script.md`) và bộ câu hỏi phản biện.<br>• **Reviewer `T6.2`:** Kiểm tra nội dung Slide. | **100%** |
+
+### 4.2. Bảng Xác nhận Đánh giá Đóng góp Cuối kỳ
+
+| Mã TV | Họ và tên sinh viên | Vai trò trong nhóm | Số Task Maker | Số Task Reviewer | Điểm đánh giá chéo | Tỷ lệ đóng góp | Xác nhận của thành viên |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **M1** | **Nguyễn Thành Trung** | Nhóm trưởng | 6/6 | 6/6 | 100 / 100 | **25%** | *Đã xác nhận* |
+| **M2** | **Nguyễn Bảo Khang** | Thành viên | 6/6 | 6/6 | 100 / 100 | **25%** | *Đã xác nhận* |
+| **M3** | **Tôn Thanh Thiên** | Thành viên | 6/6 | 6/6 | 100 / 100 | **25%** | *Đã xác nhận* |
+| **M4** | **Thạch Hoàng Quân** | Thành viên | 6/6 | 6/6 | 100 / 100 | **25%** | *Đã xác nhận* |
+| **Tổng** | **4 Thành viên** | **Đồng đều 100%** | **24 + 1 chung** | **24 + 1 chung** | **Hoàn thành đúng hạn** | **100%** | **Thống nhất 100%** |

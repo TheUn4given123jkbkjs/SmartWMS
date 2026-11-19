@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS receipt_note_item (
     exp_date DATE NULL, -- Cho phép NULL đối với hàng không quản lý lô/hạn (Quyết định D5)
     accepted_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
     damaged_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    rejection_reason VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Khóa ngoại tham chiếu Phiếu nhập, Lô hàng, Sản phẩm, Vị trí ô kệ
