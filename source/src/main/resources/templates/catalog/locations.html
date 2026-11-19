@@ -278,41 +278,11 @@
                 /><small class="field-error" data-error="maxCapacity"></small>
               </div>
               <p class="muted">
-                Nhập thông tin dãy/kệ/tầng/ô theo vị trí thực tế. Sức chứa thiết
-                kế không phải số đo tải trọng hiện tại.
+                Nhập mã vị trí theo quy ước phân cấp chuẩn 3M:
+                <code>KHU-DÃY-KỆ-TẦNG-Ô</code> (VD: <code>RAW-A01-01</code>,
+                <code>FG-B-01-02-01</code>) để hệ thống tự động phân rã tọa độ
+                trên sơ đồ kho.
               </p>
-            </div>
-            <div class="field">
-              <label for="aisle">Dãy</label
-              ><input
-                class="form-control"
-                id="aisle"
-                name="aisle"
-                maxlength="20"
-              />
-            </div>
-            <div class="field">
-              <label for="rack">Kệ</label
-              ><input
-                class="form-control"
-                id="rack"
-                name="rack"
-                maxlength="20"
-              />
-            </div>
-            <div class="field">
-              <label for="shelf">Tầng *</label
-              ><input
-                class="form-control"
-                id="shelf"
-                name="shelf"
-                maxlength="20"
-                required
-              />
-            </div>
-            <div class="field">
-              <label for="bin">Ô</label
-              ><input class="form-control" id="bin" name="bin" maxlength="20" />
             </div>
             <p id="formError" class="text-danger" role="alert"></p>
             <div class="modal-actions">

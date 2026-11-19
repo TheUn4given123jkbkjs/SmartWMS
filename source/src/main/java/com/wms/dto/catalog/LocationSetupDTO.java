@@ -15,22 +15,10 @@ public class LocationSetupDTO {
     message = "Mã vị trí chỉ gồm chữ in hoa, số và dấu gạch nối"
   )
   @jakarta.validation.constraints.Size(min = 3, max = 20)
-  @jakarta.validation.constraints.Size(min = 3, max = 20)
   private String locationCode;
 
   @NotNull(message = "Phân khu chức năng bắt buộc")
   private ZoneType zone;
-
-  private String aisle;
-  private String rack;
-
-  @NotBlank
-  @jakarta.validation.constraints.Size(max = 20)
-  @NotBlank
-  @jakarta.validation.constraints.Size(max = 20)
-  private String shelf;
-
-  private String bin;
 
   private BigDecimal maxCapacity;
   private BigDecimal maxWeightCapacity;
@@ -62,38 +50,6 @@ public class LocationSetupDTO {
 
   public void setZone(ZoneType zone) {
     this.zone = zone;
-  }
-
-  public String getAisle() {
-    return aisle;
-  }
-
-  public void setAisle(String aisle) {
-    this.aisle = aisle;
-  }
-
-  public String getRack() {
-    return rack;
-  }
-
-  public void setRack(String rack) {
-    this.rack = rack;
-  }
-
-  public String getShelf() {
-    return shelf;
-  }
-
-  public void setShelf(String shelf) {
-    this.shelf = shelf;
-  }
-
-  public String getBin() {
-    return bin;
-  }
-
-  public void setBin(String bin) {
-    this.bin = bin;
   }
 
   public BigDecimal getMaxCapacity() {

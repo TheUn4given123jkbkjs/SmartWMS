@@ -9,20 +9,20 @@
 
 ![Biểu đồ Lớp Phân tích Nghiệp vụ SmartWMS](ClassDiagram.jpg)
 
-### 1.1. Danh mục 11 Lớp Thực thể (`<<Entity>>`)
+### 1.1. Danh mục 12 Lớp Thực thể (`<<Entity>>`)
 
 | Lớp Thực thể | Ý nghĩa nghiệp vụ | Thuộc tính chính | Phương thức nghiệp vụ |
 | :--- | :--- | :--- | :--- |
 | **`Category`** | Ngành hàng phân loại | `code` (Unique), `name`, `active` | `activate()`, `deactivate()` |
-| **`Product`** | Mặt hàng lưu kho (SKU) | `skuCode` (Unique - BR-CAT-01), `uom`, `minStock`, `maxStock`, `manageByLot` | `calculateTotalAvailable()`, `isUnderMinStock()` |
+| **`Product`** | Mặt hàng lưu kho (SKU) | `skuCode` (Unique - BR-CAT-01), `uom`, `minStock`, `maxStock`, `manageByLot`, `active` | `calculateTotalAvailable()`, `isUnderMinStock()` |
 | **`PurchaseOrder`** | Đơn mua hàng tham chiếu (PO Header) | `poNumber` (Unique - BR-INB-01), `supplierName`, `status` | `isDeliverable()`, `closePO()` |
 | **`PurchaseOrderItem`** | Chi tiết đơn mua hàng (PO Detail) | `orderedQty`, `receivedQty` | `getRemainingQty()`, `updateReceivedQty()` |
 | **`WarehouseLocation`** | Vị trí ô kệ chuẩn 3M | `locationCode` (Unique - BR-CAT-02), `zone`, `maxCapacity`, `status` | `updateStatus()`, `isScrapZone()` |
 | **`StockBatch`** | Lô hàng tồn kho (Trung tâm) | `lotNumber`, `expDate`, `onHandQuantity`, `reservedQuantity`, `status` | `getAvailableQuantity()`, `reserve()`, `deductDispatched()`, `isExpired()` |
-| **`StockCard`** | Thẻ kho ghi biến động | `transactionDate`, `referenceCode`, `changeType`, `quantityChanged`, `afterQuantity` | `recordTransaction()` |
-| **`ReceiptNote`** | Phiếu nhập kho (Header) | `receiptNumber` (Unique), `poNumber`, `receiptDate`, `makerId`, `checkerId`, `status` | `submitForApproval()`, `approve()` |
-| **`ReceiptNoteItem`** | Chi tiết dòng nhập kho | `acceptedQuantity`, `damagedQuantity`, `lotNumber`, `expDate` | `getTotalQuantity()`, `validateExpiry()` |
-| **`IssueNote`** | Phiếu xuất kho (Header) | `issueNumber` (Unique), `dispatchStrategy`, `makerId`, `checkerId`, `status`, `isOverridden`, `overrideReason` | `reserveInventory()`, `confirmDispatch()` |
+| **`StockCard`** | Thẻ kho ghi biến động | `transactionDate`, `referenceCode`, `changeType`, `quantityChanged`, `afterQuantity`, `performedBy`, `approvedBy`, `reason` | `recordTransaction()` |
+| **`ReceiptNote`** | Phiếu nhập kho (Header) | `receiptNumber` (Unique), `poNumber`, `receiptDate`, `makerId`, `checkerId`, `status`, `rejectionNote` | `submitForApproval()`, `approve()` |
+| **`ReceiptNoteItem`** | Chi tiết dòng nhập kho | `acceptedQuantity`, `damagedQuantity`, `lotNumber`, `expDate`, `rejectionReason` | `getTotalQuantity()`, `validateExpiry()` |
+| **`IssueNote`** | Phiếu xuất kho (Header) | `issueNumber` (Unique), `dispatchStrategy`, `makerId`, `checkerId`, `confirmedBy`, `status`, `isOverridden`, `overrideReason`, `decisionReason` | `reserveInventory()`, `confirmDispatch()` |
 | **`IssueNoteItem`** | Chi tiết phân bổ xuất kho | `requestedQuantity`, `allocatedQuantity` | `validateLotNotExpired()` |
 | **`User`** | Tài khoản & Maker-Checker | `username` (Unique), `passwordHash`, `fullName`, `role`, `active` | `login()`, `hasRole()` |
 
@@ -54,27 +54,26 @@
 - **1NF & 2NF:** 100% bảng có Khóa chính đơn nhân tạo (`id bigint(10) PK AUTO_INCREMENT`), thuộc tính nguyên tử, không có thuộc tính đa trị.
 - **3NF:** Không có phụ thuộc bắc cầu; **không lưu cột dư thừa tồn khả dụng** (tính toán thời gian thực: `available = on_hand_qty - reserved_qty`).
 - **Khử quan hệ N-N:** Quan hệ Nhiều - Nhiều giữa `product` và `warehouse_location` được phân rã triệt để qua bảng trung gian **`stock_batch`**.
-- **Phân tách thực thể nghiệp vụ & bảng kỹ thuật:** Mô hình dữ liệu tập trung trọn vẹn vào **12 thực thể nghiệp vụ cốt lõi**. Các bảng hạ tầng như `audit_event` (nhật ký API kỹ thuật) và `warehouse_mutex` (khóa kỹ thuật phân tán chống xung đột ghi) không đưa vào ERD nghiệp vụ.
-- **Phân tách thực thể nghiệp vụ & bảng kỹ thuật:** Mô hình dữ liệu chuẩn hóa 3NF tập trung trọn vẹn vào **12 thực thể nghiệp vụ cốt lõi**. Các bảng hạ tầng như `audit_event` (nhật ký API kỹ thuật) và `warehouse_mutex` (khóa kỹ thuật phân tán chống xung đột ghi) được quản lý ở tầng hạ tầng (infrastructure concern), không đưa vào ERD nghiệp vụ kho để đảm bảo tính toàn vẹn tham chiếu 3NF.
+- **Phân tách thực thể nghiệp vụ & bảng kỹ thuật:** Mô hình dữ liệu chuẩn hóa 3NF tập trung trọn vẹn vào **12 thực thể nghiệp vụ cốt lõi**. Các bảng hạ tầng như `audit_event` (nhật ký API kỹ thuật) và `warehouse_mutex` (khóa kỹ thuật phân tán chống xung đột ghi) được quản lý ở tầng hạ tầng (infrastructure concern), không đưa vào ERD nghiệp vụ kho để đảm bảo tính toàn vẹn tham chiếu 3NF. Bản vẽ ERD lược bỏ hiển thị các cột audit kỹ thuật (`created_at`, `updated_at`) ở các bảng giao dịch kho nhằm đảm bảo tính trực quan.
 
 ### 2.2. Danh mục 12 Bảng Cơ sở Dữ liệu
 
 | Tên Bảng | Khóa chính (PK) | Khóa ngoại (FK) | Ràng buộc chính |
 | :--- | :--- | :--- | :--- |
 | **`category`** | `id bigint(10)` | — | `code` UNIQUE, `active bit DEFAULT 1` |
-| **`product`** | `id bigint(10)` | `category_id` $\rightarrow$ `category.id` | `sku_code` UNIQUE (BR-CAT-01), `min_stock >= 0`, `manage_by_lot bit` |
+| **`product`** | `id bigint(10)` | `category_id` $\rightarrow$ `category.id` | `sku_code` UNIQUE (BR-CAT-01), `min_stock >= 0`, `manage_by_lot bit`, `active bit` |
 | **`purchase_order`** | `id bigint(10)` | — | `po_number` UNIQUE (BR-INB-01), `status IN ('APPROVED','PARTIALLY_RECEIVED','CLOSED','CANCELLED')` |
 | **`purchase_order_item`** | `id bigint(10)` | `purchase_order_id`, `product_id` | `UNIQUE(purchase_order_id, product_id)`, `ordered_qty > 0`, `received_qty >= 0` |
 | **`warehouse_location`** | `id bigint(10)` | — | `location_code` UNIQUE (BR-CAT-02), `zone` (DOCK, INSP, RAW, FG, SCRAP) |
 | **`stock_batch`** | `id bigint(10)` | `product_id`, `location_id` | `lot_number`, `exp_date` (NULL nếu không quản lý hạn), `on_hand_qty >= 0`, `reserved_qty >= 0` |
 | **`stock_card`** | `id bigint(10)` | `product_id`, `batch_id`, `performed_by`, `approved_by` | `qty_changed <> 0`, `change_type`, `transaction_date`, `after_changed >= 0` (BR-SEC-02) |
-| **`receipt_note`** | `id bigint(10)` | `maker_id` $\rightarrow$ `user.id` | `receipt_number` UNIQUE, `po_number`, `checker_id != maker_id` (BR-SEC-03) |
-| **`receipt_note_item`** | `id bigint(10)` | `receipt_id`, `batch_id` | `accepted_qty >= 0`, `damaged_qty >= 0`, `exp_date` (NULL nếu không quản lý hạn) |
-| **`issue_note`** | `id bigint(10)` | `maker_id` $\rightarrow$ `user.id` | `issue_number` UNIQUE, `dispatch_strategy` (FEFO/FIFO), `checker_id != maker_id` |
+| **`receipt_note`** | `id bigint(10)` | `maker_id`, `checker_id` $\rightarrow$ `user.id` | `receipt_number` UNIQUE, `po_number`, `checker_id != maker_id` (BR-SEC-03) |
+| **`receipt_note_item`** | `id bigint(10)` | `receipt_id`, `batch_id`, `product_id`, `location_id` | `accepted_qty >= 0`, `damaged_qty >= 0`, `exp_date` (NULL nếu không quản lý hạn) |
+| **`issue_note`** | `id bigint(10)` | `maker_id`, `checker_id`, `confirmed_by` $\rightarrow$ `user.id` | `issue_number` UNIQUE, `dispatch_strategy` (FEFO/FIFO), `checker_id != maker_id` |
 | **`issue_note_item`** | `id bigint(10)` | `issue_id`, `batch_id` | `requested_qty > 0`, `allocated_qty >= 0` |
-| **`user`** | `id bigint(10)` | — | `username` UNIQUE, `passwordhash` NOT NULL, `active bit DEFAULT 1` |
+| **`user`** | `id bigint(10)` | — | `username` UNIQUE, `password_hash` NOT NULL, `active bit DEFAULT 1` |
 
-### 2.3. Danh mục 16 Mối quan hệ Chân quạ (Crow's Foot 1:N Non-Identifying)
+### 2.3. Danh mục 19 Mối quan hệ Chân quạ (Crow's Foot 1:N Non-Identifying)
 1. `category` (1) $\rightarrow$ `product` (N) [`category_id`]
 2. `purchase_order` (1) $\rightarrow$ `purchase_order_item` (N) [`purchase_order_id`]
 3. `product` (1) $\rightarrow$ `purchase_order_item` (N) [`product_id`]
@@ -82,15 +81,20 @@
 5. `warehouse_location` (1) $\rightarrow$ `stock_batch` (N) [`location_id`]
 6. `product` (1) $\rightarrow$ `stock_card` (N) [`product_id`]
 7. `stock_batch` (1) $\rightarrow$ `stock_card` (N) [`batch_id`]
-8. `purchase_order` (1) $\rightarrow$ `receipt_note` (N) [`po_number`]
-9. `receipt_note` (1) $\rightarrow$ `receipt_note_item` (N) [`receipt_id`]
-10. `stock_batch` (1) $\rightarrow$ `receipt_note_item` (N) [`batch_id`]
-11. `issue_note` (1) $\rightarrow$ `issue_note_item` (N) [`issue_id`]
-12. `stock_batch` (1) $\rightarrow$ `issue_note_item` (N) [`batch_id`]
-13. `user` (1) $\rightarrow$ `receipt_note` (N) [`maker_id`]
-14. `user` (1) $\rightarrow$ `issue_note` (N) [`maker_id`]
-15. `user` (1) $\rightarrow$ `stock_card` (N) [`performed_by`]
-16. `user` (1) $\rightarrow$ `stock_card` (N) [`approved_by`]
+8. `receipt_note` (1) $\rightarrow$ `receipt_note_item` (N) [`receipt_id`]
+9. `stock_batch` (1) $\rightarrow$ `receipt_note_item` (N) [`batch_id`]
+10. `product` (1) $\rightarrow$ `receipt_note_item` (N) [`product_id`]
+11. `warehouse_location` (1) $\rightarrow$ `receipt_note_item` (N) [`location_id`]
+12. `issue_note` (1) $\rightarrow$ `issue_note_item` (N) [`issue_id`]
+13. `stock_batch` (1) $\rightarrow$ `issue_note_item` (N) [`batch_id`]
+14. `user` (1) $\rightarrow$ `receipt_note` (N) [`maker_id`]
+15. `user` (1) $\rightarrow$ `receipt_note` (N) [`checker_id`]
+16. `user` (1) $\rightarrow$ `issue_note` (N) [`maker_id`]
+17. `user` (1) $\rightarrow$ `issue_note` (N) [`checker_id`]
+18. `user` (1) $\rightarrow$ `issue_note` (N) [`confirmed_by`]
+19. `user` (1) $\rightarrow$ `stock_card` (N) [`performed_by`, `approved_by`]
+
+*(Ghi chú: Giữa `purchase_order` và `receipt_note` còn có liên kết tham chiếu logic thông qua mã hiệu `po_number` phục vụ đối soát hạn mức nhận hàng `BR-INB-01`).*
 
 ---
 
@@ -100,21 +104,21 @@
 | :--- | :--- | :--- |
 | **BR-CAT-01** | SKU duy nhất | `Product.skuCode` / `product.sku_code` UNIQUE |
 | **BR-CAT-02** | Mã vị trí 3M | `WarehouseLocation.locationCode` / `warehouse_location.zone` (DOCK, INSP, RAW, FG, SCRAP) |
-| **BR-CAT-03** | Trạng thái ô kệ | `WarehouseLocation.status` / `warehouse_location.status` (EMPTY/OCCUPIED) |
+| **BR-CAT-03** | Trạng thái ô kệ | `WarehouseLocation.status` / `warehouse_location.status` (EMPTY/OCCUPIED/MAINTENANCE) |
 | **BR-CAT-04** | ĐVT cơ sở duy nhất | `Product.uom` / `product.uom` NOT NULL |
 | **BR-CAT-05** | Định mức Min/Max | `Product.minStock`, `maxStock` / `product.min_stock`, `max_stock` |
 | **BR-LOT-01** | Lô & Hạn sử dụng | `StockBatch.lotNumber`, `expDate` / `stock_batch.lot_number`, `exp_date` (cho phép NULL khi `manage_by_lot = FALSE`, xuất theo FIFO) |
 | **BR-INB-01** | Nhập gắn đơn PO & Chặn vượt số | `ReceiptNote.poNumber` đối soát `PurchaseOrder.poNumber`, kiểm soát `remainingQty >= accepted_qty` |
 | **BR-INB-02** | Tăng tồn khi duyệt | `StockBatch.onHandQuantity` tăng khi `ReceiptNote.status = 'COMPLETED'` |
-| **BR-INB-04** | Phân loại hàng hỏng | `ReceiptNoteItem.damagedQuantity` / `receipt_note_item.damged_qty` |
+| **BR-INB-04** | Phân loại hàng hỏng | `ReceiptNoteItem.damagedQuantity`, `rejectionReason` / `receipt_note_item.damaged_qty`, `rejection_reason` |
 | **BR-INV-01** | Cảnh báo thiếu & Đặt hàng | Tính tồn khả dụng trừ lượng giữ chỗ, đối soát mức min và đơn PO đang chờ giao |
 | **BR-OUT-01** | Giữ chỗ tồn khi lập lệnh | `StockBatch.reserve()` tăng `reservedQuantity`, trừ tồn khả dụng |
 | **BR-OUT-02** | Gợi ý FEFO/FIFO | `IssueNote.dispatchStrategy` / `issue_note.dispatch_strategy` |
 | **BR-OUT-03** | Cấm xuất quá hạn | `StockBatch.isExpired()` chặn nếu `CurrentDate > expDate` |
 | **BR-OUT-04** | Trừ tồn khi xuất | `StockBatch.deductDispatched()` trừ `onHandQuantity` & `reservedQuantity` |
 | **BR-OUT-06** | Ghi nhận Lô thực xuất | `IssueNoteItem` liên kết bắt buộc với `StockBatch` (`batch_id`) |
-| **BR-SEC-01** | Cấm sửa chứng từ duyệt | `ReceiptNote`/`IssueNote` khóa bản ghi khi COMPLETED / DISPATCHED |
-| **BR-SEC-02** | Nhật ký biến động | `StockCard` ghi nhận `transactionDate`, `referenceCode`, `qty_changed` |
+| **BR-SEC-01** | Cấm sửa chứng từ duyệt | `ReceiptNote`/`IssueNote` khóa bản ghi khi COMPLETED |
+| **BR-SEC-02** | Nhật ký biến động | `StockCard` ghi nhận `transactionDate`, `referenceCode`, `qty_changed`, `after_changed`, `performed_by`, `approved_by`, `reason` |
 | **BR-SEC-03** | Maker-Checker | `User` liên kết `creates / approves`, ràng buộc `checker_id != maker_id` |
 
 ---
@@ -124,7 +128,7 @@
 Phần này làm rõ căn cứ nghiệp vụ từ tài liệu SRS và quy tắc kinh doanh (Business Rules) để giải trình cho việc lựa chọn các thực thể, bản chất các mối liên kết và lượng số (multiplicity) trên sơ đồ:
 
 ### 4.1. Căn cứ Lựa chọn các Thực thể Nghiệp vụ (SRS Entity Extraction)
-Dựa trên tài liệu khảo sát hiện trạng (Chương 2) và đặc tả yêu cầu chức năng (FR01 – FR04), nhóm quyết định mô hình hóa hệ thống thành **11 thực thể nghiệp vụ (`<<Entity>>`)** tương ứng với các phân hệ cốt lõi:
+Dựa trên tài liệu khảo sát hiện trạng (Chương 2) và đặc tả yêu cầu chức năng (FR01 – FR04), nhóm quyết định mô hình hóa hệ thống thành **12 thực thể nghiệp vụ (`<<Entity>>`)** tương ứng với các phân hệ cốt lõi:
 - **`Category`, `Product`, `WarehouseLocation`:** Phục vụ phân hệ quản lý danh mục (FR01) và tổ chức mặt bằng kho theo chuẩn 3M Floor Marking.
 - **`PurchaseOrder`, `PurchaseOrderItem`:** Phục vụ phân hệ quản lý đơn mua hàng tham chiếu từ nhà cung cấp/ERP (FR02, BR-INB-01), kiểm soát số lượng đã đặt, số lượng lũy kế đã giao và ngăn chặn nhận vượt đơn PO.
 - **`StockBatch`, `StockCard`:** Phục vụ phân hệ quản lý tồn kho theo hạn dùng (FR04). Trong đó, `StockBatch` là trung tâm theo dõi số lượng tồn/giữ chỗ theo từng lô, còn `StockCard` là sổ cái bất biến lưu vết biến động.
@@ -147,7 +151,7 @@ Dựa trên tài liệu khảo sát hiện trạng (Chương 2) và đặc tả 
    - *Lý do chọn Composition:* Dòng hàng chi tiết PO chỉ có ý nghĩa khi gắn liền với đơn mua hàng cha. Khi xóa hoặc hủy đơn mua hàng, toàn bộ các dòng chi tiết thuộc đơn đó **bắt buộc bị xóa theo (Cascade Delete)**.
 5. **Liên kết giữa `ReceiptNote` và `ReceiptNoteItem` là Composition (`*--`) với lượng số `1` - `1..*`:**
    - *Ngữ nghĩa:* Một phiếu nhập kho (`ReceiptNote`) bắt buộc phải sở hữu từ 1 đến nhiều dòng hàng nhập thực tế (`ReceiptNoteItem`) với nhãn `consists of`.
-   - *Lý do chọn Composition:* Dòng hàng nhập (`ReceiptNoteItem`) chỉ tồn tại trong ngữ cảnh của phiếu nhập đó. Nếu phiếu nhập ở trạng thái bản nháp (`DRAFT`) bị xóa hoặc hủy bỏ, toàn bộ các dòng hàng chi tiết thuộc phiếu đó **bắt buộc phải bị xóa theo (Cascade Delete)**, không thể để dòng chi tiết tồn tại bơ vơ.
+   - *Lý do chọn Composition:* Dòng hàng nhập (`ReceiptNoteItem`) chỉ tồn tại trong ngữ cảnh của phiếu nhập đó. Nếu phiếu nhập ở trạng thái chờ duyệt (`PENDING_APPROVAL`) bị xóa hoặc hủy bỏ, toàn bộ các dòng hàng chi tiết thuộc phiếu đó **bắt buộc phải bị xóa theo (Cascade Delete)**, không thể để dòng chi tiết tồn tại bơ vơ.
 6. **Liên kết giữa `IssueNote` và `IssueNoteItem` là Composition (`*--`) với lượng số `1` - `1..*`:**
    - *Ngữ nghĩa:* Một phiếu xuất kho (`IssueNote`) sở hữu từ 1 đến nhiều dòng phân bổ xuất (`IssueNoteItem`) với nhãn `consists of`.
    - *Lý do chọn Composition:* Vòng đời của dòng phân bổ gắn chặt với phiếu xuất. Khi phiếu xuất bị hủy, các dòng phân bổ bị hủy theo và hệ thống kích hoạt hoàn trả lượng tồn giữ chỗ (`reservedQuantity`) về lại cho các lô hàng.

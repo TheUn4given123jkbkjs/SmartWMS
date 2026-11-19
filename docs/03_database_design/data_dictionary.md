@@ -21,12 +21,12 @@
 ---
 
 ## 2. BẢNG: `warehouse_location` (Vị trí ô kệ chuẩn 3M)
-*Mô tả: Quản lý không gian lưu trữ vật lý của nhà kho theo chuẩn 3M Floor Marking (Zone - Shelf - Bin).*
+*Mô tả: Quản lý không gian lưu trữ vật lý của nhà kho theo chuẩn 3M Floor Marking. Mã vị trí (`location_code`) được quy ước mã hóa theo thứ tự phân cấp `ZONE-AISLE-RACK-SHELF-BIN` (hoặc `ZONE-AISLERACK-SHELF`) để hệ thống tự động phân rã tọa độ Dãy (`aisle`), Kệ (`rack`), Tầng (`shelf`), Ô (`bin`) mà không cần lưu dư thừa cột vật lý.*
 
 | Tên trường (Column) | Kiểu dữ liệu | Độ dài | Nullable | Khóa | Giá trị mặc định | Ràng buộc nghiệp vụ (Constraints) | Ý nghĩa nghiệp vụ |
 | :--- | :--- | :---: | :---: | :---: | :---: | :--- | :--- |
 | `id` | BIGINT | - | NO | **PK** | AUTO_INCREMENT | `id > 0` | Khóa chính định danh vị trí ô kệ |
-| `location_code` | VARCHAR | 30 | NO | **UK** | None | UNIQUE, Not empty (`BR-CAT-02`) | Mã vị trí chuẩn 3M (VD: `RAW-A-01`) |
+| `location_code` | VARCHAR | 30 | NO | **UK** | None | UNIQUE, Not empty (`BR-CAT-02`) | Mã vị trí chuẩn 3M theo thứ tự `Khu-Dãy-Kệ-Tầng-Ô` (VD: `RAW-A01-01`, `FG-B-01-02-01`) |
 | `zone` | VARCHAR | 20 | NO | - | None | `IN ('DOCK','INSP','RAW','FG','SCRAP')` | Phân vùng chức năng trong kho |
 | `max_capacity` | DECIMAL | (12, 2)| YES | - | NULL | `max_capacity >= 0` | Sức chứa hoặc tải trọng tối đa (kg/pallet) |
 | `status` | VARCHAR | 20 | NO | - | 'EMPTY' | `IN ('EMPTY','OCCUPIED','MAINTENANCE')` (`BR-CAT-03`) | Trạng thái ô kệ lưu trữ |
@@ -120,6 +120,7 @@
 | `exp_date` | DATE | - | YES | - | None | `exp_date > CURRENT_DATE` nếu `manage_by_lot = 1`; NULL nếu `manage_by_lot = 0` (`BR-LOT-01`) | Hạn sử dụng của mặt hàng (NULL nếu không quản lý hạn dùng) |
 | `accepted_qty` | DECIMAL | (12, 2) | NO | - | 0 | `accepted_qty >= 0` (`BR-INB-01`) | Số lượng đạt chuẩn tiếp nhận vào kho |
 | `damaged_qty` | DECIMAL | (12, 2) | NO | - | 0 | `damaged_qty >= 0` (`BR-INB-04`) | Số lượng vỡ hỏng/lỗi từ chối tiếp nhận |
+| `rejection_reason` | VARCHAR | 255 | YES | - | NULL | Bắt buộc khi `damaged_qty > 0` (`BR-INB-04`) | Lý do từ chối tiếp nhận hàng hỏng/lỗi |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm tạo dòng chi tiết |
 
 ---
@@ -147,7 +148,7 @@
 | `confirmed_by` | BIGINT | - | YES | **FK** | NULL | REFERENCES `user(id)` RESTRICT | Người xác nhận bàn giao |
 | `decision_reason` | VARCHAR | 255 | YES | - | NULL | - | Lý do từ chối hoặc hủy |
 | `created_at` | TIMESTAMP | - | NO | - | CURRENT_TIMESTAMP | - | Thời điểm tạo lệnh xuất |
-| `updated_at` | TIMESTAMP | - | YES | - | CURRENT_TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Thời điểm duyệt / xác nhận xuất |
+| `updated_at` | TIMESTAMP | - | YES | - | CURRENT_TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Thời điểm cập nhật bản ghi gần nhất |
 
 ---
 

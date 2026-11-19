@@ -109,7 +109,7 @@ class MustHaveIntegrationTest {
   void fixture() throws Exception {
     staff = login("staff_thien");
     manager = login("manager_trung");
-    admin = login("admin");
+    admin = login("manager_khang");
     String tag = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     long category = request("GET", "/catalog/api/categories", null, admin, 200)
       .get(0)
@@ -147,8 +147,6 @@ class MustHaveIntegrationTest {
         "RAW-" + tag,
         "zone",
         "RAW",
-        "shelf",
-        "01",
         "maxCapacity",
         10000
       ),
@@ -323,7 +321,7 @@ class MustHaveIntegrationTest {
     }
     request("POST", "/catalog/api/locations", Map.of(
       "locationCode", "FG-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
-      "zone", "FG", "shelf", "01", "maxCapacity", 100), manager, 201);
+      "zone", "FG", "maxCapacity", 100), manager, 201);
   }
 
   @Test

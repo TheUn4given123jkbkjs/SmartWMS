@@ -78,7 +78,7 @@ Dự án thực tế của VTI Solutions có quy mô rất lớn (triển khai �
 |---|---|---|
 | Nhân viên kho / Thủ kho | `ROLE_STAFF` | Đọc danh mục, PO, chứng từ, tồn, thẻ kho và cảnh báo. Lập phiếu nhập và xuất. Xác nhận giao lệnh xuất đã duyệt. Hủy lệnh xuất của chính mình khi lệnh còn chờ duyệt hoặc chờ lấy hàng. |
 | Quản lý kho / Thủ kho trưởng | `ROLE_MANAGER` | Các quyền đọc nêu trên. Tạo SKU và ô kệ, sửa định mức Min/Max. Nhập PO đã duyệt qua hai API ghi PO. Duyệt hoặc từ chối phiếu nhập/xuất của người khác. Hủy lệnh xuất còn chờ duyệt hoặc chờ lấy hàng. |
-| Quản trị viên | `ROLE_ADMIN` | Các quyền đọc nêu trên. Tạo SKU và ô kệ, sửa định mức Min/Max. Các API ghi PO và ghi phiếu nhập/xuất từ chối role này. |
+| Quản trị viên | `ROLE_ADMIN` *(Could-have UI riêng)* | Các quyền đọc nêu trên. Tạo SKU và ô kệ, sửa định mức Min/Max trên giao diện danh mục chung. Các API ghi PO và ghi phiếu nhập/xuất từ chối role này để đảm bảo cô lập thẩm quyền chứng từ. Giao diện quản trị tài khoản và cấu hình hệ thống chuyên biệt (Admin Portal) được xếp mức **Could-have** nhằm ưu tiên nguồn lực cho 2 nhóm tác nhân vận hành chính là Thủ kho (`ROLE_STAFF`) và Quản lý kho (`ROLE_MANAGER`). |
 | Mua hàng | Chưa có role riêng | Bên cung cấp thông tin PO và sử dụng số liệu tồn hoặc đề xuất đặt hàng theo nghiệp vụ. |
 | Kế toán kho, Ban Giám đốc | Chưa có role riêng | Bên đối soát hoặc sử dụng báo cáo theo nghiệp vụ. |
 | Nhà cung cấp, Kế hoạch sản xuất / Bán hàng | Chưa có role riêng | Bên giao hàng hoặc gửi nhu cầu xuất theo quy trình doanh nghiệp. |

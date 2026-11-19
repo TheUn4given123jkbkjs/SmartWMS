@@ -58,19 +58,14 @@ public class DataInitializer implements CommandLineRunner {
   }
 
   private void seedUsers() {
+    // Gỡ bỏ tài khoản admin mặc định (Phân hệ Admin chuyên biệt thuộc nhóm Could-have)
+    userRepository.findByUsername("admin").ifPresent(userRepository::delete);
+
     if (userRepository.count() > 0) {
       return;
     }
 
-    // 1. Quản trị viên hệ thống (ROLE_ADMIN)
-    createUser(
-      "admin",
-      "123456",
-      "Quản trị viên Hệ thống",
-      UserRole.ROLE_ADMIN
-    );
-
-    // 2. Quản lý kho / Thủ kho trưởng (ROLE_MANAGER - Checker)
+    // 1. Quản lý kho / Thủ kho trưởng (ROLE_MANAGER - Checker)
     createUser(
       "manager_trung",
       "123456",
@@ -84,7 +79,7 @@ public class DataInitializer implements CommandLineRunner {
       UserRole.ROLE_MANAGER
     );
 
-    // 3. Nhân viên kho / Thủ kho thực thi (ROLE_STAFF - Maker)
+    // 2. Nhân viên kho / Thủ kho thực thi (ROLE_STAFF - Maker)
     createUser(
       "staff_thien",
       "123456",
@@ -212,7 +207,6 @@ public class DataInitializer implements CommandLineRunner {
     WarehouseLocation loc = new WarehouseLocation();
     loc.setLocationCode(locationCode);
     loc.setZone(zone);
-    loc.setShelf("01");
     loc.setMaxCapacity(maxCapacity);
     loc.setStatus(status);
     loc.setCreatedAt(LocalDateTime.now());

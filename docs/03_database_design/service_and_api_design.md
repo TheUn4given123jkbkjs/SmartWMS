@@ -82,13 +82,9 @@
 | `ProductResponseDTO` | `maxWeightPerUnit`| `BigDecimal` | Không rỗng | Trọng lượng đơn vị hàng hóa |
 | `ProductResponseDTO` | `shelfLifeDays`| `Integer` | Tùy chọn | Số ngày bảo quản chuẩn |
 | `ProductResponseDTO` | `active` | `Boolean` | Không rỗng | Trạng thái kinh doanh / lưu kho |
-| **`LocationSetupDTO`** | `locationCode`| `String` | `@NotBlank`, `@Pattern(regexp = "^[A-Z0-9-]+$")` | Mã vị trí ô kệ (DOCK-01, RAW-A-01...) |
-| `LocationSetupDTO` | `zone` | `ZoneType` | `@NotNull(message = "Phân khu bắt buộc")` | Phân khu (`DOCK`, `INSP`, `RAW`, `FG`, `SCRAP`) |
-| `LocationSetupDTO` | `aisle` | `String` | `@NotBlank(message = "Dãy bắt buộc")` | Tọa độ dãy kệ |
-| `LocationSetupDTO` | `rack` | `String` | `@NotBlank(message = "Kệ bắt buộc")` | Tọa độ khung kệ |
-| `LocationSetupDTO` | `shelf` | `String` | `@NotBlank(message = "Tầng bắt buộc")` | Tọa độ tầng kệ |
-| `LocationSetupDTO` | `bin` | `String` | `@NotBlank(message = "Ô bắt buộc")` | Tọa độ ô kệ |
-| `LocationSetupDTO` | `maxWeightCapacity` | `BigDecimal` | `@NotNull`, `@Min(1)` | Tải trọng tối đa cho phép của ô kệ (kg) |
+| **`LocationSetupDTO`** | `locationCode`| `String` | `@NotBlank`, `@Pattern(regexp = "^[A-Z0-9-]+$")` | Mã vị trí ô kệ theo thứ tự `ZONE-AISLE-RACK-SHELF-BIN` (VD: `RAW-A01-01`, `FG-B-01-02-01`) để tự động phân rã tọa độ |
+| `LocationSetupDTO` | `zone` | `ZoneType` | `@NotNull(message = "Phân khu chức năng bắt buộc")` | Phân khu (`DOCK`, `INSP`, `RAW`, `FG`, `SCRAP`) |
+| `LocationSetupDTO` | `maxCapacity` | `BigDecimal` | `@NotNull`, `> 0` | Sức chứa hoặc tải trọng thiết kế tối đa của ô kệ |
 
 ---
 

@@ -193,6 +193,7 @@ CREATE TABLE receipt_note_item (
     exp_date DATE NULL, -- Cho phép NULL đối với hàng không quản lý lô/hạn (Quyết định D5)
     accepted_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
     damaged_qty DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    rejection_reason VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_receipt_item_note FOREIGN KEY (receipt_id) REFERENCES receipt_note(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_receipt_item_batch FOREIGN KEY (batch_id) REFERENCES stock_batch(id) ON DELETE SET NULL ON UPDATE CASCADE,

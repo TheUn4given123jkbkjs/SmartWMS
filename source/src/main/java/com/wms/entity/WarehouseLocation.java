@@ -45,51 +45,63 @@ public class WarehouseLocation {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
-  @Column(length = 20)
-  private String shelf;
-
-  public String getShelf() {
-    return shelf;
-  }
-
-  public void setShelf(String value) {
-    shelf = value;
-  }
-
-  @Column(length = 20)
-  private String aisle;
-
-  public String getAisle() {
-    return aisle;
-  }
-
-  public void setAisle(String value) {
-    aisle = value;
-  }
-
-  @Column(length = 20)
-  private String rack;
-
-  public String getRack() {
-    return rack;
-  }
-
-  public void setRack(String value) {
-    rack = value;
-  }
-
-  @Column(length = 20)
-  private String bin;
-
-  public String getBin() {
-    return bin;
-  }
-
-  public void setBin(String value) {
-    bin = value;
-  }
-
   public WarehouseLocation() {}
+
+  /**
+   * Phân rã tự động tọa độ [Dãy, Kệ, Tầng, Ô] từ mã vị trí chuẩn 3M (location_code).
+   * Hỗ trợ định dạng:
+   * - ZONE-AISLE-RACK-SHELF-BIN (VD: RAW-A-01-02-01)
+   * - ZONE-AISLE-RACK-SHELF (VD: RAW-A-01-02)
+   * - ZONE-AISLERACK-SHELF (VD: RAW-A01-02)
+   * - ZONE-BIN (VD: DOCK-01, INSP-01, SCRAP-01)
+   */
+  @Transient
+  private String[] parseCoordinates() {
+    if (locationCode == null || locationCode.isBlank()) {
+      return new String[] { "—", "—", "—", "—" };
+    }
+    String[] parts = locationCode.trim().split("-");
+    if (parts.length >= 5) {
+      return new String[] { parts[1], parts[2], parts[3], parts[4] };
+    }
+    if (parts.length == 4) {
+      return new String[] { parts[1], parts[2], parts[3], "01" };
+    }
+    if (parts.length == 3) {
+      String mid = parts[1];
+      java.util.regex.Matcher m = java.util.regex.Pattern
+        .compile("^([A-Z]+)(\\d+)$")
+        .matcher(mid);
+      if (m.matches()) {
+        return new String[] { m.group(1), m.group(2), parts[2], "01" };
+      }
+      return new String[] { mid, "01", parts[2], "01" };
+    }
+    if (parts.length == 2) {
+      return new String[] { "Sàn", "01", "01", parts[1] };
+    }
+    return new String[] { "—", "—", "01", "—" };
+  }
+
+  @Transient
+  public String getAisle() {
+    return parseCoordinates()[0];
+  }
+
+  @Transient
+  public String getRack() {
+    return parseCoordinates()[1];
+  }
+
+  @Transient
+  public String getShelf() {
+    return parseCoordinates()[2];
+  }
+
+  @Transient
+  public String getBin() {
+    return parseCoordinates()[3];
+  }
 
   public Long getId() {
     return id;
