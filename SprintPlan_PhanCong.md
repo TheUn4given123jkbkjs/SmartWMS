@@ -62,7 +62,7 @@
 | :---: | :--- | :---: | :---: | :---: | :---: |
 | **T4.1** | Thiết kế Wireframe/Layout Web Dashboard & Forms (Thymeleaf / Bootstrap 5) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 11/11 | **Hoàn thành** |
 | **T4.2** | Lập Bảng Đặc tả màn hình Web & Luồng điều hướng Route (SCR Navigation Flow) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 11/11 | **Hoàn thành** |
-| **T4.3** | Thiết kế bộ Ca kiểm thử nghiệp vụ (**Test Design**: Positive `-P` và Negative `-N`) | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 12/11 | Đang thực hiện |
+| **T4.3** | Thiết kế bộ Ca kiểm thử nghiệp vụ (**Test Design**: Positive `-P` và Negative `-N`) | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 12/11 | **Hoàn thành** |
 | **T4.4** | Xây dựng Ma trận truy vết yêu cầu (RTM: Vấn đề $\rightarrow$ FR $\rightarrow$ UC $\rightarrow$ DB $\rightarrow$ SCR $\rightarrow$ TC) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 12/11 | Đang thực hiện |
 
 ---
@@ -75,7 +75,7 @@
 | **T5.1** | Xây dựng tầng Dữ liệu & Nghiệp vụ (JPA Entities, Spring Repositories, Services `@Transactional`) | **M1** (Nguyễn Thành Trung) | **M2** (Nguyễn Bảo Khang) | 15/11 | **Hoàn thành** |
 | **T5.2** | Xây dựng tầng Giao diện Web (Controllers, Thymeleaf Views / Web Forms, Bootstrap UI) | **M4** (Thạch Hoàng Quân) | **M1** (Nguyễn Thành Trung) | 15/11 | **Hoàn thành** |
 | **T5.3** | Nối hoàn chỉnh luồng nghiệp vụ 3–5 chức năng Must-have chạy thực tế trên Web (localhost:8080/8088) | **M3** (Tôn Thanh Thiên) | **M4** (Thạch Hoàng Quân) | 16/11 | **Hoàn thành** |
-| **T5.4** | Chạy kiểm thử (**Test Execution**) theo bộ Test Case đã thiết kế, lập biên bản test | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 16/11 | Chờ làm |
+| **T5.4** | Chạy kiểm thử (**Test Execution**) theo bộ Test Case đã thiết kế, lập biên bản test | **M2** (Nguyễn Bảo Khang) | **M3** (Tôn Thanh Thiên) | 16/11 | **Hoàn thành** |
 
 ---
 
