@@ -74,7 +74,7 @@
 | **`issue_note_item`** | `id bigint(10)` | `issue_id`, `batch_id` | `requested_qty > 0`, `allocated_qty >= 0` |
 | **`user`** | `id bigint(10)` | — | `username` UNIQUE, `passwordhash` NOT NULL, `active bit DEFAULT 1` |
 
-### 2.3. Danh mục 14 Mối quan hệ Chân quạ (Crow's Foot 1:N Non-Identifying)
+### 2.3. Danh mục 16 Mối quan hệ Chân quạ (Crow's Foot 1:N Non-Identifying)
 1. `category` (1) $\rightarrow$ `product` (N) [`category_id`]
 2. `purchase_order` (1) $\rightarrow$ `purchase_order_item` (N) [`purchase_order_id`]
 3. `product` (1) $\rightarrow$ `purchase_order_item` (N) [`product_id`]
@@ -89,6 +89,8 @@
 12. `stock_batch` (1) $\rightarrow$ `issue_note_item` (N) [`batch_id`]
 13. `user` (1) $\rightarrow$ `receipt_note` (N) [`maker_id`]
 14. `user` (1) $\rightarrow$ `issue_note` (N) [`maker_id`]
+15. `user` (1) $\rightarrow$ `stock_card` (N) [`performed_by`]
+16. `user` (1) $\rightarrow$ `stock_card` (N) [`approved_by`]
 
 ---
 
